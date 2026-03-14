@@ -1,0 +1,152 @@
+Project Title:Development of a Mobile Application for Interactive Learning through Short Educational Video Content for Students ( ReelScholar )
+
+CHAPTER 1
+ 
+1.0 Introduction
+1.0 Introduction
+Chinhoyi University of Technology (CUT) is committed to fostering an innovative academic environment that leverages modern technology to enhance student success. In the contemporary educational landscape, there is an increasing institutional need to transition from passive text-heavy instructional methods to dynamic, high-engagement digital media. While the university has successfully implemented traditional Learning Management Systems (LMS) for administrative and course delivery purposes, these static platforms often struggle to sustain learner motivation in an era dominated by interactive short-form digital content.
+Recognizing the shift in how information is consumed, the development of ReelScholar serves as a strategic intervention to modernize the university’s e-learning framework. This campus-specific mobile application integrates with the current educational  methods benefits of micro-learning with the interactive features of social media. By providing a structured environment for short educational videos, peer collaboration, and immediate assessment via quizzes, the application aims to bridge the gap between students' digital habits and institutional academic goals. Ultimately, this platform seeks to enhance knowledge retention and foster a more vibrant digitally creative academic community at CUT.
+ 
+1.1 Background
+The widespread use of mobile technology has changed how students access and share academic resources. Mobile learning has become a key part of modern education due to the global adoption of smartphones, offering a flexible alternative to traditional classroom instruction by providing convenience and better engagement (Ng et al., 2020).
+
+ This shift allows for education to happen without the limits of time or location, removing the barriers found in traditional educational systems.
+Current evidence suggests a significant shift in teaching and learning methods: students increasingly prefer brief, engaging video formats over long lectures or dense text-based content (Guo, Kim, & Rubin, 2014). This preference has led to the rise of micro-learning, where short, focused lessons encourage regular study habits and better information retention. While short-form video platforms like TikTok and  Instagram Reels are popular among young people, their use is mostly for entertainment rather than structured learning.
+Although many students use online videos for self-study, there is a lack of mobile applications designed to turn these habits into measurable academic results (Moghavvemi et al., 2018). At Chinhoyi University of Technology, e-learning development has mainly focused on static Learning Management Systems (LMS) used for sharing lecture notes and administrative updates. While these systems are useful for administration, they often lack the interactive and visual features needed to keep students motivated. As a result, many students rely on unverified online sources, which can lead to misunderstandings and lower academic performance.
+There is, therefore, a clear need for ReelScholar: a modern mobile application that matches the digital habits of students. By combining short educational videos with interactive quizzes, social features for peer interaction, and progress tracking, this platform aims to bridge the gap between entertainment media and academic study.ReelScholar is designed to work alongside the existing e-learning tools at Chinhoyi University of Technology to improve student comprehension and engagement.
+ 
+1.2 Problem Statement
+Students at Chinhoyi University of Technology (CUT) frequently engage with short-form video platforms such as TikTok and Instagram; however, this consumption is predominantly entertainment oriented and offers negligible contribution to their academic development. This extensive engagement with non educational media often results in cognitive distraction and diminished focus on academic responsibilities.
+ 
+Currently, students lack a dedicated institutional platform for disseminating peer-led instructional content, such as study strategies or course specific tutorials. While many students possess valuable academic insights, there is no formal medium for knowledge sharing among peers. Furthermore, mainstream social media lacks structured mechanisms for academic validation or lecturer moderation, making it difficult to verify the accuracy of shared information.
+ 
+Consequently, there is a need for a campus-specific short video platform that facilitates structured academic interaction, enables peer-to-peer knowledge sharing, and allows for formal content filtering.
+ 
+Definition
+ 
+Educational short-video platform created solely for CUT students to generate and upload content, including tutorials, exam reviews, practical demonstrations, campus information, and academic challenges. Meanwhile  CUT is different from TikTok because it doesn't have entertaining content, it only has learning and knowledge sharing.
+ 
+Ideal Situation
+Ideally, students should access interesting, adaptable, and interactive educational materials that complement traditional classroom instruction. This approach would cater to students' affinity for digital interaction, maintain their engagement, and facilitate incremental knowledge acquisition. Educational platforms would feature brief, engaging lessons to facilitate rapid mastery of complex subjects while preserving student engagement and enthusiasm.
+ 
+Reality
+Students watch entertainment videos all the time, not educational videos. Not the cut particular platform for short videos. Students don't get to show off their knowledge in an amazing way, and that is a waste of academic talent.
+ 
+1.3 Aim and Objectives
+ 
+Aim
+To design, develop, and evaluate CUT Learning Hub, a hybrid mobile/web application that empowers CUT students to create and share short-form educational videos  addressing limitations in traditional e-learning platforms such as  Moodle by integrating interactive quizzes, content filtering, and social sharing features to enhance student engagement, collaboration, and knowledge retention in a university context.
+ 
+Objectives
+ 
+1. Analyze functional gaps
+ 
+Review and identify key weaknesses in existing e-learning systems like Moodle and Google Classroom (e.g., lack of short-video support, poor mobile interactivity) through academic literature, user surveys (CUT students/faculty) and usage analytics.
+Conduct comparative analysis with short-form platforms (e.g. TikTok, Instagram Reels) to benchmark features like video editing, real-time feedback, and virality.
+Define precise functional or technical requirements tailored to CUT's curriculum, including video upload limits, quiz integration, and role-based access (student/instructor).   
+ 
+  2. Design and develop prototype
+Design responsive user interfaces using Flutter for mobile application and for web (Vue.js/Tailwind) prototypes, prioritizing intuitive video creation and discovery flows.
+Develop a secure RESTful API backend (Laravel/PHP) supporting CRUD operations for user-generated content (videos, quizzes), JWT authentication, multi-tenant course categorization, and media storage.
+Integrate frontend-backend via API calls, implement real-time features (e.g., WebSockets for comments), and produce comprehensive documentation.  
+     
+3. Evaluate effectiveness
+Deploy beta version for pilot testing with 30+ CUT students/faculty over 3 weeks, tracking metrics like engagement (video completion rates), retention (pre/post-quiz scores), and usability.
+Analyze quantitative and qualitative (feedback interviews) data to quantify improvements over baselines.
+Iterate based on findings, document lessons learned, and recommend scalable rollout for CUT's ecosystem.
+ 
+1.4Significance of study
+This research is notable for offering a virtual platform where CUT students can demonstrate creativity, engage in social interaction, and preserve the institution's unique identity. It will help the students interest, and it will help the student become more digitally creative, and it will make the student feel like they are a part of a bigger community. For the university, this platform could serve as an information conduit for academic notices, a showcase for student accomplishments, and a means for elevating CUT's digital presence. Furthermore, this initiative offers a contribution to the Information Technology sector by illustrating the feasibility of tailored social networks aimed at specific user groups.
+ 
+1.5 Limitation and Delimitation of study
+ 
+Limitations:
+1. Student participation is restricted to those registered at CUT; individuals not affiliated with the institution will lack access to and interaction with the application.
+2.  Execution speed may be variable due to internet connectivity and device performance constraints. First, they probably don't have a live stream or AI filter because they don't have the resources.
+ 
+Delimitations:
+1. Research is limited to video interactions within the CUT environment. 
+2. The target audience is limited to currently enrolled students.
+3. The system will undergo testing and implementation on the Cut Campus network.
+ 
+1.6 Definitions.
+CUT: Chinhoyi University of Technology
+Short-Video: Video duration generally limited to a maximum of 60 seconds. User Authentication: ensures user identification, reducing unauthorized access risks. Algorithm: a process for suggesting or prioritizing videos based on user preferences. UI: User interaction interface how the user interacts with the app.
+ 
+1.7 Conclusion
+This chapter summarized the proposed application similar to tik tok that is only for Chinhoyi university of technology students. It was the inspiration of the project, the questions that led to the creation of this project, the purpose of the project. This chapter also emphasizes the benefit of developing a safe and engaging digital platform for students to share short video clips, communicate with others, and remain informed about campus events. It also served as the basis, constraints, and fundamental terminology of the system.
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CHAPTER 2:  LITERATURE REVIEW / RELATED WORK
+
+2.0 Introduction
+This chapter provides a literature review on mobile learning applications, short-video educational platforms, and gamified learning experiences at the tertiary level. This analysis covers the theoretical foundation of mobile learning, evaluates current platforms and their functionalities, discusses recommendation algorithms for tailored educational content, and highlights deficiencies in existing systems to justify the creation of ReelScholar. This chapter is structured by subject matter to facilitate comprehension of the research area and to establish the necessary theoretical framework for the system under investigation.
+
+2.1 Theoretical Framework
+
+2.1.1 Mobile Learning (M-Learning) Theory
+Mobile learning (m-learning) is the use of mobile devices, such as smart phones and tablets to access educational content from any location and at any time, thereby enabling learning outside of the classroom and computer labs (Bisandu, 2019).  Empirical evidence suggests that mobile learning (m-learning) yields the highest pedagogical gains when the design prioritizes interactivity and learner-centeredness over the mere 'miniaturization' of traditional lectures (Lo et al., 2025). This aligns with broader shifts toward digital-first engagement, which necessitate moving away from static delivery models to accommodate the flexible, remote nature of modern student life (Donnelly & Johns, 2021).  Recent meta-analytical evaluations (e.g., Al-Hunaiyyan et al., 2023; Bakri et al., 2023) reveal that the efficacy of mobile learning hinges on critical success factors, including device availability, students’ digital technology familiarity, instructional quality, and institutional support. While the technical development of such artifacts follows the design science guidelines established by Hevner et al. (2004), the pedagogical success depends on the integration of these contextual variables. Proper utilization of mobile applications offers benefits such as increased flexibility, immediate access to information, and the convenience of collaborative learning, allowing students to review material during brief intervals, engage with peers, and obtain rapid feedback.
+
+2.2.2 MicroLearning and Short Video Content
+Microlearning is characterized by the delivery of content in concise segments, which are generally completed within minutes, frequently utilizing video and multimedia formats to minimize cognitive overload and enhance comprehension retention (Guo, Kim & Rubin, 2014). Educational resource literature indicates that brief videos (less than 6-10 minutes) outperform longer formats in terms of completion rates and retention outcomes when supplemented with questions or rapid assessment items (Panopto, 2025; Devlin et al., 2018). The success of platforms like TikTok and Instagram Reels illustrates the potential for short-form video (SFV) to sustain long-term user interaction through algorithmic relevance and visual immediacy (Montag et al., 2021). Literature suggests that when these 'snackable' content characteristics are applied to educational contexts, they can enhance student engagement by providing fresh, visually-driven information that mirrors modern content consumption habits (Dwivedi et al., 2021; Al-Hunaiyyan et al., 2023). Educational researchers have adopted this reasoning by developing microlearning units, which consist of brief videos on particular subjects followed by a testing or practice attempt aligning with the principles of spaced repetition and just in time learning.
+
+2.2.3 Social and Interactive Learning
+According to Social Learning Theory (Bandura, 1977), learning is a cognitive process that takes place in a social context through observation and direct instruction. Modern educational tools operationalize this by integrating social functionalities such as peer commenting, reactions, and collaborative threads, which enable students to externalize their reasoning and engage in 'social construction' of knowledge (Perusall, 2024). Furthermore, m-learning applications enhance active participation by replacing passive listening with interactive multimedia, real-time polls, and immediate feedback loops. While gamification elements such as points and leaderboards can drive engagement, literature cautions that these should be used to reward effort and quality of input rather than purely incentivizing summative performance (Chamorro-Premuzic et al., 2016; Deterding, 2021)
+
+2.2.4 Critical Analysis and Field Orientation
+The literature describes a clear trajectory shifting from static, content-heavy e-learning toward mobile-first, micro, and socially embedded formats. While research indicates that concise, interactive mobile content maximizes utility, most institutional repositories remain dominated by 'legacy formats' like PDFs and static slides, which fail to sustain student engagement (Moghavvemi et al., 2018; Bisandu, 2019). However, scholars caution that superficial adoption of social media aesthetics without deep pedagogical integration risks causing cognitive distraction rather than learning (Srivastava et al., 2024). Consequently, while several frameworks attempt to merge education with modern communication, many remain impractical for adoption at Chinhoyi University of Technology due to localized constraints such as high data costs, inconsistent connectivity, and the lack of a centralized mobile video repository.
+
+2.3 Existing Systems
+
+2.3.1 Traditional E-Learning and LMS Platforms
+For instance, popular Learning Management Systems (LMS) such as Moodle and Google Classroom function as platforms where educators can disseminate lecture notes, homework assignments, and announcements, while also serving as repositories for grade records and document sharing. However, despite these methods enabling course administration, extensive research indicates they do not sustain student engagement, especially when the course content is predominantly text-based with minimal forum interaction (Donnelly & Johns, 2021; Sajid et al., 2022). In the specific context of Chinhoyi University of Technology this static model underpins the existing eLearning platform, which has transitioned into a predominantly document-centric and media-poor alternative to traditional classroom instruction. Consequently, students frequently seek online resources, such as YouTube or TikTok, to gain explanations of complex topics, which may expose them to misinformation or inaccuracies.
+
+2.3.2 Video Learning Platforms for Higher Education
+Enterprise video sharing platforms such as Panopto and Kaltura, have become standard fixtures in global higher education by offering robust features like lecture capture, video hosting, and LMS gradebook integration. These systems provide high utility through functionalities such as adjustable playback speeds, automated transcript searching, and embedded quiz modules, which are essential for facilitating flipped classrooms and recorded lecture archives (Panopto, 2025). Nevertheless, research suggests that these platforms remain fundamentally teacher-centric; instructional material is primarily produced by educators, distributed as lengthy formal presentations, and consumed by students in a traditional one-to-many broadcast format (Devlin & McKay, 2018). Such systems rarely provide the social affordances or low-friction interfaces needed to motivate students to create their own "user-generated" content or share brief, informal videos related to their coursework. This creates a significant gap in peer-to-peer knowledge sharing a gap that the proposed CUT SmartFeed seeks to address by shifting the focus toward student-led, micro-educational content creation.
+
+2.3.3 Social and MicroVideo Apps with Educational Use
+Innovative educational methodologies have increasingly leveraged the short-video format, ranging from dedicated microlearning apps to classroom-focused tools like Flip. These platforms demonstrate that student-generated video content can significantly enhance self-confidence and facilitate peer-to-peer instruction while providing educators with vital feedback on student comprehension (Warusawithana et al., 2023; Gunjal et al., 2025). However, mainstream social media platforms such as TikTok and Instagram Reels predominantly operate as entertainment ecosystems. They lack the institutional oversight, course-specific taxonomy, and alignment with university quality assurance processes required for formal education (Dwivedi et al., 2020). Consequently, for CUT students, these platforms often present a 'double-edged sword' while the format is highly engaging, the lack of curriculum alignment often leads to cognitive distraction and the disruption of dedicated study schedules.
+
+2.4 Advocacy and Personalization of Educational Experience
+
+2.4.1 Content Recommendation Algorithms
+Recommendation systems leverage user data, individual preferences and contextual variables to generate tailored content suggestions effectively mitigating the challenge of information overload (Celik Ertugrul & Bitirim, 2025). In higher education, these systems align suggested materials with a student’s registered modules, prior interaction history, and performance metrics, allowing learners to focus on content that maximizes their specific pedagogical needs (Lo et al., 2025; Sajid et al., 2022). Current literature categorizes these solutions into three primary models: content-based filtering, which matches item attributes to user profiles; collaborative filtering, which predicts interests based on similar user behaviors; and hybrid systems, which synthesize both approaches to improve recommendation accuracy (Mehrabi et al., 2019; Afoudi et al., 2021). Implementing such systems in online educational environments has been statistically shown to increase student engagement and productivity, particularly when managing large-scale repositories of multimedia material.
+
+2.4.2 Personalised MicroLearning and Learning Paths
+Recent research has integrated recommender systems into microlearning frameworks, establishing tailored learning pathways that cater to individual learner deficiencies and cognitive needs (Major & Calandrino, 2021; Madhumithaa et al., 2025). Knowledge-based algorithms are increasingly used to map relationships between concepts, enabling the delivery of adaptive micro-videos and quizzes that adjust in difficulty based on a student’s prior performance. This architecture is highly compatible with the ReelScholar model, where informational segments are categorized by course, topic, and complexity. By leveraging consumption patterns and quiz accuracy, the system can evolve from a simple media feed into an intelligent educational resource that proactively identifies and bridges knowledge gaps.
+
+2.5 Limitations of prior research
+However, a thorough review of the literature and existing systems reveals multiple deficiencies, which the specified ReelScholar aims to rectify.
+
+2.5.1 Limited Institution Specific ShortVideo Platforms
+Most of the research and of the commercial products are either generic global applications  such as platforms like TikTok, YouTube, or generic institutional video hosting sites without a social feed or microvideo feature (Panopto, LMS integrations based on YouTube). A significant limitation is the absence of university-specific short-video platforms, which would be tailored to each institution's unique academic focus, societal context and communication practices (Horodyski, 2023; Hunkenschroer & Luetge, 2022). For Chinhoyi University of Technology, this is similar to the absence of a digital platform where students can autonomously create and distribute short academic videos, departmental news, and educational content among peers under institutional oversight. Current tools also do not leverage the communal and exclusive potential of a university-only network.
+
+2.5.2 Underuse of Student Generated Educational Content
+Traditional educational platforms are primarily built on a 'broadcast' model where instructors act as creators and students as a passive audience. However, social media analytics demonstrate that students possess a high capacity for content generation when provided with intuitive tools and social incentives (Dwivedi et al., 2021). Despite the proven benefits of active learning, the widespread adoption of Student-Generated Video (SGV) remains limited in higher education, often due to a lack of institutional frameworks that can organize and validate peer-led content (Warusawithana et al., 2023; Hitchcock, 2022). The proposed system addresses this by integrating a structured framework where student-produced micro-videos are mapped to specific academic modules, allowing for peer-to-peer knowledge transfer while providing administrators with robust engagement analytics.
+
+2.5.3 Disjointed Interactivity and Evaluation
+Current educational technology remains fragmented; while individual tools offer video hosting, quizzes, or discussion boards, integrated environments that synthesize these features into a single mobile-first interface are rare. Existing Learning Management Systems (LMS) provide structured assessment but lack the 'social affordances'—such as vertical scrolling feeds and real-time reactions—that drive modern engagement (Moghavvemi et al., 2018). Conversely, social platforms prioritize interaction but lack institutional alignment and graded assessment frameworks. This fragmentation forces learners to switch between multiple disjointed sources, which significantly increases cognitive load and degrades focus (Sweller, 2011). Consequently, there is an urgent need for integrated, institutionally-governed systems that merge media consumption, social interaction, and formative evaluation within a unified mobile ecosystem.
+
+2.5.4 Limited Focus on African University Contexts
+Current m-learning research is predominantly influenced by European and North American paradigms, which often assume robust infrastructure and low-cost data access conditions that contrast sharply with the socio-economic realities of Zimbabwean higher education (Dangaiso et al., 2023). Empirical evidence regarding short-video pedagogy in African universities remains sparse due to practical barriers, including high data costs and device disparities (Musitaffa Mweha, 2025). Consequently, existing frameworks often fail to address the specific needs of CUT students, who require 'low-bandwidth' optimizations and 'offline-first' functionalities such as local caching and pre-downloaded content modules. This disparity provides a strong motivation for a regional solution like the ReelScholar, which is designed to operate within the constraints of the local digital ecosystem while leveraging the high prevalence of smartphone ownership.
+
+2.6 Proposed Work
+This will be accomplished via the creation and deployment of the proposed ReelScholar mobile application, which will feature short video microlearning, gamification, and recommendation, all within a campus exclusive setting. This system provides an opportunity for students at CUT to develop, upload, and classify brief instructional videos corresponding with specific courses and topics, with supervision from faculty and administrative staff to ensure content quality and compliance with institutional regulations. Interactive components, including quizzes within videos, comment sections, reaction tools, and discussion threads among peers, will be incorporated at the clip level to enhance engagement, facilitate social learning, and provide immediate feedback. The recommendation engine will analyze courses enrolled in, viewing history, engagement metrics, and more to suggest content, transforming the generic TikTok like feed into a curriculum optimized educational feed. In this context,ReelScholar will implement mobile, micro, and social learning frameworks within a practical, localized setting, effectively addressing the deficiencies observed in existing theories and applications.
+
+2.7 Conclusion
+Empirical evidence demonstrates the efficacy of mobile learning, microlearning, and social connectivity as tools to improve student engagement and information retention, assuming their implementation is judicious. Current LMSs, video platforms, and social media sites offer incomplete solutions, but none provide the comprehensive short-video-based learning experience tailored to the specific needs of a CUT. Existing deficiencies include absence of educational institution-oriented shortvideo platforms, underutilization of student-generated short video content, lack of integrated interactive features within such platforms, and limited data access regarding African university participation. To address this issue, the developers of the proposed ReelScholar aim to create a mobile application that offers short educational videos, engaging learning experiences and tailored content recommendations for students at CUT. The subsequent chapter will analyze the research design employed to create and validate this system in the context of Chinhoyi University of Technology.
