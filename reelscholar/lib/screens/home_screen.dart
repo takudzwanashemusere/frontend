@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'search_screen.dart';
 import 'upload_screen.dart';
+import 'profile_screen.dart';
+import 'alerts_screen.dart';
+import 'messages_screen.dart';
 import '../widgets/comments_sheet.dart';
 import '../widgets/share_sheet.dart';
 import '../models/video_store.dart';
@@ -90,27 +93,73 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
 
-                  // Search icon
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const SearchScreen()),
-                      );
-                    },
-                    child: Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.search_rounded,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ),
+                  // Top right icons — Messages + Search
+                  Row(
+                    children: [
+                      // Messages icon
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const MessagesScreen()),
+                          );
+                        },
+                        child: Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Stack(
+                            children: [
+                              const Center(
+                                child: Icon(Icons.chat_bubble_outline_rounded,
+                                    color: Colors.white, size: 20),
+                              ),
+                              // Unread badge
+                              Positioned(
+                                top: 6,
+                                right: 6,
+                                child: Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.redAccent,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // Search icon
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const SearchScreen()),
+                          );
+                        },
+                        child: Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(
+                            Icons.search_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -540,17 +589,46 @@ class _BottomNavState extends State<_BottomNav> {
                   context,
                   MaterialPageRoute(builder: (_) => const SearchScreen()),
                 );
+              } else if (index == 3) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AlertsScreen()),
+                );
+              } else if (index == 4) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                );
               }
             },
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  item['icon'] as IconData,
-                  color: isSelected
-                      ? const Color(0xFF6C63FF)
-                      : Colors.white38,
-                  size: 24,
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Icon(
+                      item['icon'] as IconData,
+                      color: isSelected
+                          ? const Color(0xFF6C63FF)
+                          : Colors.white38,
+                      size: 24,
+                    ),
+                    // Unread badge on Alerts icon only
+                    if (index == 3)
+                      Positioned(
+                        top: -4,
+                        right: -4,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Colors.redAccent,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 3),
                 Text(

@@ -11,34 +11,124 @@ class _SearchScreenState extends State<SearchScreen>
     with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   late TabController _tabController;
-  bool _isSearching = false;
   String _query = '';
 
-  final List<String> _tabs = ['All', 'Maths', 'Biology', 'ICT', 'Chemistry', 'Physics'];
+  final List<String> _tabs = [
+    'All',
+    'Engineering',
+    'Business',
+    'Agriculture',
+    'Health',
+    'Natural Sci',
+  ];
 
   final List<Map<String, dynamic>> _trending = [
-    {'subject': 'Mathematics', 'title': 'Quadratic Equations Simplified', 'author': '@tatenda_math', 'views': '12.4K', 'color': const Color(0xFF6C63FF)},
-    {'subject': 'ICT', 'title': 'Flutter vs React Native for CUT', 'author': '@simba_ict', 'views': '9.1K', 'color': const Color(0xFFFF6B35)},
-    {'subject': 'Biology', 'title': 'DNA Replication in 60 seconds', 'author': '@rudo_biology', 'views': '7.8K', 'color': const Color(0xFF2ECC71)},
-    {'subject': 'Physics', 'title': "Newton's 3 Laws with examples", 'author': '@taku_physics', 'views': '6.3K', 'color': const Color(0xFF00BCD4)},
-    {'subject': 'Chemistry', 'title': 'Ionic vs Covalent Bonds', 'author': '@panashe_chem', 'views': '4.9K', 'color': const Color(0xFFE040FB)},
-    {'subject': 'Mathematics', 'title': 'Integration by Parts', 'author': '@tatenda_math', 'views': '3.7K', 'color': const Color(0xFF6C63FF)},
+    {
+      'subject': 'Software Engineering',
+      'school': 'Engineering Science and Technology',
+      'title': 'Introduction to Flutter — Building mobile apps at CUT',
+      'author': '@tatenda_m',
+      'views': '12.4K',
+      'color': const Color(0xFF6C63FF),
+    },
+    {
+      'subject': 'Business Management',
+      'school': 'Entrepreneurship and Business Sciences',
+      'title': 'How to write a Business Plan that actually works',
+      'author': '@simba_biz',
+      'views': '9.1K',
+      'color': const Color(0xFFFF6B35),
+    },
+    {
+      'subject': 'Crop Science',
+      'school': 'Agriculture Sciences and Technology',
+      'title': 'Soil Fertility Management for Zimbabwean Farmers',
+      'author': '@rudo_agri',
+      'views': '7.8K',
+      'color': const Color(0xFF2ECC71),
+    },
+    {
+      'subject': 'Wildlife Management',
+      'school': 'Wildlife and Environmental Science',
+      'title': "Conservation strategies for Zimbabwe's wildlife reserves",
+      'author': '@taku_wildlife',
+      'views': '6.3K',
+      'color': const Color(0xFF00BCD4),
+    },
+    {
+      'subject': 'Public Health',
+      'school': 'Health Sciences and Technology',
+      'title': 'Understanding the Human Immune System',
+      'author': '@panashe_health',
+      'views': '4.9K',
+      'color': const Color(0xFFE040FB),
+    },
+    {
+      'subject': 'Hotel Management',
+      'school': 'Hospitality and Tourism',
+      'title': 'Front Office Operations in Modern Hotels',
+      'author': '@chiedza_hosp',
+      'views': '3.7K',
+      'color': const Color(0xFFFFD700),
+    },
   ];
 
   final List<String> _recentSearches = [
-    'quadratic equations',
-    'DNA replication',
-    'flutter tutorial',
-    'Newton laws',
+    'software engineering',
+    'crop science',
+    'business plan',
+    'wildlife conservation',
   ];
 
-  final List<Map<String, dynamic>> _categories = [
-    {'name': 'Mathematics', 'icon': Icons.calculate_outlined, 'color': const Color(0xFF6C63FF), 'count': '248 videos'},
-    {'name': 'Biology', 'icon': Icons.biotech_outlined, 'color': const Color(0xFF2ECC71), 'count': '183 videos'},
-    {'name': 'ICT', 'icon': Icons.computer_outlined, 'color': const Color(0xFFFF6B35), 'count': '312 videos'},
-    {'name': 'Chemistry', 'icon': Icons.science_outlined, 'color': const Color(0xFFE040FB), 'count': '156 videos'},
-    {'name': 'Physics', 'icon': Icons.bolt_outlined, 'color': const Color(0xFF00BCD4), 'count': '201 videos'},
-    {'name': 'English', 'icon': Icons.menu_book_outlined, 'color': const Color(0xFFFFD700), 'count': '94 videos'},
+  final List<Map<String, dynamic>> _schools = [
+    {
+      'name': 'Engineering Science\n& Technology',
+      'icon': Icons.engineering_outlined,
+      'color': const Color(0xFF6C63FF),
+      'count': '312 videos',
+    },
+    {
+      'name': 'Entrepreneurship\n& Business Sciences',
+      'icon': Icons.business_center_outlined,
+      'color': const Color(0xFFFF6B35),
+      'count': '248 videos',
+    },
+    {
+      'name': 'Agriculture Sciences\n& Technology',
+      'icon': Icons.agriculture_outlined,
+      'color': const Color(0xFF2ECC71),
+      'count': '183 videos',
+    },
+    {
+      'name': 'Natural Sciences\n& Mathematics',
+      'icon': Icons.science_outlined,
+      'color': const Color(0xFF00BCD4),
+      'count': '201 videos',
+    },
+    {
+      'name': 'Health Sciences\n& Technology',
+      'icon': Icons.local_hospital_outlined,
+      'color': const Color(0xFFE040FB),
+      'count': '156 videos',
+    },
+    {
+      'name': 'Wildlife &\nEnvironmental Science',
+      'icon': Icons.park_outlined,
+      'color': const Color(0xFF4CAF50),
+      'count': '94 videos',
+    },
+    {
+      'name': 'Hospitality\n& Tourism',
+      'icon': Icons.hotel_outlined,
+      'color': const Color(0xFFFFD700),
+      'count': '127 videos',
+    },
+    {
+      'name': 'Art\n& Design',
+      'icon': Icons.palette_outlined,
+      'color': const Color(0xFFFF4081),
+      'count': '89 videos',
+    },
   ];
 
   @override
@@ -62,59 +152,43 @@ class _SearchScreenState extends State<SearchScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Discover',
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
+                  const Text('Discover',
+                      style: TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white)),
                   const SizedBox(height: 4),
-                  Text(
-                    'Find educational content for CUT students',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.white.withValues(alpha: 0.45),
-                    ),
-                  ),
+                  Text('Find educational content across CUT schools',
+                      style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.white.withValues(alpha: 0.45))),
                   const SizedBox(height: 16),
-
-                  // Search bar
                   Container(
                     decoration: BoxDecoration(
                       color: const Color(0xFF1A1A2E),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: _isSearching
-                            ? const Color(0xFF6C63FF)
-                            : Colors.white.withValues(alpha: 0.08),
-                      ),
+                          color: _query.isNotEmpty
+                              ? const Color(0xFF6C63FF)
+                              : Colors.white.withValues(alpha: 0.08)),
                     ),
                     child: TextField(
                       controller: _searchController,
-                      onChanged: (val) {
-                        setState(() => _query = val);
-                      },
-                      onTap: () => setState(() => _isSearching = true),
+                      onChanged: (val) => setState(() => _query = val),
                       style: const TextStyle(color: Colors.white, fontSize: 15),
                       decoration: InputDecoration(
-                        hintText: 'Search videos, subjects, topics...',
+                        hintText:
+                            'Search modules, schools, topics...',
                         hintStyle: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.25),
-                          fontSize: 14,
-                        ),
-                        prefixIcon: const Icon(
-                          Icons.search_rounded,
-                          color: Color(0xFF6C63FF),
-                          size: 22,
-                        ),
+                            color: Colors.white.withValues(alpha: 0.25),
+                            fontSize: 14),
+                        prefixIcon: const Icon(Icons.search_rounded,
+                            color: Color(0xFF6C63FF), size: 22),
                         suffixIcon: _query.isNotEmpty
                             ? IconButton(
                                 icon: const Icon(Icons.close_rounded,
@@ -126,9 +200,8 @@ class _SearchScreenState extends State<SearchScreen>
                               )
                             : null,
                         border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 14,
-                        ),
+                        contentPadding:
+                            const EdgeInsets.symmetric(vertical: 14),
                       ),
                     ),
                   ),
@@ -138,7 +211,6 @@ class _SearchScreenState extends State<SearchScreen>
 
             const SizedBox(height: 16),
 
-            // Tabs
             TabBar(
               controller: _tabController,
               isScrollable: true,
@@ -148,16 +220,13 @@ class _SearchScreenState extends State<SearchScreen>
               labelColor: const Color(0xFF6C63FF),
               unselectedLabelColor: Colors.white38,
               labelStyle: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-              ),
+                  fontWeight: FontWeight.w600, fontSize: 13),
               padding: const EdgeInsets.symmetric(horizontal: 16),
               tabs: _tabs.map((t) => Tab(text: t)).toList(),
             ),
 
             const SizedBox(height: 8),
 
-            // Content
             Expanded(
               child: _query.isNotEmpty
                   ? _buildSearchResults()
@@ -181,23 +250,16 @@ class _SearchScreenState extends State<SearchScreen>
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Recent Searches',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
+                const Text('Recent Searches',
+                    style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white)),
                 TextButton(
                   onPressed: () {},
-                  child: const Text(
-                    'Clear all',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF6C63FF),
-                    ),
-                  ),
+                  child: const Text('Clear all',
+                      style: TextStyle(
+                          fontSize: 12, color: Color(0xFF6C63FF))),
                 ),
               ],
             ),
@@ -212,15 +274,12 @@ class _SearchScreenState extends State<SearchScreen>
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 8,
-                    ),
+                        horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
                       color: const Color(0xFF1A1A2E),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.08),
-                      ),
+                          color: Colors.white.withValues(alpha: 0.08)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -228,13 +287,9 @@ class _SearchScreenState extends State<SearchScreen>
                         const Icon(Icons.history_rounded,
                             size: 14, color: Colors.white38),
                         const SizedBox(width: 6),
-                        Text(
-                          s,
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 13,
-                          ),
-                        ),
+                        Text(s,
+                            style: const TextStyle(
+                                color: Colors.white70, fontSize: 13)),
                       ],
                     ),
                   ),
@@ -244,29 +299,27 @@ class _SearchScreenState extends State<SearchScreen>
             const SizedBox(height: 24),
           ],
 
-          // Browse by subject
-          const Text(
-            'Browse by Subject',
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
-          ),
+          // Browse by School
+          const Text('Browse by School',
+              style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white)),
           const SizedBox(height: 12),
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            gridDelegate:
+                const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
-              childAspectRatio: 1.6,
+              childAspectRatio: 1.4,
             ),
-            itemCount: _categories.length,
+            itemCount: _schools.length,
             itemBuilder: (context, index) {
-              final cat = _categories[index];
-              final Color color = cat['color'] as Color;
+              final school = _schools[index];
+              final Color color = school['color'] as Color;
               return GestureDetector(
                 onTap: () {},
                 child: Container(
@@ -274,33 +327,30 @@ class _SearchScreenState extends State<SearchScreen>
                     color: color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: color.withValues(alpha: 0.2),
-                    ),
+                        color: color.withValues(alpha: 0.2)),
                   ),
                   padding: const EdgeInsets.all(14),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Icon(cat['icon'] as IconData, color: color, size: 26),
+                      Icon(school['icon'] as IconData,
+                          color: color, size: 24),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            cat['name'],
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                            ),
-                          ),
-                          Text(
-                            cat['count'],
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.4),
-                              fontSize: 11,
-                            ),
-                          ),
+                          Text(school['name'],
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 12),
+                              maxLines: 2),
+                          const SizedBox(height: 2),
+                          Text(school['count'],
+                              style: TextStyle(
+                                  color: Colors.white
+                                      .withValues(alpha: 0.4),
+                                  fontSize: 10)),
                         ],
                       ),
                     ],
@@ -312,15 +362,11 @@ class _SearchScreenState extends State<SearchScreen>
 
           const SizedBox(height: 24),
 
-          // Trending
-          const Text(
-            '🔥 Trending Now',
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
-          ),
+          const Text('🔥 Trending Now',
+              style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white)),
           const SizedBox(height: 12),
           ..._trending.map((video) => _TrendingCard(video: video)),
           const SizedBox(height: 80),
@@ -332,8 +378,18 @@ class _SearchScreenState extends State<SearchScreen>
   Widget _buildSearchResults() {
     final results = _trending
         .where((v) =>
-            v['title'].toString().toLowerCase().contains(_query.toLowerCase()) ||
-            v['subject'].toString().toLowerCase().contains(_query.toLowerCase()))
+            v['title']
+                .toString()
+                .toLowerCase()
+                .contains(_query.toLowerCase()) ||
+            v['subject']
+                .toString()
+                .toLowerCase()
+                .contains(_query.toLowerCase()) ||
+            v['school']
+                .toString()
+                .toLowerCase()
+                .contains(_query.toLowerCase()))
         .toList();
 
     if (results.isEmpty) {
@@ -344,13 +400,10 @@ class _SearchScreenState extends State<SearchScreen>
             Icon(Icons.search_off_rounded,
                 size: 60, color: Colors.white.withValues(alpha: 0.2)),
             const SizedBox(height: 16),
-            Text(
-              'No results for "$_query"',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.4),
-                fontSize: 15,
-              ),
-            ),
+            Text('No results for "$_query"',
+                style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.4),
+                    fontSize: 15)),
           ],
         ),
       );
@@ -359,7 +412,8 @@ class _SearchScreenState extends State<SearchScreen>
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       itemCount: results.length,
-      itemBuilder: (context, index) => _TrendingCard(video: results[index]),
+      itemBuilder: (context, index) =>
+          _TrendingCard(video: results[index]),
     );
   }
 }
@@ -395,16 +449,13 @@ class _TrendingCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  video['title'],
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                Text(video['title'],
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 4),
                 Row(
                   children: [
@@ -415,22 +466,19 @@ class _TrendingCard extends StatelessWidget {
                         color: color.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: Text(
-                        video['subject'],
-                        style: TextStyle(
-                          color: color,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      child: Text(video['subject'],
+                          style: TextStyle(
+                              color: color,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600)),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      video['author'],
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.4),
-                        fontSize: 11,
-                      ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(video['author'],
+                          style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.4),
+                              fontSize: 11),
+                          overflow: TextOverflow.ellipsis),
                     ),
                   ],
                 ),
@@ -442,10 +490,9 @@ class _TrendingCard extends StatelessWidget {
               const Icon(Icons.visibility_outlined,
                   size: 14, color: Colors.white38),
               const SizedBox(height: 2),
-              Text(
-                video['views'],
-                style: const TextStyle(color: Colors.white38, fontSize: 11),
-              ),
+              Text(video['views'],
+                  style:
+                      const TextStyle(color: Colors.white38, fontSize: 11)),
             ],
           ),
         ],
