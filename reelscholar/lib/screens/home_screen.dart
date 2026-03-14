@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'search_screen.dart';
+import 'upload_screen.dart';
+import '../widgets/comments_sheet.dart';
+import '../widgets/share_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -127,7 +131,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
 
                   // Search icon
-                  Container(
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const SearchScreen()),
+                      );
+                    },
+                    child: Container(
                     width: 38,
                     height: 38,
                     decoration: BoxDecoration(
@@ -139,6 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       color: Colors.white,
                       size: 20,
                     ),
+                  ),
                   ),
                 ],
               ),
@@ -385,7 +397,7 @@ class _VideoCardState extends State<_VideoCard>
 
                 // Comment
                 _ActionButton(
-                  onTap: () {},
+                  onTap: () => showComments(context, video['title']),
                   child: const Icon(
                     Icons.chat_bubble_outline_rounded,
                     color: Colors.white,
@@ -397,7 +409,7 @@ class _VideoCardState extends State<_VideoCard>
 
                 // Share
                 _ActionButton(
-                  onTap: () {},
+                  onTap: () => showShareSheet(context, video['title'], video['username']),
                   child: const Icon(
                     Icons.reply_rounded,
                     color: Colors.white,
@@ -521,7 +533,12 @@ class _BottomNavState extends State<_BottomNav> {
 
           if (isUpload) {
             return GestureDetector(
-              onTap: () => setState(() => _selected = index),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const UploadScreen()),
+                );
+              },
               child: Container(
                 width: 48,
                 height: 48,
@@ -548,7 +565,15 @@ class _BottomNavState extends State<_BottomNav> {
           }
 
           return GestureDetector(
-            onTap: () => setState(() => _selected = index),
+            onTap: () {
+              setState(() => _selected = index);
+              if (index == 1) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SearchScreen()),
+                );
+              }
+            },
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
