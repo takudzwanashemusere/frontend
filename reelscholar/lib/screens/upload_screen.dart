@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
+import '../models/video_store.dart';
 
 class UploadScreen extends StatefulWidget {
   const UploadScreen({super.key});
@@ -17,6 +19,9 @@ class _UploadScreenState extends State<UploadScreen>
 
   String? _selectedSubject;
   bool _hasVideo = false;
+  String _selectedFileName = '';
+  String? _filePath;
+  List<int>? _fileBytes;
   bool _isUploading = false;
   double _uploadProgress = 0.0;
 
@@ -54,9 +59,32 @@ class _UploadScreenState extends State<UploadScreen>
     super.dispose();
   }
 
-  void _pickVideo() {
-    // TODO: Connect to file_picker package for real video selection
-    setState(() => _hasVideo = true);
+  void _pickVideo() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['mp4', 'mov', 'avi', 'mkv'],
+        allowMultiple: false,
+        withData: true, // This captures bytes — works on web AND mobile
+      );
+
+      if (result != null && result.files.isNotEmpty) {
+        final file = result.files.first;
+        setState(() {
+          _hasVideo = true;
+          _selectedFileName = file.name;
+          _filePath = file.path;
+          _fileBytes = file.bytes != null ? List<int>.from(file.bytes!) : null;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _hasVideo = true;
+        _selectedFileName = 'selected_video.mp4';
+        _filePath = null;
+        _fileBytes = null;
+      });
+    }
   }
 
   void _handleUpload() async {
@@ -80,6 +108,21 @@ class _UploadScreenState extends State<UploadScreen>
       await Future.delayed(const Duration(milliseconds: 80));
       if (mounted) setState(() => _uploadProgress = i / 100);
     }
+
+    // Add video to the shared store so it appears in home feed
+    VideoStore.addVideo({
+      'username': '@me',
+      'name': 'You',
+      'subject': _selectedSubject ?? 'General',
+      'title': _titleController.text.trim(),
+      'likes': '0',
+      'comments': '0',
+      'shares': '0',
+      'color': 0xFF1A1040,
+      'accent': 0xFF6C63FF,
+      'filePath': _filePath,
+      'fileBytes': _fileBytes,
+    });
 
     setState(() => _isUploading = false);
     if (mounted) {
@@ -184,7 +227,7 @@ class _UploadScreenState extends State<UploadScreen>
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    'educational_video.mp4',
+                                    _selectedFileName,
                                     style: TextStyle(
                                       color: Colors.white.withValues(alpha: 0.4),
                                       fontSize: 12,

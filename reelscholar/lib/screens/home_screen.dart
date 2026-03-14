@@ -3,6 +3,8 @@ import 'search_screen.dart';
 import 'upload_screen.dart';
 import '../widgets/comments_sheet.dart';
 import '../widgets/share_sheet.dart';
+import '../models/video_store.dart';
+import '../widgets/video_player_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,65 +16,23 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
   final PageController _pageController = PageController();
+  List<Map<String, dynamic>> _videos = [];
 
-  // Dummy video data — replace with real API data later
-  final List<Map<String, dynamic>> _videos = [
-    {
-      'username': '@tatenda_math',
-      'name': 'Tatenda Moyo',
-      'subject': 'Mathematics',
-      'title': 'Solving Quadratic Equations in 60 seconds 🔥',
-      'likes': '2.4K',
-      'comments': '183',
-      'shares': '92',
-      'color': const Color(0xFF1A1040),
-      'accent': const Color(0xFF6C63FF),
-    },
-    {
-      'username': '@rudo_biology',
-      'name': 'Rudo Chikwanda',
-      'subject': 'Biology',
-      'title': 'How DNA Replication works — simple explanation 🧬',
-      'likes': '1.8K',
-      'comments': '97',
-      'shares': '44',
-      'color': const Color(0xFF0D2818),
-      'accent': const Color(0xFF2ECC71),
-    },
-    {
-      'username': '@simba_ict',
-      'name': 'Simba Kowo',
-      'subject': 'ICT',
-      'title': 'Flutter vs React Native — which one for CUT students? 📱',
-      'likes': '3.1K',
-      'comments': '256',
-      'shares': '130',
-      'color': const Color(0xFF1A0A00),
-      'accent': const Color(0xFFFF6B35),
-    },
-    {
-      'username': '@panashe_chem',
-      'name': 'Panashe Dzingira',
-      'subject': 'Chemistry',
-      'title': 'Understanding Ionic vs Covalent Bonds ⚗️',
-      'likes': '987',
-      'comments': '64',
-      'shares': '28',
-      'color': const Color(0xFF1A0020),
-      'accent': const Color(0xFFE040FB),
-    },
-    {
-      'username': '@taku_physics',
-      'name': 'Takudzwa Musere',
-      'subject': 'Physics',
-      'title': "Newton's 3 Laws explained with real examples 🚀",
-      'likes': '4.2K',
-      'comments': '312',
-      'shares': '201',
-      'color': const Color(0xFF001A2A),
-      'accent': const Color(0xFF00BCD4),
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadVideos();
+  }
+
+  void _loadVideos() {
+    setState(() {
+      _videos = VideoStore.videos.map((v) => {
+        ...v,
+        'color': Color(v['color'] as int),
+        'accent': Color(v['accent'] as int),
+      }).toList();
+    });
+  }
 
   @override
   void dispose() {
@@ -162,7 +122,10 @@ class _HomeScreenState extends State<HomeScreen> {
             bottom: 0,
             left: 0,
             right: 0,
-            child: _BottomNav(currentIndex: _currentIndex == 0 ? 0 : 0),
+            child: _BottomNav(
+              currentIndex: _currentIndex == 0 ? 0 : 0,
+              onRefresh: _loadVideos,
+            ),
           ),
         ],
       ),
@@ -207,6 +170,47 @@ class _VideoCardState extends State<_VideoCard>
     _heartController.forward().then((_) => _heartController.reverse());
   }
 
+  Widget _buildDemoPlaceholder(Color accent, Map<String, dynamic> video) {
+    return Container(
+      color: Colors.black,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: accent.withValues(alpha: 0.15),
+                border: Border.all(color: accent.withValues(alpha: 0.4), width: 2),
+              ),
+              child: Icon(Icons.play_arrow_rounded, color: accent, size: 52),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              decoration: BoxDecoration(
+                color: accent.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: accent.withValues(alpha: 0.3)),
+              ),
+              child: Text(
+                video['subject'],
+                style: TextStyle(
+                  color: accent,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final video = widget.video;
@@ -240,53 +244,15 @@ class _VideoCardState extends State<_VideoCard>
             ),
           ),
 
-          // Video placeholder (replace with actual video player later)
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: accent.withValues(alpha: 0.15),
-                    border: Border.all(
-                      color: accent.withValues(alpha: 0.4),
-                      width: 2,
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.play_arrow_rounded,
-                    color: accent,
-                    size: 60,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: accent.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: accent.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Text(
-                    video['subject'],
-                    style: TextStyle(
-                      color: accent,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          // Video player — real if file exists, placeholder if not
+          Positioned.fill(
+            child: (video['fileBytes'] != null)
+                ? VideoPlayerWidget(fileBytes: video['fileBytes'] as List<int>)
+                : (video['filePath'] != null)
+                    ? VideoPlayerWidget(filePath: video['filePath'] as String)
+                    : (video['networkUrl'] != null)
+                        ? VideoPlayerWidget(networkUrl: video['networkUrl'] as String)
+                        : _buildDemoPlaceholder(accent, video),
           ),
 
           // Bottom content overlay
@@ -495,7 +461,8 @@ class _ActionButton extends StatelessWidget {
 
 class _BottomNav extends StatefulWidget {
   final int currentIndex;
-  const _BottomNav({required this.currentIndex});
+  final VoidCallback onRefresh;
+  const _BottomNav({required this.currentIndex, required this.onRefresh});
 
   @override
   State<_BottomNav> createState() => _BottomNavState();
@@ -533,11 +500,12 @@ class _BottomNavState extends State<_BottomNav> {
 
           if (isUpload) {
             return GestureDetector(
-              onTap: () {
-                Navigator.push(
+              onTap: () async {
+                await Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const UploadScreen()),
                 );
+                widget.onRefresh();
               },
               child: Container(
                 width: 48,

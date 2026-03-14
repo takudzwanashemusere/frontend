@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'home_screen.dart';
+import '../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -54,6 +55,14 @@ class _LoginScreenState extends State<LoginScreen>
       setState(() => _isLoading = true);
       // Simulate API call — replace with your actual auth service
       await Future.delayed(const Duration(seconds: 2));
+
+      // Save session so user stays logged in
+      await AuthService.saveSession(
+        email: _emailController.text.trim(),
+        name: _emailController.text.split('@')[0],
+        token: 'dummy_token_replace_with_real_jwt',
+      );
+
       setState(() => _isLoading = false);
       if (mounted) {
         Navigator.pushReplacement(
