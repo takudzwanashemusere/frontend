@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import '../models/video_store.dart';
+import '../main.dart';
 
 class UploadScreen extends StatefulWidget {
   const UploadScreen({super.key});
@@ -26,87 +27,45 @@ class _UploadScreenState extends State<UploadScreen>
   bool _isUploading = false;
   double _uploadProgress = 0.0;
 
-  // CUT Schools and their modules
   final Map<String, List<String>> _schoolModules = {
     'School of Natural Sciences and Mathematics': [
-      'Calculus',
-      'Linear Algebra',
-      'Statistics & Probability',
-      'Discrete Mathematics',
-      'Organic Chemistry',
-      'Analytical Chemistry',
-      'Classical Physics',
-      'Quantum Mechanics',
+      'Calculus', 'Linear Algebra', 'Statistics & Probability',
+      'Discrete Mathematics', 'Organic Chemistry', 'Analytical Chemistry',
+      'Classical Physics', 'Quantum Mechanics',
     ],
     'School of Engineering Science and Technology': [
-      'Software Engineering',
-      'Computer Science',
-      'ICT & Networking',
-      'Electronics Engineering',
-      'Civil Engineering',
-      'Mechanical Engineering',
-      'Database Systems',
-      'Artificial Intelligence',
+      'Software Engineering', 'Computer Science', 'ICT & Networking',
+      'Electronics Engineering', 'Civil Engineering', 'Mechanical Engineering',
+      'Database Systems', 'Artificial Intelligence',
     ],
     'School of Entrepreneurship and Business Sciences': [
-      'Business Management',
-      'Accounting & Finance',
-      'Economics',
-      'Marketing Management',
-      'Human Resource Management',
-      'Strategic Management',
-      'Entrepreneurship',
-      'Supply Chain Management',
+      'Business Management', 'Accounting & Finance', 'Economics',
+      'Marketing Management', 'Human Resource Management',
+      'Strategic Management', 'Entrepreneurship', 'Supply Chain Management',
     ],
     'School of Agriculture Sciences and Technology': [
-      'Crop Science',
-      'Animal Science',
-      'Agronomy',
-      'Agricultural Economics',
-      'Soil Science',
-      'Horticulture',
-      'Agricultural Engineering',
+      'Crop Science', 'Animal Science', 'Agronomy', 'Agricultural Economics',
+      'Soil Science', 'Horticulture', 'Agricultural Engineering',
       'Post-Harvest Technology',
     ],
     'School of Wildlife and Environmental Science': [
-      'Wildlife Management',
-      'Ecology & Conservation',
-      'Environmental Science',
-      'Tourism & Wildlife',
-      'Forest Management',
-      'Environmental Policy',
-      'Animal Behaviour',
-      'GIS & Remote Sensing',
+      'Wildlife Management', 'Ecology & Conservation', 'Environmental Science',
+      'Tourism & Wildlife', 'Forest Management', 'Environmental Policy',
+      'Animal Behaviour', 'GIS & Remote Sensing',
     ],
     'School of Health Sciences and Technology': [
-      'Nursing Science',
-      'Public Health',
-      'Biomedical Science',
-      'Pharmacy',
-      'Environmental Health',
-      'Medical Laboratory',
-      'Nutrition & Dietetics',
+      'Nursing Science', 'Public Health', 'Biomedical Science', 'Pharmacy',
+      'Environmental Health', 'Medical Laboratory', 'Nutrition & Dietetics',
       'Health Informatics',
     ],
     'School of Hospitality and Tourism': [
-      'Hotel Management',
-      'Tourism Management',
-      'Food & Beverage Management',
-      'Events Management',
-      'Travel & Tourism',
-      'Hospitality Operations',
-      'Culinary Arts',
-      'Resort Management',
+      'Hotel Management', 'Tourism Management', 'Food & Beverage Management',
+      'Events Management', 'Travel & Tourism', 'Hospitality Operations',
+      'Culinary Arts', 'Resort Management',
     ],
     'School of Art and Design': [
-      'Graphic Design',
-      'Visual Arts',
-      'Digital Media',
-      'Fine Arts',
-      'Interior Design',
-      'Fashion Design',
-      'Photography',
-      'Animation & Film',
+      'Graphic Design', 'Visual Arts', 'Digital Media', 'Fine Arts',
+      'Interior Design', 'Fashion Design', 'Photography', 'Animation & Film',
     ],
   };
 
@@ -118,7 +77,7 @@ class _UploadScreenState extends State<UploadScreen>
     super.initState();
     _animController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 700),
+      duration: const Duration(milliseconds: 600),
     );
     _fadeIn = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _animController, curve: Curves.easeOut),
@@ -164,19 +123,19 @@ class _UploadScreenState extends State<UploadScreen>
 
   void _handleUpload() async {
     if (!_hasVideo) {
-      _showSnack('Please select a video first', Colors.redAccent);
+      _showSnack('Please select a video first');
       return;
     }
     if (_titleController.text.trim().isEmpty) {
-      _showSnack('Please add a title', Colors.redAccent);
+      _showSnack('Please add a title');
       return;
     }
     if (_selectedSchool == null) {
-      _showSnack('Please select your school', Colors.redAccent);
+      _showSnack('Please select your school');
       return;
     }
     if (_selectedModule == null) {
-      _showSnack('Please select a module', Colors.redAccent);
+      _showSnack('Please select a module');
       return;
     }
 
@@ -196,28 +155,40 @@ class _UploadScreenState extends State<UploadScreen>
       'likes': '0',
       'comments': '0',
       'shares': '0',
-      'color': 0xFF1A1040,
-      'accent': 0xFF6C63FF,
+      'color': 0xFF131823,
+      'accent': 0xFF2563EB,
       'filePath': _filePath,
       'fileBytes': _fileBytes,
     });
 
     setState(() => _isUploading = false);
     if (mounted) {
-      _showSnack('Video uploaded successfully! 🎉', const Color(0xFF2ECC71));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Video uploaded successfully!',
+            style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w500),
+          ),
+          backgroundColor: AppColors.accent,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      );
       await Future.delayed(const Duration(seconds: 1));
       Navigator.pop(context);
     }
   }
 
-  void _showSnack(String msg, Color color) {
+  void _showSnack(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(msg),
-        backgroundColor: color,
+        content: Text(
+          msg,
+          style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w500),
+        ),
+        backgroundColor: AppColors.surfaceVariant,
         behavior: SnackBarBehavior.floating,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }
@@ -225,29 +196,60 @@ class _UploadScreenState extends State<UploadScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A0F),
+      backgroundColor: AppColors.bg,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0A0A0F),
+        backgroundColor: AppColors.bg,
         elevation: 0,
+        surfaceTintColor: Colors.transparent,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.close_rounded, color: Colors.white),
+          icon: const Icon(
+            Icons.close_rounded,
+            color: AppColors.textSecondary,
+            size: 22,
+          ),
         ),
         title: const Text(
           'Upload Video',
           style: TextStyle(
-              color: Colors.white, fontWeight: FontWeight.w700, fontSize: 18),
+            fontFamily: 'Poppins',
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w600,
+            fontSize: 17,
+          ),
         ),
         centerTitle: true,
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(1),
+          child: Divider(height: 1, color: AppColors.border),
+        ),
         actions: [
           if (!_isUploading)
-            TextButton(
-              onPressed: _handleUpload,
-              child: const Text('Post',
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: TextButton(
+                onPressed: _handleUpload,
+                style: TextButton.styleFrom(
+                  backgroundColor: AppColors.accent,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  minimumSize: Size.zero,
+                ),
+                child: const Text(
+                  'Post',
                   style: TextStyle(
-                      color: Color(0xFF6C63FF),
-                      fontWeight: FontWeight.w700,
-                      fontSize: 15)),
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
             ),
         ],
       ),
@@ -260,22 +262,22 @@ class _UploadScreenState extends State<UploadScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Video picker
+                    // Video picker zone
                     GestureDetector(
                       onTap: _pickVideo,
                       child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
+                        duration: const Duration(milliseconds: 250),
                         width: double.infinity,
-                        height: 180,
+                        height: 168,
                         decoration: BoxDecoration(
                           color: _hasVideo
-                              ? const Color(0xFF6C63FF).withValues(alpha: 0.1)
-                              : const Color(0xFF1A1A2E),
-                          borderRadius: BorderRadius.circular(16),
+                              ? AppColors.accent.withValues(alpha: 0.06)
+                              : AppColors.surface,
+                          borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: _hasVideo
-                                ? const Color(0xFF6C63FF)
-                                : Colors.white.withValues(alpha: 0.1),
+                                ? AppColors.accent
+                                : AppColors.border,
                             width: _hasVideo ? 1.5 : 1,
                           ),
                         ),
@@ -283,26 +285,43 @@ class _UploadScreenState extends State<UploadScreen>
                             ? Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Icon(Icons.check_circle_rounded,
-                                      color: Color(0xFF6C63FF), size: 44),
+                                  const Icon(
+                                    Icons.check_circle_outline_rounded,
+                                    color: AppColors.accent,
+                                    size: 36,
+                                  ),
                                   const SizedBox(height: 10),
-                                  const Text('Video selected!',
-                                      style: TextStyle(
-                                          color: Color(0xFF6C63FF),
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 15)),
+                                  const Text(
+                                    'Video selected',
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      color: AppColors.accent,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14,
+                                    ),
+                                  ),
                                   const SizedBox(height: 4),
-                                  Text(_selectedFileName,
+                                  Text(
+                                    _selectedFileName,
+                                    style: const TextStyle(
+                                      color: AppColors.textTertiary,
+                                      fontFamily: 'Poppins',
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  GestureDetector(
+                                    onTap: _pickVideo,
+                                    child: const Text(
+                                      'Change video',
                                       style: TextStyle(
-                                          color: Colors.white
-                                              .withValues(alpha: 0.4),
-                                          fontSize: 12)),
-                                  TextButton(
-                                    onPressed: _pickVideo,
-                                    child: const Text('Change video',
-                                        style: TextStyle(
-                                            color: Colors.white38,
-                                            fontSize: 12)),
+                                        color: AppColors.textTertiary,
+                                        fontFamily: 'Poppins',
+                                        fontSize: 12,
+                                        decoration: TextDecoration.underline,
+                                        decorationColor: AppColors.textTertiary,
+                                      ),
+                                    ),
                                   ),
                                 ],
                               )
@@ -310,30 +329,37 @@ class _UploadScreenState extends State<UploadScreen>
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Container(
-                                    width: 60,
-                                    height: 60,
+                                    width: 48,
+                                    height: 48,
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF6C63FF)
-                                          .withValues(alpha: 0.15),
-                                      shape: BoxShape.circle,
+                                      color: AppColors.surfaceVariant,
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: const Icon(
-                                        Icons.video_call_rounded,
-                                        color: Color(0xFF6C63FF),
-                                        size: 30),
+                                      Icons.video_call_rounded,
+                                      color: AppColors.textTertiary,
+                                      size: 26,
+                                    ),
                                   ),
                                   const SizedBox(height: 12),
-                                  const Text('Tap to select video',
-                                      style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 15)),
+                                  const Text(
+                                    'Tap to select video',
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      color: AppColors.textPrimary,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14,
+                                    ),
+                                  ),
                                   const SizedBox(height: 4),
-                                  Text('MP4, MOV — max 60 seconds',
-                                      style: TextStyle(
-                                          color: Colors.white
-                                              .withValues(alpha: 0.35),
-                                          fontSize: 12)),
+                                  const Text(
+                                    'MP4, MOV — max 60 seconds',
+                                    style: TextStyle(
+                                      color: AppColors.textMuted,
+                                      fontFamily: 'Poppins',
+                                      fontSize: 12,
+                                    ),
+                                  ),
                                 ],
                               ),
                       ),
@@ -341,28 +367,26 @@ class _UploadScreenState extends State<UploadScreen>
 
                     const SizedBox(height: 24),
 
-                    // Title
-                    _buildLabel('Video Title *'),
+                    _FieldLabel('Video Title'),
                     const SizedBox(height: 8),
                     _buildTextField(
-                        controller: _titleController,
-                        hint: 'e.g. Introduction to Crop Rotation',
-                        maxLines: 1),
+                      controller: _titleController,
+                      hint: 'e.g. Introduction to Crop Rotation',
+                    ),
 
                     const SizedBox(height: 20),
 
-                    // Description
-                    _buildLabel('Description'),
+                    _FieldLabel('Description'),
                     const SizedBox(height: 8),
                     _buildTextField(
-                        controller: _descController,
-                        hint: 'What will students learn from this video?',
-                        maxLines: 3),
+                      controller: _descController,
+                      hint: 'What will students learn from this video?',
+                      maxLines: 3,
+                    ),
 
                     const SizedBox(height: 20),
 
-                    // School dropdown
-                    _buildLabel('School *'),
+                    _FieldLabel('School'),
                     const SizedBox(height: 8),
                     _buildDropdown(
                       value: _selectedSchool,
@@ -372,15 +396,14 @@ class _UploadScreenState extends State<UploadScreen>
                       onChanged: (val) {
                         setState(() {
                           _selectedSchool = val;
-                          _selectedModule = null; // reset module
+                          _selectedModule = null;
                         });
                       },
                     ),
 
                     const SizedBox(height: 20),
 
-                    // Module dropdown
-                    _buildLabel('Module *'),
+                    _FieldLabel('Module'),
                     const SizedBox(height: 8),
                     _buildDropdown(
                       value: _selectedModule,
@@ -396,30 +419,34 @@ class _UploadScreenState extends State<UploadScreen>
 
                     const SizedBox(height: 24),
 
-                    // Guidelines
+                    // Guidelines notice
                     Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color:
-                            const Color(0xFFFFD700).withValues(alpha: 0.07),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                            color: const Color(0xFFFFD700)
-                                .withValues(alpha: 0.2)),
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppColors.border),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Row(
                             children: [
-                              Icon(Icons.info_outline_rounded,
-                                  color: Color(0xFFFFD700), size: 16),
+                              Icon(
+                                Icons.info_outline_rounded,
+                                color: AppColors.textTertiary,
+                                size: 15,
+                              ),
                               SizedBox(width: 6),
-                              Text('Content Guidelines',
-                                  style: TextStyle(
-                                      color: Color(0xFFFFD700),
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 13)),
+                              Text(
+                                'Content Guidelines',
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  color: AppColors.textSecondary,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 12,
+                                ),
+                              ),
                             ],
                           ),
                           const SizedBox(height: 8),
@@ -434,17 +461,23 @@ class _UploadScreenState extends State<UploadScreen>
                                   crossAxisAlignment:
                                       CrossAxisAlignment.start,
                                   children: [
-                                    const Text('• ',
-                                        style: TextStyle(
-                                            color: Colors.white38,
-                                            fontSize: 12)),
+                                    const Text(
+                                      '·  ',
+                                      style: TextStyle(
+                                        color: AppColors.textMuted,
+                                        fontSize: 12,
+                                      ),
+                                    ),
                                     Expanded(
-                                      child: Text(rule,
-                                          style: TextStyle(
-                                              color: Colors.white
-                                                  .withValues(alpha: 0.5),
-                                              fontSize: 12,
-                                              height: 1.4)),
+                                      child: Text(
+                                        rule,
+                                        style: const TextStyle(
+                                          color: AppColors.textTertiary,
+                                          fontFamily: 'Poppins',
+                                          fontSize: 12,
+                                          height: 1.4,
+                                        ),
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -457,20 +490,11 @@ class _UploadScreenState extends State<UploadScreen>
 
                     SizedBox(
                       width: double.infinity,
-                      height: 54,
+                      height: 52,
                       child: ElevatedButton.icon(
                         onPressed: _handleUpload,
-                        icon: const Icon(Icons.upload_rounded, size: 20),
-                        label: const Text('Upload Video',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w600)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF6C63FF),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14)),
-                          elevation: 0,
-                        ),
+                        icon: const Icon(Icons.upload_rounded, size: 18),
+                        label: const Text('Upload Video'),
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -489,53 +513,54 @@ class _UploadScreenState extends State<UploadScreen>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 100,
-              height: 100,
+              width: 80,
+              height: 80,
               decoration: BoxDecoration(
-                color: const Color(0xFF6C63FF).withValues(alpha: 0.1),
-                shape: BoxShape.circle,
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.border),
               ),
-              child: const Icon(Icons.cloud_upload_rounded,
-                  color: Color(0xFF6C63FF), size: 48),
+              child: const Icon(
+                Icons.cloud_upload_outlined,
+                color: AppColors.accent,
+                size: 36,
+              ),
             ),
-            const SizedBox(height: 28),
-            const Text('Uploading your video...',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700)),
-            const SizedBox(height: 8),
-            Text('Please keep the app open',
-                style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.4),
-                    fontSize: 13)),
+            const SizedBox(height: 24),
+            const Text(
+              'Uploading your video',
+              style: AppTextStyles.headingLarge,
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Please keep the app open',
+              style: AppTextStyles.bodyMedium,
+            ),
             const SizedBox(height: 32),
             ClipRRect(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(4),
               child: LinearProgressIndicator(
                 value: _uploadProgress,
-                backgroundColor: Colors.white10,
-                valueColor: const AlwaysStoppedAnimation<Color>(
-                    Color(0xFF6C63FF)),
-                minHeight: 8,
+                backgroundColor: AppColors.border,
+                valueColor:
+                    const AlwaysStoppedAnimation<Color>(AppColors.accent),
+                minHeight: 4,
               ),
             ),
-            const SizedBox(height: 12),
-            Text('${(_uploadProgress * 100).toInt()}%',
-                style: const TextStyle(
-                    color: Color(0xFF6C63FF),
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16)),
+            const SizedBox(height: 10),
+            Text(
+              '${(_uploadProgress * 100).toInt()}%',
+              style: const TextStyle(
+                fontFamily: 'Poppins',
+                color: AppColors.accent,
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+              ),
+            ),
           ],
         ),
       ),
     );
-  }
-
-  Widget _buildLabel(String text) {
-    return Text(text,
-        style: const TextStyle(
-            fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white70));
   }
 
   Widget _buildTextField({
@@ -546,26 +571,36 @@ class _UploadScreenState extends State<UploadScreen>
     return TextField(
       controller: controller,
       maxLines: maxLines,
-      style: const TextStyle(color: Colors.white, fontSize: 15),
+      style: const TextStyle(
+        color: AppColors.textPrimary,
+        fontFamily: 'Poppins',
+        fontSize: 14,
+      ),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: TextStyle(
-            color: Colors.white.withValues(alpha: 0.25), fontSize: 14),
+        hintStyle: const TextStyle(
+          color: AppColors.textMuted,
+          fontFamily: 'Poppins',
+          fontSize: 14,
+        ),
         filled: true,
-        fillColor: const Color(0xFF1A1A2E),
+        fillColor: AppColors.surface,
         border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide.none),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
         enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide:
-                BorderSide(color: Colors.white.withValues(alpha: 0.08))),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
         focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide:
-                const BorderSide(color: Color(0xFF6C63FF), width: 1.5)),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.accent, width: 1.5),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
       ),
     );
   }
@@ -580,36 +615,72 @@ class _UploadScreenState extends State<UploadScreen>
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: enabled ? const Color(0xFF1A1A2E) : const Color(0xFF111118),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        color: enabled ? AppColors.surface : AppColors.bg,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
       ),
       child: DropdownButtonFormField<String>(
         value: value,
-        dropdownColor: const Color(0xFF1A1A2E),
-        style: const TextStyle(color: Colors.white, fontSize: 14),
-        icon: const Icon(Icons.keyboard_arrow_down_rounded,
-            color: Colors.white38),
+        dropdownColor: AppColors.surfaceVariant,
+        style: const TextStyle(
+          color: AppColors.textPrimary,
+          fontFamily: 'Poppins',
+          fontSize: 14,
+        ),
+        icon: const Icon(
+          Icons.keyboard_arrow_down_rounded,
+          color: AppColors.textTertiary,
+        ),
         isExpanded: true,
         decoration: InputDecoration(
-          prefixIcon: Icon(icon, color: Colors.white38, size: 20),
+          prefixIcon: Icon(icon, color: AppColors.textTertiary, size: 18),
           border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 0, vertical: 6),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 0,
+            vertical: 6,
+          ),
         ),
-        hint: Text(hint,
-            style: TextStyle(
-                color: Colors.white.withValues(alpha: enabled ? 0.25 : 0.15),
-                fontSize: 14)),
+        hint: Text(
+          hint,
+          style: TextStyle(
+            color: enabled ? AppColors.textMuted : AppColors.textMuted.withValues(alpha: 0.5),
+            fontFamily: 'Poppins',
+            fontSize: 14,
+          ),
+        ),
         items: items
             .map((s) => DropdownMenuItem(
                   value: s,
-                  child: Text(s,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 13)),
+                  child: Text(
+                    s,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 13,
+                    ),
+                  ),
                 ))
             .toList(),
         onChanged: enabled ? onChanged : null,
+      ),
+    );
+  }
+}
+
+class _FieldLabel extends StatelessWidget {
+  final String text;
+  const _FieldLabel(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: const TextStyle(
+        fontFamily: 'Poppins',
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textSecondary,
+        letterSpacing: 0.2,
       ),
     );
   }

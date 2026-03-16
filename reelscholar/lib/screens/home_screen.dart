@@ -8,6 +8,7 @@ import '../widgets/comments_sheet.dart';
 import '../widgets/share_sheet.dart';
 import '../models/video_store.dart';
 import '../widgets/video_player_widget.dart';
+import '../main.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -65,99 +66,60 @@ class _HomeScreenState extends State<HomeScreen> {
           // Top bar
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Logo
+                  // Logo wordmark
                   RichText(
                     text: const TextSpan(
                       children: [
                         TextSpan(
                           text: 'Reel',
                           style: TextStyle(
-                            fontSize: 20,
+                            fontFamily: 'Poppins',
+                            fontSize: 19,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
+                            letterSpacing: -0.3,
                           ),
                         ),
                         TextSpan(
                           text: 'Scholar',
                           style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF6C63FF),
+                            fontFamily: 'Poppins',
+                            fontSize: 19,
+                            fontWeight: FontWeight.w300,
+                            color: AppColors.accentLight,
+                            letterSpacing: -0.3,
                           ),
                         ),
                       ],
                     ),
                   ),
 
-                  // Top right icons — Messages + Search
+                  // Top right icons
                   Row(
                     children: [
-                      // Messages icon
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const MessagesScreen()),
-                          );
-                        },
-                        child: Container(
-                          width: 38,
-                          height: 38,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Stack(
-                            children: [
-                              const Center(
-                                child: Icon(Icons.chat_bubble_outline_rounded,
-                                    color: Colors.white, size: 20),
-                              ),
-                              // Unread badge
-                              Positioned(
-                                top: 6,
-                                right: 6,
-                                child: Container(
-                                  width: 8,
-                                  height: 8,
-                                  decoration: const BoxDecoration(
-                                    color: Colors.redAccent,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+                      // Messages
+                      _TopBarButton(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const MessagesScreen()),
                         ),
+                        icon: Icons.chat_bubble_outline_rounded,
+                        hasBadge: true,
                       ),
                       const SizedBox(width: 8),
-                      // Search icon
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const SearchScreen()),
-                          );
-                        },
-                        child: Container(
-                          width: 38,
-                          height: 38,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Icon(
-                            Icons.search_rounded,
-                            color: Colors.white,
-                            size: 20,
-                          ),
+                      // Search
+                      _TopBarButton(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const SearchScreen()),
                         ),
+                        icon: Icons.search_rounded,
                       ),
                     ],
                   ),
@@ -355,15 +317,18 @@ class _VideoCardState extends State<_VideoCard>
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        border: Border.all(color: accent),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.4),
+                        ),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: Text(
+                      child: const Text(
                         'Follow',
                         style: TextStyle(
-                          color: accent,
+                          fontFamily: 'Poppins',
+                          color: Colors.white,
                           fontSize: 11,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
@@ -440,27 +405,29 @@ class _VideoCardState extends State<_VideoCard>
                   child: Column(
                     children: [
                       Container(
-                        width: 46,
-                        height: 46,
+                        width: 44,
+                        height: 44,
                         decoration: BoxDecoration(
-                          color: accent.withValues(alpha: 0.2),
+                          color: AppColors.accent.withValues(alpha: 0.15),
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: accent.withValues(alpha: 0.5),
+                            color: AppColors.accent.withValues(alpha: 0.4),
                           ),
                         ),
-                        child: Icon(
+                        child: const Icon(
                           Icons.quiz_outlined,
-                          color: accent,
-                          size: 22,
+                          color: AppColors.accentLight,
+                          size: 20,
                         ),
                       ),
                       const SizedBox(height: 4),
                       const Text(
                         'Quiz',
                         style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 11,
+                          fontFamily: 'Poppins',
+                          color: Colors.white60,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
@@ -497,12 +464,63 @@ class _ActionButton extends StatelessWidget {
           Text(
             label,
             style: const TextStyle(
+              fontFamily: 'Poppins',
               color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _TopBarButton extends StatelessWidget {
+  final VoidCallback onTap;
+  final IconData icon;
+  final bool hasBadge;
+
+  const _TopBarButton({
+    required this.onTap,
+    required this.icon,
+    this.hasBadge = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 38,
+        height: 38,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.06),
+          ),
+        ),
+        child: Stack(
+          children: [
+            Center(
+              child: Icon(icon, color: Colors.white, size: 19),
+            ),
+            if (hasBadge)
+              Positioned(
+                top: 7,
+                right: 7,
+                child: Container(
+                  width: 7,
+                  height: 7,
+                  decoration: const BoxDecoration(
+                    color: AppColors.accentLight,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -531,13 +549,11 @@ class _BottomNavState extends State<_BottomNav> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 72,
+      height: 68,
       decoration: BoxDecoration(
-        color: const Color(0xFF0A0A0F).withValues(alpha: 0.95),
-        border: Border(
-          top: BorderSide(
-            color: Colors.white.withValues(alpha: 0.08),
-          ),
+        color: AppColors.bg.withValues(alpha: 0.97),
+        border: const Border(
+          top: BorderSide(color: AppColors.border),
         ),
       ),
       child: Row(
@@ -557,25 +573,23 @@ class _BottomNavState extends State<_BottomNav> {
                 widget.onRefresh();
               },
               child: Container(
-                width: 48,
-                height: 48,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF6C63FF), Color(0xFF9C8FFF)],
-                  ),
-                  borderRadius: BorderRadius.circular(14),
+                  color: AppColors.accent,
+                  borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF6C63FF).withValues(alpha: 0.4),
+                      color: AppColors.accent.withValues(alpha: 0.3),
                       blurRadius: 12,
-                      spreadRadius: 1,
+                      offset: const Offset(0, 4),
                     ),
                   ],
                 ),
                 child: const Icon(
                   Icons.add_rounded,
                   color: Colors.white,
-                  size: 26,
+                  size: 24,
                 ),
               ),
             );
@@ -601,49 +615,60 @@ class _BottomNavState extends State<_BottomNav> {
                 );
               }
             },
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Icon(
-                      item['icon'] as IconData,
-                      color: isSelected
-                          ? const Color(0xFF6C63FF)
-                          : Colors.white38,
-                      size: 24,
-                    ),
-                    // Unread badge on Alerts icon only
-                    if (index == 3)
-                      Positioned(
-                        top: -4,
-                        right: -4,
-                        child: Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: Colors.redAccent,
-                            shape: BoxShape.circle,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? AppColors.accent.withValues(alpha: 0.1)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Icon(
+                        item['icon'] as IconData,
+                        color: isSelected
+                            ? AppColors.accentLight
+                            : AppColors.textTertiary,
+                        size: 22,
+                      ),
+                      if (index == 3)
+                        Positioned(
+                          top: -3,
+                          right: -3,
+                          child: Container(
+                            width: 7,
+                            height: 7,
+                            decoration: const BoxDecoration(
+                              color: AppColors.accentLight,
+                              shape: BoxShape.circle,
+                            ),
                           ),
                         ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  item['label'] as String,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: isSelected
-                        ? const Color(0xFF6C63FF)
-                        : Colors.white38,
-                    fontWeight: isSelected
-                        ? FontWeight.w600
-                        : FontWeight.w400,
+                    ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 2),
+                  Text(
+                    item['label'] as String,
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 9,
+                      color: isSelected
+                          ? AppColors.accentLight
+                          : AppColors.textMuted,
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.w400,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         }),

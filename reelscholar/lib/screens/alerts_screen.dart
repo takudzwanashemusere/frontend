@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../main.dart';
 
 class AlertsScreen extends StatefulWidget {
   const AlertsScreen({super.key});
@@ -16,12 +17,11 @@ class _AlertsScreenState extends State<AlertsScreen>
       'type': 'like',
       'name': 'Tatenda Moyo',
       'action': 'liked your video',
-      'target': 'Solving Quadratic Equations in 60 seconds 🔥',
+      'target': 'Solving Quadratic Equations in 60 seconds',
       'time': '2m ago',
       'isRead': false,
-      'color': const Color(0xFF6C63FF),
       'icon': Icons.favorite_rounded,
-      'iconColor': Colors.redAccent,
+      'iconColor': AppColors.error,
     },
     {
       'type': 'comment',
@@ -30,9 +30,8 @@ class _AlertsScreenState extends State<AlertsScreen>
       'target': '"This helped me so much for my test!"',
       'time': '8m ago',
       'isRead': false,
-      'color': const Color(0xFF2ECC71),
       'icon': Icons.chat_bubble_rounded,
-      'iconColor': const Color(0xFF2ECC71),
+      'iconColor': AppColors.accent,
     },
     {
       'type': 'follow',
@@ -41,20 +40,18 @@ class _AlertsScreenState extends State<AlertsScreen>
       'target': '',
       'time': '15m ago',
       'isRead': false,
-      'color': const Color(0xFFFF6B35),
       'icon': Icons.person_add_rounded,
-      'iconColor': const Color(0xFF6C63FF),
+      'iconColor': AppColors.accentLight,
     },
     {
       'type': 'like',
       'name': 'Panashe Dzingira',
       'action': 'liked your video',
-      'target': 'Newton\'s 3 Laws explained 🚀',
+      'target': "Newton's 3 Laws explained",
       'time': '32m ago',
       'isRead': true,
-      'color': const Color(0xFFE040FB),
       'icon': Icons.favorite_rounded,
-      'iconColor': Colors.redAccent,
+      'iconColor': AppColors.error,
     },
     {
       'type': 'comment',
@@ -63,9 +60,8 @@ class _AlertsScreenState extends State<AlertsScreen>
       'target': '"Agreed! This app is amazing for studying"',
       'time': '1h ago',
       'isRead': true,
-      'color': const Color(0xFF00BCD4),
       'icon': Icons.chat_bubble_rounded,
-      'iconColor': const Color(0xFF2ECC71),
+      'iconColor': AppColors.accent,
     },
     {
       'type': 'system',
@@ -74,9 +70,8 @@ class _AlertsScreenState extends State<AlertsScreen>
       'target': 'Databases Introduction for ICT Students',
       'time': '2h ago',
       'isRead': true,
-      'color': const Color(0xFF6C63FF),
       'icon': Icons.check_circle_rounded,
-      'iconColor': const Color(0xFF2ECC71),
+      'iconColor': AppColors.success,
     },
     {
       'type': 'follow',
@@ -85,20 +80,18 @@ class _AlertsScreenState extends State<AlertsScreen>
       'target': '',
       'time': '3h ago',
       'isRead': true,
-      'color': const Color(0xFFFFD700),
       'icon': Icons.person_add_rounded,
-      'iconColor': const Color(0xFF6C63FF),
+      'iconColor': AppColors.accentLight,
     },
     {
       'type': 'system',
       'name': 'ReelScholar',
-      'action': 'Welcome to ReelScholar! Start by uploading your first video.',
+      'action': 'Welcome! Start by uploading your first video.',
       'target': 'Tap the + button to get started',
       'time': '1d ago',
       'isRead': true,
-      'color': const Color(0xFF6C63FF),
       'icon': Icons.school_rounded,
-      'iconColor': const Color(0xFFFFD700),
+      'iconColor': AppColors.accent,
     },
   ];
 
@@ -137,37 +130,45 @@ class _AlertsScreenState extends State<AlertsScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A0F),
+      backgroundColor: AppColors.bg,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0A0A0F),
+        backgroundColor: AppColors.bg,
         elevation: 0,
+        surfaceTintColor: Colors.transparent,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back_ios_rounded,
-              color: Colors.white, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_rounded,
+            color: AppColors.textSecondary,
+            size: 18,
+          ),
         ),
         title: Row(
           children: [
             const Text(
               'Alerts',
               style: TextStyle(
-                color: Colors.white,
+                fontFamily: 'Poppins',
+                color: AppColors.textPrimary,
                 fontWeight: FontWeight.w700,
-                fontSize: 20,
+                fontSize: 18,
               ),
             ),
             if (_unreadCount > 0) ...[
               const SizedBox(width: 8),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 2,
+                ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF6C63FF),
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.accent,
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   '$_unreadCount',
                   style: const TextStyle(
+                    fontFamily: 'Poppins',
                     color: Colors.white,
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
@@ -179,26 +180,39 @@ class _AlertsScreenState extends State<AlertsScreen>
         ),
         actions: [
           if (_unreadCount > 0)
-            TextButton(
-              onPressed: _markAllRead,
-              child: const Text(
-                'Mark all read',
-                style: TextStyle(
-                  color: Color(0xFF6C63FF),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: TextButton(
+                onPressed: _markAllRead,
+                child: const Text(
+                  'Mark all read',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    color: AppColors.accent,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ),
         ],
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: const Color(0xFF6C63FF),
+          indicatorColor: AppColors.accent,
           indicatorWeight: 2,
-          labelColor: const Color(0xFF6C63FF),
-          unselectedLabelColor: Colors.white38,
-          labelStyle:
-              const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+          dividerColor: AppColors.border,
+          labelColor: AppColors.accent,
+          unselectedLabelColor: AppColors.textTertiary,
+          labelStyle: const TextStyle(
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
+          ),
+          unselectedLabelStyle: const TextStyle(
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.w400,
+            fontSize: 13,
+          ),
           tabs: const [
             Tab(text: 'All'),
             Tab(text: 'Activity'),
@@ -212,7 +226,10 @@ class _AlertsScreenState extends State<AlertsScreen>
           _buildNotificationList(_filterByType('all')),
           _buildNotificationList(
             _allNotifications
-                .where((n) => n['type'] == 'like' || n['type'] == 'comment' || n['type'] == 'follow')
+                .where((n) =>
+                    n['type'] == 'like' ||
+                    n['type'] == 'comment' ||
+                    n['type'] == 'follow')
                 .toList(),
           ),
           _buildNotificationList(_filterByType('system')),
@@ -226,26 +243,21 @@ class _AlertsScreenState extends State<AlertsScreen>
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.notifications_off_outlined,
-                size: 64, color: Colors.white.withValues(alpha: 0.15)),
-            const SizedBox(height: 16),
-            const Text('No notifications',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            Text('You\'re all caught up!',
-                style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.4),
-                    fontSize: 13)),
+          children: const [
+            Icon(
+              Icons.notifications_off_outlined,
+              size: 48,
+              color: AppColors.textMuted,
+            ),
+            SizedBox(height: 14),
+            Text('No notifications', style: AppTextStyles.headingMedium),
+            SizedBox(height: 6),
+            Text("You're all caught up!", style: AppTextStyles.bodyMedium),
           ],
         ),
       );
     }
 
-    // Group by time
     final unread = items.where((n) => n['isRead'] == false).toList();
     final read = items.where((n) => n['isRead'] == true).toList();
 
@@ -254,13 +266,13 @@ class _AlertsScreenState extends State<AlertsScreen>
       children: [
         if (unread.isNotEmpty) ...[
           _buildSectionHeader('New'),
-          ...unread.asMap().entries.map((e) =>
-              _buildNotificationTile(e.value, _allNotifications.indexOf(e.value))),
+          ...unread.map((e) =>
+              _buildNotificationTile(e, _allNotifications.indexOf(e))),
         ],
         if (read.isNotEmpty) ...[
           _buildSectionHeader('Earlier'),
-          ...read.asMap().entries.map((e) =>
-              _buildNotificationTile(e.value, _allNotifications.indexOf(e.value))),
+          ...read.map((e) =>
+              _buildNotificationTile(e, _allNotifications.indexOf(e))),
         ],
       ],
     );
@@ -268,14 +280,15 @@ class _AlertsScreenState extends State<AlertsScreen>
 
   Widget _buildSectionHeader(String title) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
       child: Text(
-        title,
-        style: TextStyle(
-          color: Colors.white.withValues(alpha: 0.4),
-          fontSize: 12,
+        title.toUpperCase(),
+        style: const TextStyle(
+          fontFamily: 'Poppins',
+          color: AppColors.textMuted,
+          fontSize: 10,
           fontWeight: FontWeight.w600,
-          letterSpacing: 0.8,
+          letterSpacing: 1.2,
         ),
       ),
     );
@@ -283,42 +296,41 @@ class _AlertsScreenState extends State<AlertsScreen>
 
   Widget _buildNotificationTile(Map<String, dynamic> notif, int index) {
     final bool isRead = notif['isRead'] as bool;
-    final Color avatarColor = notif['color'] as Color;
     final IconData iconData = notif['icon'] as IconData;
     final Color iconColor = notif['iconColor'] as Color;
+
+    // Derive an initial color from the name
+    final initial = notif['name'].toString().substring(0, 1);
 
     return GestureDetector(
       onTap: () => _markRead(index),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 200),
         margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: isRead
-              ? const Color(0xFF12121A)
-              : const Color(0xFF1A1A2E),
-          borderRadius: BorderRadius.circular(14),
+          color: isRead ? AppColors.surface : AppColors.accent.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isRead
-                ? Colors.white.withValues(alpha: 0.05)
-                : const Color(0xFF6C63FF).withValues(alpha: 0.2),
+            color: isRead ? AppColors.border : AppColors.accent.withValues(alpha: 0.2),
           ),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Avatar with icon badge
+            // Avatar + icon badge
             Stack(
               children: [
                 CircleAvatar(
-                  radius: 22,
-                  backgroundColor: avatarColor.withValues(alpha: 0.2),
+                  radius: 20,
+                  backgroundColor: AppColors.surfaceVariant,
                   child: Text(
-                    notif['name'].toString().substring(0, 1),
-                    style: TextStyle(
-                      color: avatarColor,
+                    initial,
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      color: AppColors.textSecondary,
                       fontWeight: FontWeight.w700,
-                      fontSize: 16,
+                      fontSize: 14,
                     ),
                   ),
                 ),
@@ -326,15 +338,13 @@ class _AlertsScreenState extends State<AlertsScreen>
                   bottom: 0,
                   right: 0,
                   child: Container(
-                    width: 18,
-                    height: 18,
+                    width: 16,
+                    height: 16,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0A0A0F),
+                      color: AppColors.bg,
                       shape: BoxShape.circle,
-                      border: Border.all(
-                          color: const Color(0xFF0A0A0F), width: 1.5),
                     ),
-                    child: Icon(iconData, color: iconColor, size: 12),
+                    child: Icon(iconData, color: iconColor, size: 11),
                   ),
                 ),
               ],
@@ -342,7 +352,6 @@ class _AlertsScreenState extends State<AlertsScreen>
 
             const SizedBox(width: 12),
 
-            // Content
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -353,30 +362,35 @@ class _AlertsScreenState extends State<AlertsScreen>
                         TextSpan(
                           text: notif['name'],
                           style: TextStyle(
-                            color: isRead ? Colors.white70 : Colors.white,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 14,
+                            fontFamily: 'Poppins',
+                            color: isRead
+                                ? AppColors.textSecondary
+                                : AppColors.textPrimary,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
                           ),
                         ),
                         TextSpan(
                           text: ' ${notif['action']}',
                           style: TextStyle(
+                            fontFamily: 'Poppins',
                             color: isRead
-                                ? Colors.white38
-                                : Colors.white.withValues(alpha: 0.75),
+                                ? AppColors.textTertiary
+                                : AppColors.textSecondary,
                             fontWeight: FontWeight.w400,
-                            fontSize: 14,
+                            fontSize: 13,
                           ),
                         ),
                       ],
                     ),
                   ),
                   if ((notif['target'] as String).isNotEmpty) ...[
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 3),
                     Text(
                       notif['target'],
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.35),
+                      style: const TextStyle(
+                        fontFamily: 'Poppins',
+                        color: AppColors.textMuted,
                         fontSize: 12,
                         fontStyle: FontStyle.italic,
                       ),
@@ -384,11 +398,12 @@ class _AlertsScreenState extends State<AlertsScreen>
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 5),
                   Text(
                     notif['time'],
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.3),
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      color: AppColors.textMuted,
                       fontSize: 11,
                     ),
                   ),
@@ -396,13 +411,13 @@ class _AlertsScreenState extends State<AlertsScreen>
               ),
             ),
 
-            // Unread dot
             if (!isRead)
               Container(
-                width: 8,
-                height: 8,
+                width: 7,
+                height: 7,
+                margin: const EdgeInsets.only(top: 4),
                 decoration: const BoxDecoration(
-                  color: Color(0xFF6C63FF),
+                  color: AppColors.accent,
                   shape: BoxShape.circle,
                 ),
               ),

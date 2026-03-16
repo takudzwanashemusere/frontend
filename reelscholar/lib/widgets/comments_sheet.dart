@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../main.dart';
 
 class CommentsSheet extends StatefulWidget {
   final String videoTitle;
@@ -16,57 +17,56 @@ class _CommentsSheetState extends State<CommentsSheet> {
     {
       'name': 'Rudo Chikwanda',
       'username': '@rudo_bio',
-      'comment': 'This actually helped me so much for my test tomorrow! Thank you 🙏',
+      'comment':
+          'This actually helped me so much for my test tomorrow! Thank you',
       'time': '2m ago',
       'likes': 24,
       'isLiked': false,
-      'color': const Color(0xFF2ECC71),
     },
     {
       'name': 'Panashe Dzingira',
       'username': '@panashe_chem',
-      'comment': 'Can you do one on integration by parts next? That one confuses me 😅',
+      'comment':
+          'Can you do one on integration by parts next? That one confuses me',
       'time': '5m ago',
       'likes': 12,
       'isLiked': false,
-      'color': const Color(0xFFE040FB),
     },
     {
       'name': 'Farai Mutasa',
       'username': '@farai_m',
-      'comment': 'Best explanation I have seen on YouTube or anywhere. CUT students are blessed to have this app!',
+      'comment':
+          'Best explanation I have seen anywhere. CUT students are blessed to have this app!',
       'time': '12m ago',
       'likes': 47,
       'isLiked': true,
-      'color': const Color(0xFFFFD700),
     },
     {
       'name': 'Tatenda Moyo',
       'username': '@tatenda_math',
-      'comment': 'Glad it helped! Integration by parts coming next week 🔥',
+      'comment': 'Glad it helped! Integration by parts coming next week',
       'time': '10m ago',
       'likes': 31,
       'isLiked': false,
-      'color': const Color(0xFF6C63FF),
       'isAuthor': true,
     },
     {
       'name': 'Simba Kowo',
       'username': '@simba_ict',
-      'comment': 'Shared this with my whole study group. We needed this before exams 📚',
+      'comment':
+          'Shared this with my whole study group. We needed this before exams',
       'time': '18m ago',
       'likes': 8,
       'isLiked': false,
-      'color': const Color(0xFFFF6B35),
     },
     {
       'name': 'Chiedza Mupfumi',
       'username': '@chiedza_m',
-      'comment': 'Please do more on calculus! The lecturer moves too fast in class 😭',
+      'comment':
+          'Please do more on calculus! The lecturer moves too fast in class',
       'time': '25m ago',
       'likes': 19,
       'isLiked': false,
-      'color': const Color(0xFF00BCD4),
     },
   ];
 
@@ -87,13 +87,12 @@ class _CommentsSheetState extends State<CommentsSheet> {
         'time': 'Just now',
         'likes': 0,
         'isLiked': false,
-        'color': const Color(0xFF6C63FF),
       });
     });
     _commentController.clear();
     _scrollController.animateTo(
       0,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 250),
       curve: Curves.easeOut,
     );
   }
@@ -103,25 +102,25 @@ class _CommentsSheetState extends State<CommentsSheet> {
     return Container(
       height: MediaQuery.of(context).size.height * 0.78,
       decoration: const BoxDecoration(
-        color: Color(0xFF12121A),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
       ),
       child: Column(
         children: [
-          // Handle bar
+          // Handle
           Container(
-            margin: const EdgeInsets.only(top: 12),
-            width: 40,
-            height: 4,
+            margin: const EdgeInsets.only(top: 10),
+            width: 36,
+            height: 3,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
+              color: AppColors.borderMid,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
 
           // Header
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            padding: const EdgeInsets.fromLTRB(20, 14, 8, 0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -130,41 +129,40 @@ class _CommentsSheetState extends State<CommentsSheet> {
                   children: [
                     const Text(
                       'Comments',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
+                      style: AppTextStyles.headingMedium,
                     ),
                     Text(
                       '${_comments.length} comments',
-                      style: TextStyle(
+                      style: const TextStyle(
+                        fontFamily: 'Poppins',
                         fontSize: 12,
-                        color: Colors.white.withValues(alpha: 0.4),
+                        color: AppColors.textMuted,
                       ),
                     ),
                   ],
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close_rounded,
-                      color: Colors.white54, size: 22),
+                  icon: const Icon(
+                    Icons.close_rounded,
+                    color: AppColors.textTertiary,
+                    size: 20,
+                  ),
                 ),
               ],
             ),
           ),
 
-          const Divider(color: Colors.white10, height: 20),
+          const Divider(color: AppColors.border, height: 16),
 
           // Comments list
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               itemCount: _comments.length,
               itemBuilder: (context, index) {
                 final c = _comments[index];
-                final Color color = c['color'] as Color;
                 final bool isLiked = c['isLiked'] as bool;
                 final bool isAuthor = c['isAuthor'] == true;
 
@@ -175,20 +173,20 @@ class _CommentsSheetState extends State<CommentsSheet> {
                     children: [
                       // Avatar
                       CircleAvatar(
-                        radius: 18,
-                        backgroundColor: color.withValues(alpha: 0.2),
+                        radius: 16,
+                        backgroundColor: AppColors.surfaceVariant,
                         child: Text(
                           c['name'].toString().substring(0, 1),
-                          style: TextStyle(
-                            color: color,
+                          style: const TextStyle(
+                            fontFamily: 'Poppins',
+                            color: AppColors.textSecondary,
                             fontWeight: FontWeight.w700,
-                            fontSize: 13,
+                            fontSize: 11,
                           ),
                         ),
                       ),
                       const SizedBox(width: 10),
 
-                      // Comment content
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -198,7 +196,8 @@ class _CommentsSheetState extends State<CommentsSheet> {
                                 Text(
                                   c['name'],
                                   style: const TextStyle(
-                                    color: Colors.white,
+                                    fontFamily: 'Poppins',
+                                    color: AppColors.textPrimary,
                                     fontWeight: FontWeight.w600,
                                     fontSize: 13,
                                   ),
@@ -207,16 +206,19 @@ class _CommentsSheetState extends State<CommentsSheet> {
                                   const SizedBox(width: 6),
                                   Container(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 6, vertical: 2),
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF6C63FF)
-                                          .withValues(alpha: 0.2),
+                                      color: AppColors.accent
+                                          .withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: const Text(
                                       'Author',
                                       style: TextStyle(
-                                        color: Color(0xFF6C63FF),
+                                        fontFamily: 'Poppins',
+                                        color: AppColors.accent,
                                         fontSize: 9,
                                         fontWeight: FontWeight.w600,
                                       ),
@@ -226,8 +228,9 @@ class _CommentsSheetState extends State<CommentsSheet> {
                                 const SizedBox(width: 8),
                                 Text(
                                   c['time'],
-                                  style: TextStyle(
-                                    color: Colors.white.withValues(alpha: 0.35),
+                                  style: const TextStyle(
+                                    fontFamily: 'Poppins',
+                                    color: AppColors.textMuted,
                                     fontSize: 11,
                                   ),
                                 ),
@@ -236,10 +239,11 @@ class _CommentsSheetState extends State<CommentsSheet> {
                             const SizedBox(height: 4),
                             Text(
                               c['comment'],
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.8),
-                                fontSize: 14,
-                                height: 1.4,
+                              style: const TextStyle(
+                                fontFamily: 'Poppins',
+                                color: AppColors.textSecondary,
+                                fontSize: 13,
+                                height: 1.5,
                               ),
                             ),
                             const SizedBox(height: 6),
@@ -260,19 +264,20 @@ class _CommentsSheetState extends State<CommentsSheet> {
                                         isLiked
                                             ? Icons.favorite_rounded
                                             : Icons.favorite_border_rounded,
-                                        size: 14,
+                                        size: 13,
                                         color: isLiked
-                                            ? Colors.redAccent
-                                            : Colors.white38,
+                                            ? AppColors.error
+                                            : AppColors.textMuted,
                                       ),
                                       const SizedBox(width: 4),
                                       Text(
                                         '${c['likes']}',
                                         style: TextStyle(
+                                          fontFamily: 'Poppins',
                                           fontSize: 12,
                                           color: isLiked
-                                              ? Colors.redAccent
-                                              : Colors.white38,
+                                              ? AppColors.error
+                                              : AppColors.textMuted,
                                         ),
                                       ),
                                     ],
@@ -281,11 +286,12 @@ class _CommentsSheetState extends State<CommentsSheet> {
                                 const SizedBox(width: 16),
                                 GestureDetector(
                                   onTap: () {},
-                                  child: Text(
+                                  child: const Text(
                                     'Reply',
                                     style: TextStyle(
+                                      fontFamily: 'Poppins',
                                       fontSize: 12,
-                                      color: Colors.white.withValues(alpha: 0.35),
+                                      color: AppColors.textTertiary,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
@@ -310,23 +316,22 @@ class _CommentsSheetState extends State<CommentsSheet> {
               16,
               MediaQuery.of(context).viewInsets.bottom + 16,
             ),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0A0A0F),
-              border: Border(
-                top: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
-              ),
+            decoration: const BoxDecoration(
+              color: AppColors.bg,
+              border: Border(top: BorderSide(color: AppColors.border)),
             ),
             child: Row(
               children: [
                 const CircleAvatar(
-                  radius: 16,
-                  backgroundColor: Color(0xFF6C63FF),
+                  radius: 14,
+                  backgroundColor: AppColors.accent,
                   child: Text(
                     'Y',
                     style: TextStyle(
+                      fontFamily: 'Poppins',
                       color: Colors.white,
                       fontWeight: FontWeight.w700,
-                      fontSize: 12,
+                      fontSize: 11,
                     ),
                   ),
                 ),
@@ -334,22 +339,38 @@ class _CommentsSheetState extends State<CommentsSheet> {
                 Expanded(
                   child: TextField(
                     controller: _commentController,
-                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontFamily: 'Poppins',
+                      fontSize: 13,
+                    ),
                     decoration: InputDecoration(
                       hintText: 'Add a comment...',
-                      hintStyle: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.3),
-                        fontSize: 14,
+                      hintStyle: const TextStyle(
+                        color: AppColors.textMuted,
+                        fontFamily: 'Poppins',
+                        fontSize: 13,
                       ),
                       filled: true,
-                      fillColor: const Color(0xFF1A1A2E),
+                      fillColor: AppColors.surface,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide.none,
+                        borderSide: const BorderSide(color: AppColors.border),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: const BorderSide(color: AppColors.border),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: const BorderSide(
+                          color: AppColors.accent,
+                          width: 1.5,
+                        ),
                       ),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16,
-                        vertical: 10,
+                        vertical: 9,
                       ),
                     ),
                     onSubmitted: (_) => _addComment(),
@@ -359,16 +380,16 @@ class _CommentsSheetState extends State<CommentsSheet> {
                 GestureDetector(
                   onTap: _addComment,
                   child: Container(
-                    width: 38,
-                    height: 38,
+                    width: 36,
+                    height: 36,
                     decoration: const BoxDecoration(
-                      color: Color(0xFF6C63FF),
+                      color: AppColors.accent,
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.send_rounded,
                       color: Colors.white,
-                      size: 18,
+                      size: 16,
                     ),
                   ),
                 ),
@@ -381,7 +402,6 @@ class _CommentsSheetState extends State<CommentsSheet> {
   }
 }
 
-// Helper function to show comments from anywhere
 void showComments(BuildContext context, String videoTitle) {
   showModalBottomSheet(
     context: context,

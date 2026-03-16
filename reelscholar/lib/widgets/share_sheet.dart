@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../main.dart';
 
 class ShareSheet extends StatelessWidget {
   final String videoTitle;
@@ -14,88 +15,122 @@ class ShareSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<Map<String, dynamic>> shareOptions = [
-      {'label': 'WhatsApp', 'icon': Icons.chat_rounded, 'color': const Color(0xFF25D366)},
-      {'label': 'Copy Link', 'icon': Icons.link_rounded, 'color': const Color(0xFF6C63FF)},
-      {'label': 'Instagram', 'icon': Icons.camera_alt_outlined, 'color': const Color(0xFFE040FB)},
-      {'label': 'Twitter/X', 'icon': Icons.alternate_email_rounded, 'color': const Color(0xFF1DA1F2)},
-      {'label': 'Facebook', 'icon': Icons.facebook_rounded, 'color': const Color(0xFF1877F2)},
-      {'label': 'Telegram', 'icon': Icons.send_rounded, 'color': const Color(0xFF00BCD4)},
+      {
+        'label': 'WhatsApp',
+        'icon': Icons.chat_rounded,
+        'color': const Color(0xFF25D366),
+      },
+      {
+        'label': 'Copy Link',
+        'icon': Icons.link_rounded,
+        'color': AppColors.accent,
+      },
+      {
+        'label': 'Instagram',
+        'icon': Icons.camera_alt_outlined,
+        'color': const Color(0xFFE040FB),
+      },
+      {
+        'label': 'Twitter/X',
+        'icon': Icons.alternate_email_rounded,
+        'color': const Color(0xFF1DA1F2),
+      },
+      {
+        'label': 'Facebook',
+        'icon': Icons.facebook_rounded,
+        'color': const Color(0xFF1877F2),
+      },
+      {
+        'label': 'Telegram',
+        'icon': Icons.send_rounded,
+        'color': const Color(0xFF00BCD4),
+      },
     ];
 
     final List<Map<String, dynamic>> inAppOptions = [
-      {'label': 'Send to Friend', 'icon': Icons.person_add_outlined, 'color': const Color(0xFF6C63FF)},
-      {'label': 'Add to Playlist', 'icon': Icons.playlist_add_rounded, 'color': const Color(0xFFFFD700)},
-      {'label': 'Save Video', 'icon': Icons.bookmark_outline_rounded, 'color': const Color(0xFF2ECC71)},
-      {'label': 'Report', 'icon': Icons.flag_outlined, 'color': Colors.redAccent},
+      {
+        'label': 'Send to Friend',
+        'icon': Icons.person_add_outlined,
+        'color': AppColors.accent,
+      },
+      {
+        'label': 'Add to Playlist',
+        'icon': Icons.playlist_add_rounded,
+        'color': AppColors.accentLight,
+      },
+      {
+        'label': 'Save Video',
+        'icon': Icons.bookmark_outline_rounded,
+        'color': AppColors.success,
+      },
+      {
+        'label': 'Report',
+        'icon': Icons.flag_outlined,
+        'color': AppColors.error,
+      },
     ];
 
     return Container(
       decoration: const BoxDecoration(
-        color: Color(0xFF12121A),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           // Handle
           Container(
-            margin: const EdgeInsets.only(top: 12),
-            width: 40,
-            height: 4,
+            margin: const EdgeInsets.only(top: 10),
+            width: 36,
+            height: 3,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
+              color: AppColors.borderMid,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
 
           // Header
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            padding: const EdgeInsets.fromLTRB(20, 14, 8, 8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Share Video',
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
+                const Text('Share Video', style: AppTextStyles.headingMedium),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close_rounded,
-                      color: Colors.white54, size: 22),
+                  icon: const Icon(
+                    Icons.close_rounded,
+                    color: AppColors.textTertiary,
+                    size: 20,
+                  ),
                 ),
               ],
             ),
           ),
 
-          // Video preview card
+          // Video preview
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFF1A1A2E),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.08),
-                ),
+                color: AppColors.surfaceVariant,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.border),
               ),
               child: Row(
                 children: [
                   Container(
-                    width: 48,
-                    height: 48,
+                    width: 44,
+                    height: 44,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF6C63FF).withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(10),
+                      color: AppColors.accent.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
                       Icons.play_arrow_rounded,
-                      color: Color(0xFF6C63FF),
-                      size: 28,
+                      color: AppColors.accent,
+                      size: 24,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -106,7 +141,8 @@ class ShareSheet extends StatelessWidget {
                         Text(
                           videoTitle,
                           style: const TextStyle(
-                            color: Colors.white,
+                            fontFamily: 'Poppins',
+                            color: AppColors.textPrimary,
                             fontWeight: FontWeight.w600,
                             fontSize: 13,
                           ),
@@ -116,8 +152,9 @@ class ShareSheet extends StatelessWidget {
                         const SizedBox(height: 2),
                         Text(
                           author,
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.4),
+                          style: const TextStyle(
+                            fontFamily: 'Poppins',
+                            color: AppColors.textTertiary,
                             fontSize: 11,
                           ),
                         ),
@@ -131,30 +168,30 @@ class ShareSheet extends StatelessWidget {
 
           const SizedBox(height: 20),
 
-          // Share to section
           const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.symmetric(horizontal: 20),
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                'Share to',
+                'SHARE TO',
                 style: TextStyle(
-                  fontSize: 13,
+                  fontFamily: 'Poppins',
+                  fontSize: 10,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white54,
-                  letterSpacing: 0.5,
+                  color: AppColors.textMuted,
+                  letterSpacing: 1.2,
                 ),
               ),
             ),
           ),
           const SizedBox(height: 12),
 
-          // External share options
+          // External share icons
           SizedBox(
-            height: 90,
+            height: 84,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               itemCount: shareOptions.length,
               itemBuilder: (context, index) {
                 final opt = shareOptions[index];
@@ -164,16 +201,23 @@ class ShareSheet extends StatelessWidget {
                     if (opt['label'] == 'Copy Link') {
                       Clipboard.setData(
                         const ClipboardData(
-                            text: 'https://reelscholar.cut.ac.zw/video/123'),
+                          text: 'https://reelscholar.cut.ac.zw/video/123',
+                        ),
                       );
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: const Text('Link copied to clipboard!'),
-                          backgroundColor: const Color(0xFF6C63FF),
+                          content: const Text(
+                            'Link copied to clipboard',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          backgroundColor: AppColors.accent,
                           behavior: SnackBarBehavior.floating,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                         ),
                       );
@@ -186,27 +230,28 @@ class ShareSheet extends StatelessWidget {
                     child: Column(
                       children: [
                         Container(
-                          width: 54,
-                          height: 54,
+                          width: 50,
+                          height: 50,
                           decoration: BoxDecoration(
-                            color: color.withValues(alpha: 0.15),
+                            color: color.withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: color.withValues(alpha: 0.3),
+                              color: color.withValues(alpha: 0.2),
                             ),
                           ),
                           child: Icon(
                             opt['icon'] as IconData,
                             color: color,
-                            size: 24,
+                            size: 22,
                           ),
                         ),
                         const SizedBox(height: 6),
                         Text(
                           opt['label'],
                           style: const TextStyle(
-                            color: Colors.white60,
-                            fontSize: 11,
+                            fontFamily: 'Poppins',
+                            color: AppColors.textTertiary,
+                            fontSize: 10,
                           ),
                         ),
                       ],
@@ -217,52 +262,58 @@ class ShareSheet extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 20),
-
-          // Divider
-          Divider(color: Colors.white.withValues(alpha: 0.08)),
+          const SizedBox(height: 16),
+          const Divider(color: AppColors.border),
 
           // In-app options
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Column(
               children: inAppOptions.map((opt) {
                 final Color color = opt['color'] as Color;
                 return ListTile(
                   contentPadding: EdgeInsets.zero,
+                  dense: true,
                   leading: Container(
-                    width: 40,
-                    height: 40,
+                    width: 36,
+                    height: 36,
                     decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(10),
+                      color: color.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(opt['icon'] as IconData, color: color, size: 20),
+                    child: Icon(
+                      opt['icon'] as IconData,
+                      color: color,
+                      size: 18,
+                    ),
                   ),
                   title: Text(
                     opt['label'],
                     style: const TextStyle(
-                      color: Colors.white,
+                      fontFamily: 'Poppins',
+                      color: AppColors.textPrimary,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  trailing: const Icon(Icons.chevron_right_rounded,
-                      color: Colors.white24, size: 20),
+                  trailing: const Icon(
+                    Icons.chevron_right_rounded,
+                    color: AppColors.textMuted,
+                    size: 18,
+                  ),
                   onTap: () => Navigator.pop(context),
                 );
               }).toList(),
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
         ],
       ),
     );
   }
 }
 
-// Helper to show share sheet
 void showShareSheet(BuildContext context, String videoTitle, String author) {
   showModalBottomSheet(
     context: context,

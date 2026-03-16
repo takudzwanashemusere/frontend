@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
+import '../main.dart';
 
 class QuizQuestion {
   final String question;
@@ -521,17 +522,17 @@ class _QuizPopupState extends State<QuizPopup>
   }
 
   Color _optionColor(int i) {
-    if (!_answered) return const Color(0xFF1A1A2E);
+    if (!_answered) return AppColors.surface;
     if (i == _questions[_currentIndex].correctIndex)
-      return const Color(0xFF2ECC71).withValues(alpha: 0.2);
+      return AppColors.success.withValues(alpha: 0.2);
     if (i == _selectedAnswer) return Colors.redAccent.withValues(alpha: 0.2);
-    return const Color(0xFF1A1A2E);
+    return AppColors.surface;
   }
 
   Color _optionBorder(int i) {
     if (!_answered) return Colors.white.withValues(alpha: 0.08);
     if (i == _questions[_currentIndex].correctIndex)
-      return const Color(0xFF2ECC71);
+      return AppColors.success;
     if (i == _selectedAnswer) return Colors.redAccent;
     return Colors.white.withValues(alpha: 0.08);
   }
@@ -541,7 +542,7 @@ class _QuizPopupState extends State<QuizPopup>
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
       decoration: const BoxDecoration(
-        color: Color(0xFF0E0E1A),
+        color: AppColors.bg,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
@@ -566,16 +567,16 @@ class _QuizPopupState extends State<QuizPopup>
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF6C63FF).withValues(alpha: 0.15),
+                        color: AppColors.accent.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(children: [
                         const Icon(Icons.quiz_rounded,
-                            color: Color(0xFF6C63FF), size: 14),
+                            color: AppColors.accent, size: 14),
                         const SizedBox(width: 4),
                         Text(widget.subject,
                             style: const TextStyle(
-                                color: Color(0xFF6C63FF),
+                                color: AppColors.accent,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600)),
                       ]),
@@ -622,7 +623,7 @@ class _QuizPopupState extends State<QuizPopup>
                 const Spacer(),
                 Text('Score: $_score',
                     style: const TextStyle(
-                        color: Color(0xFFFFD700),
+                        color: AppColors.accentLight,
                         fontSize: 13,
                         fontWeight: FontWeight.w600)),
               ],
@@ -634,7 +635,7 @@ class _QuizPopupState extends State<QuizPopup>
                 value: (_currentIndex + 1) / _questions.length,
                 backgroundColor: Colors.white10,
                 valueColor: const AlwaysStoppedAnimation<Color>(
-                    Color(0xFF6C63FF)),
+                    AppColors.accent),
                 minHeight: 4,
               ),
             ),
@@ -643,7 +644,7 @@ class _QuizPopupState extends State<QuizPopup>
               width: double.infinity,
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: const Color(0xFF1A1A2E),
+                color: AppColors.surface,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                     color: Colors.white.withValues(alpha: 0.06)),
@@ -694,7 +695,7 @@ class _QuizPopupState extends State<QuizPopup>
                             style: TextStyle(
                                 color: _answered
                                     ? (i == q.correctIndex
-                                        ? const Color(0xFF2ECC71)
+                                        ? AppColors.success
                                         : i == _selectedAnswer
                                             ? Colors.redAccent
                                             : Colors.white60)
@@ -710,7 +711,7 @@ class _QuizPopupState extends State<QuizPopup>
                                   ? Icons.cancel_rounded
                                   : null,
                           color: i == q.correctIndex
-                              ? const Color(0xFF2ECC71)
+                              ? AppColors.success
                               : Colors.redAccent,
                           size: 18,
                         ),
@@ -723,16 +724,16 @@ class _QuizPopupState extends State<QuizPopup>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF6C63FF).withValues(alpha: 0.08),
+                  color: AppColors.accent.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                      color: const Color(0xFF6C63FF).withValues(alpha: 0.2)),
+                      color: AppColors.accent.withValues(alpha: 0.2)),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Icon(Icons.lightbulb_outline_rounded,
-                        color: Color(0xFFFFD700), size: 16),
+                        color: AppColors.accentLight, size: 16),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(q.explanation,
@@ -750,7 +751,7 @@ class _QuizPopupState extends State<QuizPopup>
                 child: ElevatedButton(
                   onPressed: _nextQuestion,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6C63FF),
+                    backgroundColor: AppColors.accent,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
@@ -802,8 +803,8 @@ class _QuizPopupState extends State<QuizPopup>
             height: 120,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: const Color(0xFF6C63FF).withValues(alpha: 0.15),
-              border: Border.all(color: const Color(0xFF6C63FF), width: 3),
+              color: AppColors.accent.withValues(alpha: 0.15),
+              border: Border.all(color: AppColors.accent, width: 3),
             ),
             child: Center(
               child: Column(
@@ -844,7 +845,7 @@ class _QuizPopupState extends State<QuizPopup>
                   style:
                       TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6C63FF),
+                backgroundColor: AppColors.accent,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),

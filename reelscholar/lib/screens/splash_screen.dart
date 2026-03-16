@@ -3,6 +3,7 @@ import 'dart:async';
 import 'login_screen.dart';
 import 'home_screen.dart';
 import '../services/auth_service.dart';
+import '../main.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -14,62 +15,68 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
   late AnimationController _logoController;
-  late AnimationController _textController;
-  late AnimationController _taglineController;
+  late AnimationController _wordmarkController;
+  late AnimationController _subtitleController;
 
-  late Animation<double> _logoScale;
   late Animation<double> _logoOpacity;
-  late Animation<double> _textOpacity;
-  late Animation<Offset> _textSlide;
-  late Animation<double> _taglineOpacity;
+  late Animation<double> _logoScale;
+  late Animation<double> _wordmarkOpacity;
+  late Animation<Offset> _wordmarkSlide;
+  late Animation<double> _subtitleOpacity;
 
   @override
   void initState() {
     super.initState();
 
-    // Logo animation
+    // Logo: clean fade + subtle scale (no elastic)
     _logoController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 900),
-    );
-    _logoScale = Tween<double>(begin: 0.5, end: 1.0).animate(
-      CurvedAnimation(parent: _logoController, curve: Curves.elasticOut),
+      duration: const Duration(milliseconds: 500),
     );
     _logoOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _logoController, curve: const Interval(0.0, 0.5)),
+      CurvedAnimation(parent: _logoController, curve: Curves.easeOut),
+    );
+    _logoScale = Tween<double>(begin: 0.88, end: 1.0).animate(
+      CurvedAnimation(parent: _logoController, curve: Curves.easeOut),
     );
 
-    // Text animation
-    _textController = AnimationController(
+    // Wordmark: fade + rise
+    _wordmarkController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 450),
     );
-    _textOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _textController, curve: Curves.easeIn),
+    _wordmarkOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _wordmarkController, curve: Curves.easeOut),
     );
-    _textSlide = Tween<Offset>(
-      begin: const Offset(0, 0.3),
+    _wordmarkSlide = Tween<Offset>(
+      begin: const Offset(0, 0.12),
       end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _textController, curve: Curves.easeOut));
+    ).animate(
+      CurvedAnimation(parent: _wordmarkController, curve: Curves.easeOut),
+    );
 
-    // Tagline animation
-    _taglineController = AnimationController(
+    // Subtitle: fade only
+    _subtitleController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 400),
     );
-    _taglineOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _taglineController, curve: Curves.easeIn),
+    _subtitleOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _subtitleController, curve: Curves.easeIn),
     );
 
-    // Sequence the animations
-    _logoController.forward().then((_) {
-      _textController.forward().then((_) {
-        _taglineController.forward();
-      });
+    // Sequence
+    Future.delayed(const Duration(milliseconds: 200), () {
+      if (mounted) _logoController.forward();
+    });
+    Future.delayed(const Duration(milliseconds: 600), () {
+      if (mounted) _wordmarkController.forward();
+    });
+    Future.delayed(const Duration(milliseconds: 950), () {
+      if (mounted) _subtitleController.forward();
     });
 
-    // Navigate based on login status after 3.5 seconds
-    Timer(const Duration(milliseconds: 3500), () async {
+    // Navigate after 2.8s
+    Timer(const Duration(milliseconds: 2800), () async {
       if (mounted) {
         final loggedIn = await AuthService.isLoggedIn();
         final destination = loggedIn ? const HomeScreen() : const LoginScreen();
@@ -79,7 +86,7 @@ class _SplashScreenState extends State<SplashScreen>
             transitionsBuilder: (_, animation, __, child) {
               return FadeTransition(opacity: animation, child: child);
             },
-            transitionDuration: const Duration(milliseconds: 600),
+            transitionDuration: const Duration(milliseconds: 500),
           ),
         );
       }
@@ -89,227 +96,238 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void dispose() {
     _logoController.dispose();
-    _textController.dispose();
-    _taglineController.dispose();
+    _wordmarkController.dispose();
+    _subtitleController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A0F),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment(0, -0.3),
-            radius: 1.2,
-            colors: [
-              Color(0xFF1A1040),
-              Color(0xFF0A0A0F),
-            ],
+      backgroundColor: AppColors.bg,
+      body: Stack(
+        children: [
+          // Subtle top-right accent glow — very restrained
+          Positioned(
+            top: -120,
+            right: -120,
+            child: Container(
+              width: 320,
+              height: 320,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    AppColors.accent.withValues(alpha: 0.06),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
           ),
-        ),
-        child: Stack(
+
+          // Center content
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Logo mark
+                AnimatedBuilder(
+                  animation: _logoController,
+                  builder: (_, __) => Opacity(
+                    opacity: _logoOpacity.value,
+                    child: Transform.scale(
+                      scale: _logoScale.value,
+                      child: _LogoMark(),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 28),
+
+                // Wordmark
+                AnimatedBuilder(
+                  animation: _wordmarkController,
+                  builder: (_, __) => FadeTransition(
+                    opacity: _wordmarkOpacity,
+                    child: SlideTransition(
+                      position: _wordmarkSlide,
+                      child: const _Wordmark(),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                // Subtitle tag
+                AnimatedBuilder(
+                  animation: _subtitleController,
+                  builder: (_, __) => Opacity(
+                    opacity: _subtitleOpacity.value,
+                    child: const _SubtitleTag(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Bottom footer
+          Positioned(
+            bottom: 52,
+            left: 0,
+            right: 0,
+            child: AnimatedBuilder(
+              animation: _subtitleController,
+              builder: (_, __) => Opacity(
+                opacity: _subtitleOpacity.value,
+                child: const _BottomFooter(),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LogoMark extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 88,
+      height: 88,
+      decoration: BoxDecoration(
+        color: AppColors.accent,
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.accent.withValues(alpha: 0.25),
+            blurRadius: 32,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Background decorative circles
-            Positioned(
-              top: -80,
-              right: -80,
-              child: Container(
-                width: 300,
-                height: 300,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: const Color(0xFF6C63FF).withOpacity(0.07),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: -60,
-              left: -60,
-              child: Container(
-                width: 250,
-                height: 250,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: const Color(0xFFFFD700).withOpacity(0.05),
-                ),
-              ),
-            ),
-
-            // Main content
-            Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Logo
-                  AnimatedBuilder(
-                    animation: _logoController,
-                    builder: (_, __) => Opacity(
-                      opacity: _logoOpacity.value,
-                      child: Transform.scale(
-                        scale: _logoScale.value,
-                        child: Container(
-                          width: 110,
-                          height: 110,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(28),
-                            gradient: const LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Color(0xFF6C63FF),
-                                Color(0xFF9C8FFF),
-                              ],
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF6C63FF).withOpacity(0.5),
-                                blurRadius: 40,
-                                spreadRadius: 5,
-                              ),
-                            ],
-                          ),
-                          child: const Center(
-                            child: Text(
-                              'RS',
-                              style: TextStyle(
-                                fontSize: 40,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                                letterSpacing: 2,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // App name
-                  AnimatedBuilder(
-                    animation: _textController,
-                    builder: (_, __) => FadeTransition(
-                      opacity: _textOpacity,
-                      child: SlideTransition(
-                        position: _textSlide,
-                        child: Column(
-                          children: [
-                            RichText(
-                              text: const TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: 'Reel',
-                                    style: TextStyle(
-                                      fontSize: 36,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.white,
-                                      fontFamily: 'Poppins',
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text: 'Scholar',
-                                    style: TextStyle(
-                                      fontSize: 36,
-                                      fontWeight: FontWeight.w700,
-                                      color: Color(0xFF6C63FF),
-                                      fontFamily: 'Poppins',
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFFD700).withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: const Color(0xFFFFD700).withOpacity(0.3),
-                                ),
-                              ),
-                              child: const Text(
-                                'CUT — Chinhoyi University of Technology',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: Color(0xFFFFD700),
-                                  fontWeight: FontWeight.w500,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Tagline
-                  AnimatedBuilder(
-                    animation: _taglineController,
-                    builder: (_, __) => Opacity(
-                      opacity: _taglineOpacity.value,
-                      child: const Text(
-                        'Learn. Share. Grow.',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.white38,
-                          fontWeight: FontWeight.w400,
-                          letterSpacing: 3,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Bottom loading indicator
-            Positioned(
-              bottom: 60,
-              left: 0,
-              right: 0,
-              child: AnimatedBuilder(
-                animation: _taglineController,
-                builder: (_, __) => Opacity(
-                  opacity: _taglineOpacity.value,
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        width: 40,
-                        child: LinearProgressIndicator(
-                          backgroundColor: Colors.white10,
-                          valueColor: const AlwaysStoppedAnimation<Color>(
-                            Color(0xFF6C63FF),
-                          ),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      const Text(
-                        'Powered by CUT',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.white24,
-                          letterSpacing: 1,
-                        ),
-                      ),
-                    ],
+            // Play icon + book motif
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-              ),
+                const Icon(
+                  Icons.play_arrow_rounded,
+                  color: Colors.white,
+                  size: 28,
+                ),
+              ],
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _Wordmark extends StatelessWidget {
+  const _Wordmark();
+
+  @override
+  Widget build(BuildContext context) {
+    return RichText(
+      text: const TextSpan(
+        children: [
+          TextSpan(
+            text: 'Reel',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 34,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+              letterSpacing: -0.5,
+            ),
+          ),
+          TextSpan(
+            text: 'Scholar',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 34,
+              fontWeight: FontWeight.w300,
+              color: AppColors.accent,
+              letterSpacing: -0.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SubtitleTag extends StatelessWidget {
+  const _SubtitleTag();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: const Text(
+        'CHINHOYI UNIVERSITY OF TECHNOLOGY',
+        style: TextStyle(
+          fontFamily: 'Poppins',
+          fontSize: 9,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textTertiary,
+          letterSpacing: 1.4,
+        ),
+      ),
+    );
+  }
+}
+
+class _BottomFooter extends StatelessWidget {
+  const _BottomFooter();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // Thin progress line
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 120),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(2),
+            child: const LinearProgressIndicator(
+              backgroundColor: AppColors.border,
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.accent),
+              minHeight: 2,
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        const Text(
+          'Learn · Share · Grow',
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 11,
+            color: AppColors.textMuted,
+            letterSpacing: 2.0,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 }
