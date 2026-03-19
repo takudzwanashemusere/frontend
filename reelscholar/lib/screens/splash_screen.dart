@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'login_screen.dart';
 import 'home_screen.dart';
+import 'department_selection_screen.dart';
 import '../services/auth_service.dart';
 import '../main.dart';
 
@@ -79,11 +80,20 @@ class _SplashScreenState extends State<SplashScreen>
     Timer(const Duration(milliseconds: 2800), () async {
       if (mounted) {
         final loggedIn = await AuthService.isLoggedIn();
-        final destination = loggedIn ? const HomeScreen() : const LoginScreen();
+        Widget destination;
+        if (!loggedIn) {
+          destination = const LoginScreen();
+        } else {
+          final hasDept = await AuthService.hasDepartment();
+          destination = hasDept
+              ? const HomeScreen()
+              : const DepartmentSelectionScreen();
+        }
+        if (!mounted) return;
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
-            pageBuilder: (_, __, ___) => destination,
-            transitionsBuilder: (_, animation, __, child) {
+            pageBuilder: (_, _, _) => destination,
+            transitionsBuilder: (_, animation, _, child) {
               return FadeTransition(opacity: animation, child: child);
             },
             transitionDuration: const Duration(milliseconds: 500),
@@ -134,7 +144,7 @@ class _SplashScreenState extends State<SplashScreen>
                 // Logo mark
                 AnimatedBuilder(
                   animation: _logoController,
-                  builder: (_, __) => Opacity(
+                  builder: (_, _) => Opacity(
                     opacity: _logoOpacity.value,
                     child: Transform.scale(
                       scale: _logoScale.value,
@@ -148,7 +158,7 @@ class _SplashScreenState extends State<SplashScreen>
                 // Wordmark
                 AnimatedBuilder(
                   animation: _wordmarkController,
-                  builder: (_, __) => FadeTransition(
+                  builder: (_, _) => FadeTransition(
                     opacity: _wordmarkOpacity,
                     child: SlideTransition(
                       position: _wordmarkSlide,
@@ -162,7 +172,7 @@ class _SplashScreenState extends State<SplashScreen>
                 // Subtitle tag
                 AnimatedBuilder(
                   animation: _subtitleController,
-                  builder: (_, __) => Opacity(
+                  builder: (_, _) => Opacity(
                     opacity: _subtitleOpacity.value,
                     child: const _SubtitleTag(),
                   ),
@@ -178,7 +188,7 @@ class _SplashScreenState extends State<SplashScreen>
             right: 0,
             child: AnimatedBuilder(
               animation: _subtitleController,
-              builder: (_, __) => Opacity(
+              builder: (_, _) => Opacity(
                 opacity: _subtitleOpacity.value,
                 child: const _BottomFooter(),
               ),
@@ -243,9 +253,9 @@ class _Wordmark extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RichText(
-      text: const TextSpan(
+      text: TextSpan(
         children: [
-          TextSpan(
+          const TextSpan(
             text: 'Reel',
             style: TextStyle(
               fontFamily: 'Poppins',
@@ -277,7 +287,7 @@ class _SubtitleTag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(6),
@@ -309,7 +319,7 @@ class _BottomFooter extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 120),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(2),
-            child: const LinearProgressIndicator(
+            child: LinearProgressIndicator(
               backgroundColor: AppColors.border,
               valueColor: AlwaysStoppedAnimation<Color>(AppColors.accent),
               minHeight: 2,

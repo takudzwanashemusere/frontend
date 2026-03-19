@@ -175,6 +175,7 @@ class _UploadScreenState extends State<UploadScreen>
         ),
       );
       await Future.delayed(const Duration(seconds: 1));
+      if (!mounted) return;
       Navigator.pop(context);
     }
   }
@@ -184,7 +185,7 @@ class _UploadScreenState extends State<UploadScreen>
       SnackBar(
         content: Text(
           msg,
-          style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w500),
+          style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w500),
         ),
         backgroundColor: AppColors.surfaceVariant,
         behavior: SnackBarBehavior.floating,
@@ -203,7 +204,7 @@ class _UploadScreenState extends State<UploadScreen>
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(
+          icon: Icon(
             Icons.close_rounded,
             color: AppColors.textSecondary,
             size: 22,
@@ -219,7 +220,7 @@ class _UploadScreenState extends State<UploadScreen>
           ),
         ),
         centerTitle: true,
-        bottom: const PreferredSize(
+        bottom: PreferredSize(
           preferredSize: Size.fromHeight(1),
           child: Divider(height: 1, color: AppColors.border),
         ),
@@ -266,7 +267,7 @@ class _UploadScreenState extends State<UploadScreen>
                     GestureDetector(
                       onTap: _pickVideo,
                       child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 250),
+                        duration: Duration(milliseconds: 250),
                         width: double.infinity,
                         height: 168,
                         decoration: BoxDecoration(
@@ -285,13 +286,13 @@ class _UploadScreenState extends State<UploadScreen>
                             ? Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Icon(
+                                  Icon(
                                     Icons.check_circle_outline_rounded,
                                     color: AppColors.accent,
                                     size: 36,
                                   ),
                                   const SizedBox(height: 10),
-                                  const Text(
+                                  Text(
                                     'Video selected',
                                     style: TextStyle(
                                       fontFamily: 'Poppins',
@@ -303,7 +304,7 @@ class _UploadScreenState extends State<UploadScreen>
                                   const SizedBox(height: 4),
                                   Text(
                                     _selectedFileName,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       color: AppColors.textTertiary,
                                       fontFamily: 'Poppins',
                                       fontSize: 12,
@@ -312,7 +313,7 @@ class _UploadScreenState extends State<UploadScreen>
                                   const SizedBox(height: 8),
                                   GestureDetector(
                                     onTap: _pickVideo,
-                                    child: const Text(
+                                    child: Text(
                                       'Change video',
                                       style: TextStyle(
                                         color: AppColors.textTertiary,
@@ -335,7 +336,7 @@ class _UploadScreenState extends State<UploadScreen>
                                       color: AppColors.surfaceVariant,
                                       borderRadius: BorderRadius.circular(10),
                                     ),
-                                    child: const Icon(
+                                    child: Icon(
                                       Icons.video_call_rounded,
                                       color: AppColors.textTertiary,
                                       size: 26,
@@ -352,7 +353,7 @@ class _UploadScreenState extends State<UploadScreen>
                                     ),
                                   ),
                                   const SizedBox(height: 4),
-                                  const Text(
+                                  Text(
                                     'MP4, MOV — max 60 seconds',
                                     style: TextStyle(
                                       color: AppColors.textMuted,
@@ -421,7 +422,7 @@ class _UploadScreenState extends State<UploadScreen>
 
                     // Guidelines notice
                     Container(
-                      padding: const EdgeInsets.all(14),
+                      padding: EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: AppColors.surface,
                         borderRadius: BorderRadius.circular(10),
@@ -461,7 +462,7 @@ class _UploadScreenState extends State<UploadScreen>
                                   crossAxisAlignment:
                                       CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
+                                    Text(
                                       '·  ',
                                       style: TextStyle(
                                         color: AppColors.textMuted,
@@ -471,7 +472,7 @@ class _UploadScreenState extends State<UploadScreen>
                                     Expanded(
                                       child: Text(
                                         rule,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           color: AppColors.textTertiary,
                                           fontFamily: 'Poppins',
                                           fontSize: 12,
@@ -520,7 +521,7 @@ class _UploadScreenState extends State<UploadScreen>
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: AppColors.border),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.cloud_upload_outlined,
                 color: AppColors.accent,
                 size: 36,
@@ -543,14 +544,14 @@ class _UploadScreenState extends State<UploadScreen>
                 value: _uploadProgress,
                 backgroundColor: AppColors.border,
                 valueColor:
-                    const AlwaysStoppedAnimation<Color>(AppColors.accent),
+                    AlwaysStoppedAnimation<Color>(AppColors.accent),
                 minHeight: 4,
               ),
             ),
             const SizedBox(height: 10),
             Text(
               '${(_uploadProgress * 100).toInt()}%',
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Poppins',
                 color: AppColors.accent,
                 fontWeight: FontWeight.w600,
@@ -571,14 +572,14 @@ class _UploadScreenState extends State<UploadScreen>
     return TextField(
       controller: controller,
       maxLines: maxLines,
-      style: const TextStyle(
+      style: TextStyle(
         color: AppColors.textPrimary,
         fontFamily: 'Poppins',
         fontSize: 14,
       ),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(
+        hintStyle: TextStyle(
           color: AppColors.textMuted,
           fontFamily: 'Poppins',
           fontSize: 14,
@@ -587,15 +588,15 @@ class _UploadScreenState extends State<UploadScreen>
         fillColor: AppColors.surface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.accent, width: 1.5),
+          borderSide: BorderSide(color: AppColors.accent, width: 1.5),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
@@ -620,14 +621,14 @@ class _UploadScreenState extends State<UploadScreen>
         border: Border.all(color: AppColors.border),
       ),
       child: DropdownButtonFormField<String>(
-        value: value,
+        initialValue: value,
         dropdownColor: AppColors.surfaceVariant,
-        style: const TextStyle(
+        style: TextStyle(
           color: AppColors.textPrimary,
           fontFamily: 'Poppins',
           fontSize: 14,
         ),
-        icon: const Icon(
+        icon: Icon(
           Icons.keyboard_arrow_down_rounded,
           color: AppColors.textTertiary,
         ),

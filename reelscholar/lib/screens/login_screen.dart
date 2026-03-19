@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'home_screen.dart';
+import 'department_selection_screen.dart';
 import '../services/auth_service.dart';
 import '../main.dart';
 
@@ -64,11 +65,16 @@ class _LoginScreenState extends State<LoginScreen>
 
       setState(() => _isLoading = false);
       if (mounted) {
+        final hasDept = await AuthService.hasDepartment();
+        if (!mounted) return;
+        final destination = hasDept
+            ? const HomeScreen()
+            : const DepartmentSelectionScreen();
         Navigator.pushReplacement(
           context,
           PageRouteBuilder(
-            pageBuilder: (_, __, ___) => const HomeScreen(),
-            transitionsBuilder: (_, animation, __, child) =>
+            pageBuilder: (_, _, _) => destination,
+            transitionsBuilder: (_, animation, _, child) =>
                 FadeTransition(opacity: animation, child: child),
             transitionDuration: const Duration(milliseconds: 400),
           ),
@@ -197,7 +203,7 @@ class _LoginScreenState extends State<LoginScreen>
                               ),
                               GestureDetector(
                                 onTap: () {},
-                                child: const Text(
+                                child: Text(
                                   'Forgot password?',
                                   style: TextStyle(
                                     fontFamily: 'Poppins',
@@ -259,7 +265,7 @@ class _LoginScreenState extends State<LoginScreen>
                             height: 52,
                             child: OutlinedButton.icon(
                               onPressed: () {},
-                              icon: const Icon(
+                              icon: Icon(
                                 Icons.g_mobiledata_rounded,
                                 size: 26,
                                 color: AppColors.textSecondary,
@@ -289,7 +295,7 @@ class _LoginScreenState extends State<LoginScreen>
                                   children: [
                                     TextSpan(
                                       text: 'Register',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontFamily: 'Poppins',
                                         fontSize: 12,
                                         color: AppColors.accent,
@@ -341,9 +347,9 @@ class _LogoRow extends StatelessWidget {
         ),
         const SizedBox(width: 10),
         RichText(
-          text: const TextSpan(
+          text: TextSpan(
             children: [
-              TextSpan(
+              const TextSpan(
                 text: 'Reel',
                 style: TextStyle(
                   fontFamily: 'Poppins',
@@ -416,7 +422,7 @@ class _CleanTextField extends StatelessWidget {
       obscureText: obscureText,
       keyboardType: keyboardType,
       validator: validator,
-      style: const TextStyle(
+      style: TextStyle(
         color: AppColors.textPrimary,
         fontFamily: 'Poppins',
         fontSize: 14,
@@ -425,7 +431,7 @@ class _CleanTextField extends StatelessWidget {
       decoration: InputDecoration(
         hintText: hint,
         prefixIcon: Padding(
-          padding: const EdgeInsets.only(left: 14, right: 10),
+          padding: EdgeInsets.only(left: 14, right: 10),
           child: Icon(icon, color: AppColors.textTertiary, size: 18),
         ),
         prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
@@ -436,7 +442,7 @@ class _CleanTextField extends StatelessWidget {
               )
             : null,
         suffixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
-        errorStyle: const TextStyle(
+        errorStyle: TextStyle(
           fontFamily: 'Poppins',
           fontSize: 11,
           color: AppColors.error,

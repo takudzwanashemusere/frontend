@@ -438,13 +438,11 @@ class QuizBank {
       {int count = 3}) {
     // Try exact match first, then try partial match
     String? key = _questions.containsKey(subject) ? subject : null;
-    if (key == null) {
-      key = _questions.keys.firstWhere(
+    key ??= _questions.keys.firstWhere(
         (k) => k.toLowerCase().contains(subject.toLowerCase()) ||
             subject.toLowerCase().contains(k.toLowerCase()),
         orElse: () => 'General',
       );
-    }
     final list = List<QuizQuestion>.from(_questions[key]!);
     list.shuffle(Random());
     return list.take(count.clamp(1, list.length)).toList();
@@ -523,16 +521,18 @@ class _QuizPopupState extends State<QuizPopup>
 
   Color _optionColor(int i) {
     if (!_answered) return AppColors.surface;
-    if (i == _questions[_currentIndex].correctIndex)
+    if (i == _questions[_currentIndex].correctIndex) {
       return AppColors.success.withValues(alpha: 0.2);
+    }
     if (i == _selectedAnswer) return Colors.redAccent.withValues(alpha: 0.2);
     return AppColors.surface;
   }
 
   Color _optionBorder(int i) {
     if (!_answered) return Colors.white.withValues(alpha: 0.08);
-    if (i == _questions[_currentIndex].correctIndex)
+    if (i == _questions[_currentIndex].correctIndex) {
       return AppColors.success;
+    }
     if (i == _selectedAnswer) return Colors.redAccent;
     return Colors.white.withValues(alpha: 0.08);
   }
@@ -541,14 +541,14 @@ class _QuizPopupState extends State<QuizPopup>
   Widget build(BuildContext context) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.bg,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         children: [
           Container(
-            margin: const EdgeInsets.only(top: 12),
+            margin: EdgeInsets.only(top: 12),
             width: 40,
             height: 4,
             decoration: BoxDecoration(
@@ -564,18 +564,18 @@ class _QuizPopupState extends State<QuizPopup>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(
+                      padding: EdgeInsets.symmetric(
                           horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: AppColors.accent.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(children: [
-                        const Icon(Icons.quiz_rounded,
+                        Icon(Icons.quiz_rounded,
                             color: AppColors.accent, size: 14),
-                        const SizedBox(width: 4),
+                        SizedBox(width: 4),
                         Text(widget.subject,
-                            style: const TextStyle(
+                            style: TextStyle(
                                 color: AppColors.accent,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600)),
@@ -620,9 +620,9 @@ class _QuizPopupState extends State<QuizPopup>
                     style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.45),
                         fontSize: 13)),
-                const Spacer(),
+                Spacer(),
                 Text('Score: $_score',
-                    style: const TextStyle(
+                    style: TextStyle(
                         color: AppColors.accentLight,
                         fontSize: 13,
                         fontWeight: FontWeight.w600)),
@@ -634,7 +634,7 @@ class _QuizPopupState extends State<QuizPopup>
               child: LinearProgressIndicator(
                 value: (_currentIndex + 1) / _questions.length,
                 backgroundColor: Colors.white10,
-                valueColor: const AlwaysStoppedAnimation<Color>(
+                valueColor: AlwaysStoppedAnimation<Color>(
                     AppColors.accent),
                 minHeight: 4,
               ),
@@ -642,7 +642,7 @@ class _QuizPopupState extends State<QuizPopup>
             const SizedBox(height: 20),
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(18),
+              padding: EdgeInsets.all(18),
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(16),
@@ -722,7 +722,7 @@ class _QuizPopupState extends State<QuizPopup>
             }),
             if (_answered) ...[
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: AppColors.accent.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(10),
@@ -732,9 +732,9 @@ class _QuizPopupState extends State<QuizPopup>
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.lightbulb_outline_rounded,
+                    Icon(Icons.lightbulb_outline_rounded,
                         color: AppColors.accentLight, size: 16),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     Expanded(
                       child: Text(q.explanation,
                           style: TextStyle(

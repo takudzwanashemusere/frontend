@@ -19,9 +19,9 @@ class _ProfileScreenState extends State<ProfileScreen>
   bool _isLoading = true;
 
   int _videosCount = 0;
-  int _followersCount = 0;
-  int _followingCount = 0;
-  int _likesCount = 0;
+  final int _followersCount = 0;
+  final int _followingCount = 0;
+  final int _likesCount = 0;
 
   @override
   void initState() {
@@ -87,8 +87,8 @@ class _ProfileScreenState extends State<ProfileScreen>
               if (mounted) {
                 Navigator.of(context).pushAndRemoveUntil(
                   PageRouteBuilder(
-                    pageBuilder: (_, __, ___) => const LoginScreen(),
-                    transitionsBuilder: (_, anim, __, child) =>
+                    pageBuilder: (_, _, _) => const LoginScreen(),
+                    transitionsBuilder: (_, anim, _, child) =>
                         FadeTransition(opacity: anim, child: child),
                   ),
                   (_) => false,
@@ -123,11 +123,11 @@ class _ProfileScreenState extends State<ProfileScreen>
     return Scaffold(
       backgroundColor: AppColors.bg,
       body: _isLoading
-          ? const Center(
+          ? Center(
               child: CircularProgressIndicator(color: AppColors.accent),
             )
           : NestedScrollView(
-              headerSliverBuilder: (_, __) => [
+              headerSliverBuilder: (_, _) => [
                 SliverAppBar(
                   backgroundColor: AppColors.bg,
                   expandedHeight: 330,
@@ -137,7 +137,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   actions: [
                     IconButton(
                       onPressed: _handleLogout,
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.logout_rounded,
                         color: AppColors.textTertiary,
                         size: 20,
@@ -253,7 +253,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             const SizedBox(height: 3),
             Text(
               _userEmail,
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.textTertiary,
                 fontFamily: 'Poppins',
                 fontSize: 12,
@@ -261,13 +261,13 @@ class _ProfileScreenState extends State<ProfileScreen>
             ),
             const SizedBox(height: 8),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(color: AppColors.border),
               ),
-              child: const Text(
+              child: Text(
                 'CUT STUDENT',
                 style: TextStyle(
                   fontFamily: 'Poppins',
@@ -283,8 +283,8 @@ class _ProfileScreenState extends State<ProfileScreen>
 
             // Stats row
             Container(
-              margin: const EdgeInsets.symmetric(horizontal: 28),
-              padding: const EdgeInsets.symmetric(vertical: 14),
+              margin: EdgeInsets.symmetric(horizontal: 28),
+              padding: EdgeInsets.symmetric(vertical: 14),
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(12),
@@ -308,11 +308,11 @@ class _ProfileScreenState extends State<ProfileScreen>
 
             OutlinedButton.icon(
               onPressed: () {},
-              icon: const Icon(Icons.edit_outlined, size: 14),
-              label: const Text('Edit Profile'),
+              icon: Icon(Icons.edit_outlined, size: 14),
+              label: Text('Edit Profile'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.textSecondary,
-                side: const BorderSide(color: AppColors.borderMid),
+                side: BorderSide(color: AppColors.borderMid),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -338,7 +338,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       children: [
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Poppins',
             color: AppColors.textPrimary,
             fontSize: 17,
@@ -348,7 +348,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         const SizedBox(height: 2),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Poppins',
             color: AppColors.textMuted,
             fontSize: 10,
@@ -372,7 +372,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.video_library_outlined,
               size: 52,
               color: AppColors.textMuted,
@@ -444,7 +444,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                     children: [
                       Text(
                         video['title'] ?? '',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Poppins',
                           color: AppColors.textPrimary,
                           fontSize: 11,
@@ -457,7 +457,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.favorite_outline_rounded,
                             size: 10,
                             color: AppColors.textMuted,
@@ -465,7 +465,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                           const SizedBox(width: 3),
                           Text(
                             video['likes'] ?? '0',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: 'Poppins',
                               color: AppColors.textMuted,
                               fontSize: 10,
@@ -481,7 +481,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                 top: 8,
                 left: 8,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
+                  padding: EdgeInsets.symmetric(
                     horizontal: 7,
                     vertical: 3,
                   ),
@@ -491,7 +491,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   ),
                   child: Text(
                     video['subject'] ?? '',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.accentLight,
                       fontFamily: 'Poppins',
                       fontSize: 9,
@@ -512,7 +512,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
+          Icon(
             Icons.favorite_outline_rounded,
             size: 52,
             color: AppColors.textMuted,

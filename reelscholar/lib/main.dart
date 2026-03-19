@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'screens/splash_screen.dart';
-import 'screens/home_screen.dart';
-import 'screens/login_screen.dart';
-import 'services/auth_service.dart';
+import 'services/theme_service.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,11 +27,11 @@ class AppColors {
   static const border = Color(0xFF1E2230);
   static const borderMid = Color(0xFF2A2E3F);
 
-  // Accent — Electric Blue
-  static const accent = Color(0xFF2563EB);
-  static const accentLight = Color(0xFF3B82F6);
-  static const accentDim = Color(0xFF1D4ED8);
-  static const accentGlow = Color(0x332563EB);
+  // Accent — dynamic, set via ThemeService
+  static Color get accent => ThemeService.current.accent;
+  static Color get accentLight => ThemeService.current.accentLight;
+  static Color get accentDim => ThemeService.current.accentDim;
+  static Color get accentGlow => ThemeService.current.accentGlow;
 
   // Text
   static const textPrimary = Color(0xFFF1F5F9);
@@ -118,11 +116,31 @@ class AppTextStyles {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-class ReelScholarApp extends StatelessWidget {
+class ReelScholarApp extends StatefulWidget {
   const ReelScholarApp({super.key});
 
   @override
+  State<ReelScholarApp> createState() => _ReelScholarAppState();
+}
+
+class _ReelScholarAppState extends State<ReelScholarApp> {
+  @override
+  void initState() {
+    super.initState();
+    ThemeService.notifier.addListener(_onThemeChanged);
+  }
+
+  @override
+  void dispose() {
+    ThemeService.notifier.removeListener(_onThemeChanged);
+    super.dispose();
+  }
+
+  void _onThemeChanged() => setState(() {});
+
+  @override
   Widget build(BuildContext context) {
+    final t = ThemeService.current;
     return MaterialApp(
       title: 'ReelScholar',
       debugShowCheckedModeBanner: false,
@@ -131,9 +149,9 @@ class ReelScholarApp extends StatelessWidget {
         brightness: Brightness.dark,
         scaffoldBackgroundColor: AppColors.bg,
         fontFamily: 'Poppins',
-        colorScheme: const ColorScheme.dark(
-          primary: AppColors.accent,
-          secondary: AppColors.accentLight,
+        colorScheme: ColorScheme.dark(
+          primary: t.accent,
+          secondary: t.accentLight,
           surface: AppColors.surface,
           onPrimary: Colors.white,
           onSurface: AppColors.textPrimary,
@@ -152,7 +170,7 @@ class ReelScholarApp extends StatelessWidget {
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.accent,
+            backgroundColor: t.accent,
             foregroundColor: Colors.white,
             elevation: 0,
             shadowColor: Colors.transparent,
@@ -194,7 +212,7 @@ class ReelScholarApp extends StatelessWidget {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.accent, width: 1.5),
+            borderSide: BorderSide(color: t.accent, width: 1.5),
           ),
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
@@ -216,7 +234,7 @@ class ReelScholarApp extends StatelessWidget {
         ),
         checkboxTheme: CheckboxThemeData(
           fillColor: WidgetStateProperty.resolveWith((states) {
-            if (states.contains(WidgetState.selected)) return AppColors.accent;
+            if (states.contains(WidgetState.selected)) return t.accent;
             return Colors.transparent;
           }),
           checkColor: WidgetStateProperty.all(Colors.white),

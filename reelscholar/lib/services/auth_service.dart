@@ -9,6 +9,7 @@ class AuthService {
   static const _keyEmail = 'user_email';
   static const _keyName = 'user_name';
   static const _keyIsLoggedIn = 'is_logged_in';
+  static const _keyDepartment = 'user_department';
 
   // Save session after login
   static Future<void> saveSession({
@@ -28,6 +29,24 @@ class AuthService {
   static Future<bool> isLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_keyIsLoggedIn) ?? false;
+  }
+
+  // Save selected department
+  static Future<void> saveDepartment(String department) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyDepartment, department);
+  }
+
+  // Get saved department
+  static Future<String?> getDepartment() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyDepartment);
+  }
+
+  // Check if department has been selected
+  static Future<bool> hasDepartment() async {
+    final dept = await getDepartment();
+    return dept != null && dept.isNotEmpty;
   }
 
   // Get saved user email

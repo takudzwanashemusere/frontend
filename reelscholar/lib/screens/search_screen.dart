@@ -180,26 +180,26 @@ class _SearchScreenState extends State<SearchScreen>
                     child: TextField(
                       controller: _searchController,
                       onChanged: (val) => setState(() => _query = val),
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.textPrimary,
                         fontFamily: 'Poppins',
                         fontSize: 14,
                       ),
                       decoration: InputDecoration(
                         hintText: 'Search modules, schools, topics...',
-                        hintStyle: const TextStyle(
+                        hintStyle: TextStyle(
                           color: AppColors.textMuted,
                           fontFamily: 'Poppins',
                           fontSize: 14,
                         ),
-                        prefixIcon: const Icon(
+                        prefixIcon: Icon(
                           Icons.search_rounded,
                           color: AppColors.accent,
                           size: 20,
                         ),
                         suffixIcon: _query.isNotEmpty
                             ? IconButton(
-                                icon: const Icon(
+                                icon: Icon(
                                   Icons.close_rounded,
                                   color: AppColors.textTertiary,
                                   size: 18,
@@ -271,7 +271,7 @@ class _SearchScreenState extends State<SearchScreen>
                 const Text('Recent', style: AppTextStyles.headingMedium),
                 GestureDetector(
                   onTap: () {},
-                  child: const Text(
+                  child: Text(
                     'Clear all',
                     style: TextStyle(
                       fontFamily: 'Poppins',
@@ -294,7 +294,7 @@ class _SearchScreenState extends State<SearchScreen>
                     setState(() => _query = s);
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
+                    padding: EdgeInsets.symmetric(
                         horizontal: 12, vertical: 7),
                     decoration: BoxDecoration(
                       color: AppColors.surface,
@@ -304,7 +304,7 @@ class _SearchScreenState extends State<SearchScreen>
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.history_rounded,
                           size: 13,
                           color: AppColors.textTertiary,
@@ -312,7 +312,7 @@ class _SearchScreenState extends State<SearchScreen>
                         const SizedBox(width: 6),
                         Text(
                           s,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppColors.textSecondary,
                             fontFamily: 'Poppins',
                             fontSize: 12,
@@ -374,7 +374,7 @@ class _SearchScreenState extends State<SearchScreen>
                         children: [
                           Text(
                             school['name'],
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: AppColors.textPrimary,
                               fontFamily: 'Poppins',
                               fontWeight: FontWeight.w600,
@@ -386,7 +386,7 @@ class _SearchScreenState extends State<SearchScreen>
                           const SizedBox(height: 2),
                           Text(
                             school['count'],
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: AppColors.textMuted,
                               fontFamily: 'Poppins',
                               fontSize: 10,
@@ -406,15 +406,15 @@ class _SearchScreenState extends State<SearchScreen>
           // Trending
           Row(
             children: [
-              const Text('Trending Now', style: AppTextStyles.headingMedium),
-              const SizedBox(width: 6),
+              Text('Trending Now', style: AppTextStyles.headingMedium),
+              SizedBox(width: 6),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: AppColors.accent.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: const Text(
+                child: Text(
                   'LIVE',
                   style: TextStyle(
                     fontFamily: 'Poppins',
@@ -465,7 +465,7 @@ class _SearchScreenState extends State<SearchScreen>
             const SizedBox(height: 16),
             Text(
               'No results for "$_query"',
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.textTertiary,
                 fontFamily: 'Poppins',
                 fontSize: 14,
@@ -492,8 +492,8 @@ class _TrendingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final Color color = video['color'] as Color;
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
+      margin: EdgeInsets.only(bottom: 10),
+      padding: EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
@@ -521,7 +521,7 @@ class _TrendingCard extends StatelessWidget {
               children: [
                 Text(
                   video['title'],
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.textPrimary,
                     fontFamily: 'Poppins',
                     fontWeight: FontWeight.w600,
@@ -535,7 +535,7 @@ class _TrendingCard extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(
+                      padding: EdgeInsets.symmetric(
                           horizontal: 7, vertical: 2),
                       decoration: BoxDecoration(
                         color: color.withValues(alpha: 0.1),
@@ -555,7 +555,7 @@ class _TrendingCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         video['author'],
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.textTertiary,
                           fontFamily: 'Poppins',
                           fontSize: 11,
@@ -572,7 +572,7 @@ class _TrendingCard extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              const Icon(
+              Icon(
                 Icons.visibility_outlined,
                 size: 13,
                 color: AppColors.textMuted,
@@ -580,7 +580,7 @@ class _TrendingCard extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 video['views'],
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppColors.textMuted,
                   fontFamily: 'Poppins',
                   fontSize: 11,

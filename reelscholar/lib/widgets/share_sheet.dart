@@ -71,7 +71,7 @@ class ShareSheet extends StatelessWidget {
     ];
 
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
       ),
@@ -98,7 +98,7 @@ class ShareSheet extends StatelessWidget {
                 const Text('Share Video', style: AppTextStyles.headingMedium),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.close_rounded,
                     color: AppColors.textTertiary,
                     size: 20,
@@ -112,7 +112,7 @@ class ShareSheet extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Container(
-              padding: const EdgeInsets.all(12),
+              padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: AppColors.surfaceVariant,
                 borderRadius: BorderRadius.circular(10),
@@ -127,7 +127,7 @@ class ShareSheet extends StatelessWidget {
                       color: AppColors.accent.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.play_arrow_rounded,
                       color: AppColors.accent,
                       size: 24,
@@ -140,7 +140,7 @@ class ShareSheet extends StatelessWidget {
                       children: [
                         Text(
                           videoTitle,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Poppins',
                             color: AppColors.textPrimary,
                             fontWeight: FontWeight.w600,
@@ -152,7 +152,7 @@ class ShareSheet extends StatelessWidget {
                         const SizedBox(height: 2),
                         Text(
                           author,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Poppins',
                             color: AppColors.textTertiary,
                             fontSize: 11,
@@ -248,7 +248,7 @@ class ShareSheet extends StatelessWidget {
                         const SizedBox(height: 6),
                         Text(
                           opt['label'],
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Poppins',
                             color: AppColors.textTertiary,
                             fontSize: 10,
@@ -262,8 +262,8 @@ class ShareSheet extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 16),
-          const Divider(color: AppColors.border),
+          SizedBox(height: 16),
+          Divider(color: AppColors.border),
 
           // In-app options
           Padding(
@@ -289,14 +289,14 @@ class ShareSheet extends StatelessWidget {
                   ),
                   title: Text(
                     opt['label'],
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Poppins',
                       color: AppColors.textPrimary,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  trailing: const Icon(
+                  trailing: Icon(
                     Icons.chevron_right_rounded,
                     color: AppColors.textMuted,
                     size: 18,

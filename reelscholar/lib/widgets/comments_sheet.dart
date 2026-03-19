@@ -101,7 +101,7 @@ class _CommentsSheetState extends State<CommentsSheet> {
   Widget build(BuildContext context) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.78,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
       ),
@@ -133,7 +133,7 @@ class _CommentsSheetState extends State<CommentsSheet> {
                     ),
                     Text(
                       '${_comments.length} comments',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 12,
                         color: AppColors.textMuted,
@@ -143,7 +143,7 @@ class _CommentsSheetState extends State<CommentsSheet> {
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.close_rounded,
                     color: AppColors.textTertiary,
                     size: 20,
@@ -153,7 +153,7 @@ class _CommentsSheetState extends State<CommentsSheet> {
             ),
           ),
 
-          const Divider(color: AppColors.border, height: 16),
+          Divider(color: AppColors.border, height: 16),
 
           // Comments list
           Expanded(
@@ -177,7 +177,7 @@ class _CommentsSheetState extends State<CommentsSheet> {
                         backgroundColor: AppColors.surfaceVariant,
                         child: Text(
                           c['name'].toString().substring(0, 1),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Poppins',
                             color: AppColors.textSecondary,
                             fontWeight: FontWeight.w700,
@@ -195,7 +195,7 @@ class _CommentsSheetState extends State<CommentsSheet> {
                               children: [
                                 Text(
                                   c['name'],
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontFamily: 'Poppins',
                                     color: AppColors.textPrimary,
                                     fontWeight: FontWeight.w600,
@@ -214,7 +214,7 @@ class _CommentsSheetState extends State<CommentsSheet> {
                                           .withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(4),
                                     ),
-                                    child: const Text(
+                                    child: Text(
                                       'Author',
                                       style: TextStyle(
                                         fontFamily: 'Poppins',
@@ -228,7 +228,7 @@ class _CommentsSheetState extends State<CommentsSheet> {
                                 const SizedBox(width: 8),
                                 Text(
                                   c['time'],
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontFamily: 'Poppins',
                                     color: AppColors.textMuted,
                                     fontSize: 11,
@@ -239,7 +239,7 @@ class _CommentsSheetState extends State<CommentsSheet> {
                             const SizedBox(height: 4),
                             Text(
                               c['comment'],
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: 'Poppins',
                                 color: AppColors.textSecondary,
                                 fontSize: 13,
@@ -316,13 +316,13 @@ class _CommentsSheetState extends State<CommentsSheet> {
               16,
               MediaQuery.of(context).viewInsets.bottom + 16,
             ),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: AppColors.bg,
               border: Border(top: BorderSide(color: AppColors.border)),
             ),
             child: Row(
               children: [
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 14,
                   backgroundColor: AppColors.accent,
                   child: Text(
@@ -339,14 +339,14 @@ class _CommentsSheetState extends State<CommentsSheet> {
                 Expanded(
                   child: TextField(
                     controller: _commentController,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.textPrimary,
                       fontFamily: 'Poppins',
                       fontSize: 13,
                     ),
                     decoration: InputDecoration(
                       hintText: 'Add a comment...',
-                      hintStyle: const TextStyle(
+                      hintStyle: TextStyle(
                         color: AppColors.textMuted,
                         fontFamily: 'Poppins',
                         fontSize: 13,
@@ -355,15 +355,15 @@ class _CommentsSheetState extends State<CommentsSheet> {
                       fillColor: AppColors.surface,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
-                        borderSide: const BorderSide(color: AppColors.border),
+                        borderSide: BorderSide(color: AppColors.border),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
-                        borderSide: const BorderSide(color: AppColors.border),
+                        borderSide: BorderSide(color: AppColors.border),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
-                        borderSide: const BorderSide(
+                        borderSide: BorderSide(
                           color: AppColors.accent,
                           width: 1.5,
                         ),
@@ -382,7 +382,7 @@ class _CommentsSheetState extends State<CommentsSheet> {
                   child: Container(
                     width: 36,
                     height: 36,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: AppColors.accent,
                       shape: BoxShape.circle,
                     ),

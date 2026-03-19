@@ -8,6 +8,9 @@ import '../widgets/comments_sheet.dart';
 import '../widgets/share_sheet.dart';
 import '../models/video_store.dart';
 import '../widgets/video_player_widget.dart';
+import '../widgets/quiz_popup.dart';
+import '../services/theme_service.dart';
+import '../services/auth_service.dart';
 import '../main.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -18,7 +21,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _currentIndex = 0;
   final PageController _pageController = PageController();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   List<Map<String, dynamic>> _videos = [];
@@ -29,13 +31,21 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadVideos();
   }
 
-  void _loadVideos() {
+  void _loadVideos() async {
+    final dept = await AuthService.getDepartment();
+    final all = VideoStore.videos.map((v) => {
+      ...v,
+      'color': Color(v['color'] as int),
+      'accent': Color(v['accent'] as int),
+    }).toList();
+
     setState(() {
-      _videos = VideoStore.videos.map((v) => {
-        ...v,
-        'color': Color(v['color'] as int),
-        'accent': Color(v['accent'] as int),
-      }).toList();
+      if (dept == null || dept.isEmpty) {
+        _videos = all;
+      } else {
+        final filtered = all.where((v) => v['school'] == dept).toList();
+        _videos = filtered.isNotEmpty ? filtered : all;
+      }
     });
   }
 
@@ -57,9 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
           PageView.builder(
             controller: _pageController,
             scrollDirection: Axis.vertical,
-            onPageChanged: (index) {
-              setState(() => _currentIndex = index);
-            },
+            onPageChanged: (_) {},
             itemCount: _videos.length,
             itemBuilder: (context, index) {
               return _VideoCard(video: _videos[index]);
@@ -84,9 +92,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(width: 10),
                       // Logo wordmark
                       RichText(
-                        text: const TextSpan(
+                        text: TextSpan(
                           children: [
-                            TextSpan(
+                            const TextSpan(
                               text: 'Reel',
                               style: TextStyle(
                                 fontFamily: 'Poppins',
@@ -400,9 +408,10 @@ class _VideoCardState extends State<_VideoCard>
                 // Like
                 _ActionButton(
                   onTap: _handleLike,
+                  label: video['likes'],
                   child: AnimatedBuilder(
                     animation: _heartController,
-                    builder: (_, __) => Transform.scale(
+                    builder: (_, _) => Transform.scale(
                       scale: _heartScale.value,
                       child: Icon(
                         _isLiked
@@ -413,31 +422,30 @@ class _VideoCardState extends State<_VideoCard>
                       ),
                     ),
                   ),
-                  label: video['likes'],
                 ),
                 const SizedBox(height: 20),
 
                 // Comment
                 _ActionButton(
                   onTap: () => showComments(context, video['title']),
+                  label: video['comments'],
                   child: const Icon(
                     Icons.chat_bubble_outline_rounded,
                     color: Colors.white,
                     size: 30,
                   ),
-                  label: video['comments'],
                 ),
                 const SizedBox(height: 20),
 
                 // Share
                 _ActionButton(
                   onTap: () => showShareSheet(context, video['title'], video['username']),
+                  label: video['shares'],
                   child: const Icon(
                     Icons.reply_rounded,
                     color: Colors.white,
                     size: 30,
                   ),
-                  label: video['shares'],
                 ),
                 const SizedBox(height: 20),
 
@@ -456,7 +464,7 @@ class _VideoCardState extends State<_VideoCard>
                             color: AppColors.accent.withValues(alpha: 0.4),
                           ),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.quiz_outlined,
                           color: AppColors.accentLight,
                           size: 20,
@@ -491,8 +499,8 @@ class _ActionButton extends StatelessWidget {
 
   const _ActionButton({
     required this.onTap,
-    required this.child,
     required this.label,
+    required this.child,
   });
 
   @override
@@ -555,7 +563,7 @@ class _TopBarButton extends StatelessWidget {
                 child: Container(
                   width: 7,
                   height: 7,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: AppColors.accentLight,
                     shape: BoxShape.circle,
                   ),
@@ -577,6 +585,8 @@ class _AppDrawer extends StatelessWidget {
     {'icon': Icons.notifications_outlined, 'label': 'Alerts', 'route': 'alerts'},
     {'icon': Icons.person_outline_rounded, 'label': 'Profile', 'route': 'profile'},
     {'icon': Icons.auto_awesome_outlined, 'label': 'Chat with AI', 'route': 'ai'},
+    {'icon': Icons.quiz_outlined, 'label': 'Take a Quiz', 'route': 'quiz'},
+    {'icon': Icons.palette_outlined, 'label': 'Theme', 'route': 'theme'},
   ];
 
   void _navigate(BuildContext context, String route) {
@@ -596,7 +606,17 @@ class _AppDrawer extends StatelessWidget {
       );
       return;
     }
-    Navigator.pop(context); // close drawer
+    if (route == 'quiz') {
+      Navigator.pop(context);
+      _showSubjectPicker(context);
+      return;
+    }
+    if (route == 'theme') {
+      Navigator.pop(context);
+      _showThemePicker(context);
+      return;
+    }
+    Navigator.pop(context);
     switch (route) {
       case 'home':
         break;
@@ -621,6 +641,148 @@ class _AppDrawer extends StatelessWidget {
     }
   }
 
+  void _showThemePicker(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _ThemePickerSheet(),
+    );
+  }
+
+  void _showSubjectPicker(BuildContext context) {
+    const subjects = [
+      'Software Engineering',
+      'Database Systems',
+      'ICT & Networking',
+      'Business Management',
+      'Entrepreneurship',
+      'Accounting & Finance',
+      'Crop Science',
+      'Soil Science',
+      'Animal Science',
+      'Wildlife Management',
+      'Ecology & Conservation',
+      'Public Health',
+      'Nursing Science',
+      'Hotel Management',
+      'Tourism Management',
+      'Calculus',
+      'Statistics & Probability',
+      'Graphic Design',
+      'General',
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        maxChildSize: 0.9,
+        minChildSize: 0.4,
+        builder: (ctx, scrollController) => Container(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.border,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24),
+                child: Text(
+                  'Choose a Subject',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24),
+                child: Text(
+                  'Pick a topic and test your knowledge',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 13,
+                    color: Colors.white54,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: ListView.builder(
+                  controller: scrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: subjects.length,
+                  itemBuilder: (c, i) {
+                    final subject = subjects[i];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () {
+                          Navigator.pop(c);
+                          showQuiz(context, subject, subject);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 14),
+                          decoration: BoxDecoration(
+                            color: AppColors.bg,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppColors.border),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.quiz_outlined,
+                                color: AppColors.accentLight,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                subject,
+                                style: const TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const Spacer(),
+                              const Icon(
+                                Icons.arrow_forward_ios_rounded,
+                                color: Colors.white38,
+                                size: 14,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -633,9 +795,9 @@ class _AppDrawer extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 28, 24, 8),
               child: RichText(
-                text: const TextSpan(
+                text: TextSpan(
                   children: [
-                    TextSpan(
+                    const TextSpan(
                       text: 'Reel',
                       style: TextStyle(
                         fontFamily: 'Poppins',
@@ -739,7 +901,7 @@ class _DrawerItem extends StatelessWidget {
                       child: Container(
                         width: 8,
                         height: 8,
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           color: AppColors.accentLight,
                           shape: BoxShape.circle,
                         ),
@@ -769,7 +931,7 @@ class _DrawerItem extends StatelessWidget {
                       color: AppColors.accent.withValues(alpha: 0.3),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'NEW',
                     style: TextStyle(
                       fontFamily: 'Poppins',
@@ -784,6 +946,121 @@ class _DrawerItem extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ─── Theme Picker Sheet ───────────────────────────────────────────────────────
+
+class _ThemePickerSheet extends StatefulWidget {
+  @override
+  State<_ThemePickerSheet> createState() => _ThemePickerSheetState();
+}
+
+class _ThemePickerSheetState extends State<_ThemePickerSheet> {
+  AppAccentTheme _selected = ThemeService.current;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.border,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          const Text(
+            'Choose Theme',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Pick an accent color for the app',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 13,
+              color: Colors.white54,
+            ),
+          ),
+          const SizedBox(height: 24),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 4,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: 0.85,
+            ),
+            itemCount: ThemeService.themes.length,
+            itemBuilder: (_, i) {
+              final theme = ThemeService.themes[i];
+              final isSelected = _selected.name == theme.name;
+              return GestureDetector(
+                onTap: () {
+                  setState(() => _selected = theme);
+                  ThemeService.setTheme(theme);
+                },
+                child: Column(
+                  children: [
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: theme.accent,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isSelected ? Colors.white : Colors.transparent,
+                          width: 3,
+                        ),
+                        boxShadow: isSelected
+                            ? [BoxShadow(color: theme.accentGlow, blurRadius: 12, spreadRadius: 2)]
+                            : [],
+                      ),
+                      child: isSelected
+                          ? const Icon(Icons.check_rounded, color: Colors.white, size: 22)
+                          : null,
+                    ),
+                    const SizedBox(height: 6),
+                    Text(theme.emoji, style: const TextStyle(fontSize: 14)),
+                    Text(
+                      theme.name,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 9,
+                        color: isSelected ? Colors.white : Colors.white54,
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 16),
+        ],
       ),
     );
   }

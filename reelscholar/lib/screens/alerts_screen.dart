@@ -137,7 +137,7 @@ class _AlertsScreenState extends State<AlertsScreen>
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back_ios_rounded,
             color: AppColors.textSecondary,
             size: 18,
@@ -184,7 +184,7 @@ class _AlertsScreenState extends State<AlertsScreen>
               padding: const EdgeInsets.only(right: 8),
               child: TextButton(
                 onPressed: _markAllRead,
-                child: const Text(
+                child: Text(
                   'Mark all read',
                   style: TextStyle(
                     fontFamily: 'Poppins',
@@ -283,7 +283,7 @@ class _AlertsScreenState extends State<AlertsScreen>
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
       child: Text(
         title.toUpperCase(),
-        style: const TextStyle(
+        style: TextStyle(
           fontFamily: 'Poppins',
           color: AppColors.textMuted,
           fontSize: 10,
@@ -305,9 +305,9 @@ class _AlertsScreenState extends State<AlertsScreen>
     return GestureDetector(
       onTap: () => _markRead(index),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
-        padding: const EdgeInsets.all(14),
+        duration: Duration(milliseconds: 200),
+        margin: EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+        padding: EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: isRead ? AppColors.surface : AppColors.accent.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(12),
@@ -326,7 +326,7 @@ class _AlertsScreenState extends State<AlertsScreen>
                   backgroundColor: AppColors.surfaceVariant,
                   child: Text(
                     initial,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Poppins',
                       color: AppColors.textSecondary,
                       fontWeight: FontWeight.w700,
@@ -388,7 +388,7 @@ class _AlertsScreenState extends State<AlertsScreen>
                     const SizedBox(height: 3),
                     Text(
                       notif['target'],
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Poppins',
                         color: AppColors.textMuted,
                         fontSize: 12,
@@ -401,7 +401,7 @@ class _AlertsScreenState extends State<AlertsScreen>
                   const SizedBox(height: 5),
                   Text(
                     notif['time'],
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Poppins',
                       color: AppColors.textMuted,
                       fontSize: 11,
@@ -415,8 +415,8 @@ class _AlertsScreenState extends State<AlertsScreen>
               Container(
                 width: 7,
                 height: 7,
-                margin: const EdgeInsets.only(top: 4),
-                decoration: const BoxDecoration(
+                margin: EdgeInsets.only(top: 4),
+                decoration: BoxDecoration(
                   color: AppColors.accent,
                   shape: BoxShape.circle,
                 ),

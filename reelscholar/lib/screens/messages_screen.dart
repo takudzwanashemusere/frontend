@@ -93,7 +93,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back_ios_rounded,
             color: AppColors.textSecondary,
             size: 18,
@@ -111,14 +111,14 @@ class _MessagesScreenState extends State<MessagesScreen> {
         actions: [
           IconButton(
             onPressed: () {},
-            icon: const Icon(
+            icon: Icon(
               Icons.edit_outlined,
               color: AppColors.textTertiary,
               size: 20,
             ),
           ),
         ],
-        bottom: const PreferredSize(
+        bottom: PreferredSize(
           preferredSize: Size.fromHeight(1),
           child: Divider(height: 1, color: AppColors.border),
         ),
@@ -127,7 +127,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
         children: [
           // Search
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
             child: Container(
               decoration: BoxDecoration(
                 color: AppColors.surface,
@@ -137,26 +137,26 @@ class _MessagesScreenState extends State<MessagesScreen> {
               child: TextField(
                 controller: _searchController,
                 onChanged: (val) => setState(() => _query = val),
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppColors.textPrimary,
                   fontFamily: 'Poppins',
                   fontSize: 14,
                 ),
                 decoration: InputDecoration(
                   hintText: 'Search conversations...',
-                  hintStyle: const TextStyle(
+                  hintStyle: TextStyle(
                     color: AppColors.textMuted,
                     fontFamily: 'Poppins',
                     fontSize: 14,
                   ),
-                  prefixIcon: const Icon(
+                  prefixIcon: Icon(
                     Icons.search_rounded,
                     color: AppColors.textTertiary,
                     size: 18,
                   ),
                   suffixIcon: _query.isNotEmpty
                       ? IconButton(
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.close_rounded,
                             color: AppColors.textTertiary,
                             size: 16,
@@ -203,7 +203,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                 backgroundColor: AppColors.surface,
                                 child: Text(
                                   person['name'].toString().substring(0, 1),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontFamily: 'Poppins',
                                     color: AppColors.textSecondary,
                                     fontWeight: FontWeight.w700,
@@ -232,7 +232,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                           const SizedBox(height: 5),
                           Text(
                             person['name'].toString().split(' ')[0],
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: 'Poppins',
                               color: AppColors.textTertiary,
                               fontSize: 10,
@@ -245,7 +245,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                 },
               ),
             ),
-            const Divider(color: AppColors.border),
+            Divider(color: AppColors.border),
           ] else
             const SizedBox(height: 8),
 
@@ -260,7 +260,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                   )
                 : ListView.separated(
                     itemCount: _filtered.length,
-                    separatorBuilder: (_, __) => const Divider(
+                    separatorBuilder: (_, _) => Divider(
                       color: AppColors.border,
                       indent: 72,
                       height: 1,
@@ -289,7 +289,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                       conv['name']
                                           .toString()
                                           .substring(0, 1),
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontFamily: 'Poppins',
                                         color: AppColors.textSecondary,
                                         fontWeight: FontWeight.w700,
@@ -379,7 +379,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                           Container(
                                             width: 20,
                                             height: 20,
-                                            decoration: const BoxDecoration(
+                                            decoration: BoxDecoration(
                                               color: AppColors.accent,
                                               shape: BoxShape.circle,
                                             ),
@@ -509,7 +509,7 @@ class _ChatScreenState extends State<ChatScreen> {
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back_ios_rounded,
             color: AppColors.textSecondary,
             size: 18,
@@ -524,7 +524,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   backgroundColor: AppColors.surface,
                   child: Text(
                     widget.person['name'].toString().substring(0, 1),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Poppins',
                       color: AppColors.textSecondary,
                       fontWeight: FontWeight.w700,
@@ -554,7 +554,7 @@ class _ChatScreenState extends State<ChatScreen> {
               children: [
                 Text(
                   widget.person['name'],
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Poppins',
                     color: AppColors.textPrimary,
                     fontWeight: FontWeight.w600,
@@ -573,14 +573,14 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ],
         ),
-        bottom: const PreferredSize(
+        bottom: PreferredSize(
           preferredSize: Size.fromHeight(1),
           child: Divider(height: 1, color: AppColors.border),
         ),
         actions: [
           IconButton(
             onPressed: () {},
-            icon: const Icon(
+            icon: Icon(
               Icons.videocam_outlined,
               color: AppColors.textTertiary,
               size: 22,
@@ -588,7 +588,7 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           IconButton(
             onPressed: () {},
-            icon: const Icon(
+            icon: Icon(
               Icons.call_outlined,
               color: AppColors.textTertiary,
               size: 20,
@@ -618,7 +618,7 @@ class _ChatScreenState extends State<ChatScreen> {
               12,
               MediaQuery.of(context).viewInsets.bottom + 16,
             ),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: AppColors.bg,
               border: Border(top: BorderSide(color: AppColors.border)),
             ),
@@ -633,12 +633,12 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                     child: TextField(
                       controller: _msgController,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.textPrimary,
                         fontFamily: 'Poppins',
                         fontSize: 14,
                       ),
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         hintText: 'Type a message...',
                         hintStyle: TextStyle(
                           color: AppColors.textMuted,
@@ -661,7 +661,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   child: Container(
                     width: 42,
                     height: 42,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: AppColors.accent,
                       shape: BoxShape.circle,
                     ),
@@ -694,7 +694,7 @@ class _ChatScreenState extends State<ChatScreen> {
               backgroundColor: AppColors.surface,
               child: Text(
                 widget.person['name'].toString().substring(0, 1),
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Poppins',
                   color: AppColors.textSecondary,
                   fontSize: 9,
@@ -743,7 +743,7 @@ class _ChatScreenState extends State<ChatScreen> {
               const SizedBox(height: 3),
               Text(
                 msg['time'],
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Poppins',
                   color: AppColors.textMuted,
                   fontSize: 10,
