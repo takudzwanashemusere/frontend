@@ -20,6 +20,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
   final PageController _pageController = PageController();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   List<Map<String, dynamic>> _videos = [];
 
   @override
@@ -47,7 +48,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: Colors.black,
+      drawer: const _AppDrawer(),
       body: Stack(
         children: [
           // Video feed
@@ -70,32 +73,43 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Logo wordmark
-                  RichText(
-                    text: const TextSpan(
-                      children: [
-                        TextSpan(
-                          text: 'Reel',
-                          style: TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 19,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                            letterSpacing: -0.3,
-                          ),
+                  // Left: hamburger + logo
+                  Row(
+                    children: [
+                      // Hamburger menu
+                      _TopBarButton(
+                        onTap: () => _scaffoldKey.currentState?.openDrawer(),
+                        icon: Icons.menu_rounded,
+                      ),
+                      const SizedBox(width: 10),
+                      // Logo wordmark
+                      RichText(
+                        text: const TextSpan(
+                          children: [
+                            TextSpan(
+                              text: 'Reel',
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 19,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                                letterSpacing: -0.3,
+                              ),
+                            ),
+                            TextSpan(
+                              text: 'Scholar',
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 19,
+                                fontWeight: FontWeight.w300,
+                                color: AppColors.accentLight,
+                                letterSpacing: -0.3,
+                              ),
+                            ),
+                          ],
                         ),
-                        TextSpan(
-                          text: 'Scholar',
-                          style: TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 19,
-                            fontWeight: FontWeight.w300,
-                            color: AppColors.accentLight,
-                            letterSpacing: -0.3,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
 
                   // Top right icons
@@ -128,14 +142,42 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // Bottom navigation
+          // Floating upload button
           Positioned(
-            bottom: 0,
+            bottom: 28,
             left: 0,
             right: 0,
-            child: _BottomNav(
-              currentIndex: _currentIndex == 0 ? 0 : 0,
-              onRefresh: _loadVideos,
+            child: Center(
+              child: GestureDetector(
+                onTap: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const UploadScreen()),
+                  );
+                  _loadVideos();
+                },
+                child: Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: AppColors.accent,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.accent.withValues(alpha: 0.45),
+                        blurRadius: 18,
+                        spreadRadius: 2,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.add_rounded,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                ),
+              ),
             ),
           ),
         ],
@@ -526,152 +568,222 @@ class _TopBarButton extends StatelessWidget {
   }
 }
 
-class _BottomNav extends StatefulWidget {
-  final int currentIndex;
-  final VoidCallback onRefresh;
-  const _BottomNav({required this.currentIndex, required this.onRefresh});
+class _AppDrawer extends StatelessWidget {
+  const _AppDrawer();
 
-  @override
-  State<_BottomNav> createState() => _BottomNavState();
-}
-
-class _BottomNavState extends State<_BottomNav> {
-  int _selected = 0;
-
-  final List<Map<String, dynamic>> _items = [
-    {'icon': Icons.home_rounded, 'label': 'Home'},
-    {'icon': Icons.search_rounded, 'label': 'Discover'},
-    {'icon': Icons.add_circle_rounded, 'label': 'Upload'},
-    {'icon': Icons.notifications_outlined, 'label': 'Alerts'},
-    {'icon': Icons.person_outline_rounded, 'label': 'Profile'},
+  static const _items = [
+    {'icon': Icons.home_rounded, 'label': 'Home', 'route': 'home'},
+    {'icon': Icons.search_rounded, 'label': 'Discover', 'route': 'discover'},
+    {'icon': Icons.notifications_outlined, 'label': 'Alerts', 'route': 'alerts'},
+    {'icon': Icons.person_outline_rounded, 'label': 'Profile', 'route': 'profile'},
+    {'icon': Icons.auto_awesome_outlined, 'label': 'Chat with AI', 'route': 'ai'},
   ];
+
+  void _navigate(BuildContext context, String route) {
+    if (route == 'ai') {
+      final messenger = ScaffoldMessenger.of(context);
+      Navigator.pop(context);
+      messenger.showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Chat with AI — coming soon!',
+            style: TextStyle(fontFamily: 'Poppins'),
+          ),
+          backgroundColor: AppColors.accent,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+      return;
+    }
+    Navigator.pop(context); // close drawer
+    switch (route) {
+      case 'home':
+        break;
+      case 'discover':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const SearchScreen()),
+        );
+        break;
+      case 'alerts':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AlertsScreen()),
+        );
+        break;
+      case 'profile':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ProfileScreen()),
+        );
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 68,
-      decoration: BoxDecoration(
-        color: AppColors.bg.withValues(alpha: 0.97),
-        border: const Border(
-          top: BorderSide(color: AppColors.border),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: List.generate(_items.length, (index) {
-          final item = _items[index];
-          final bool isSelected = _selected == index;
-          final bool isUpload = index == 2;
-
-          if (isUpload) {
-            return GestureDetector(
-              onTap: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const UploadScreen()),
-                );
-                widget.onRefresh();
-              },
-              child: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.accent,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.accent.withValues(alpha: 0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
+    return Drawer(
+      backgroundColor: AppColors.bg,
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 28, 24, 8),
+              child: RichText(
+                text: const TextSpan(
+                  children: [
+                    TextSpan(
+                      text: 'Reel',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    TextSpan(
+                      text: 'Scholar',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 24,
+                        fontWeight: FontWeight.w300,
+                        color: AppColors.accentLight,
+                        letterSpacing: -0.3,
+                      ),
                     ),
                   ],
                 ),
-                child: const Icon(
-                  Icons.add_rounded,
-                  color: Colors.white,
-                  size: 24,
+              ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Divider(
+                color: AppColors.border,
+                thickness: 1,
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            // Nav items
+            ...(_items.map((item) {
+              final bool isAI = item['route'] == 'ai';
+              return _DrawerItem(
+                icon: item['icon'] as IconData,
+                label: item['label'] as String,
+                isAccent: isAI,
+                hasBadge: item['route'] == 'alerts',
+                onTap: () => _navigate(context, item['route'] as String),
+              );
+            })),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DrawerItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isAccent;
+  final bool hasBadge;
+  final VoidCallback onTap;
+
+  const _DrawerItem({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.isAccent = false,
+    this.hasBadge = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final Color iconColor = isAccent ? AppColors.accentLight : Colors.white70;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      splashColor: AppColors.accent.withValues(alpha: 0.1),
+      highlightColor: AppColors.accent.withValues(alpha: 0.06),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          child: Row(
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: isAccent
+                          ? AppColors.accent.withValues(alpha: 0.15)
+                          : Colors.white.withValues(alpha: 0.06),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(icon, color: iconColor, size: 20),
+                  ),
+                  if (hasBadge)
+                    Positioned(
+                      top: -2,
+                      right: -2,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: AppColors.accentLight,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(width: 16),
+              Text(
+                label,
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: isAccent ? AppColors.accentLight : Colors.white,
+                  letterSpacing: 0.1,
                 ),
               ),
-            );
-          }
-
-          return GestureDetector(
-            onTap: () {
-              setState(() => _selected = index);
-              if (index == 1) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const SearchScreen()),
-                );
-              } else if (index == 3) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AlertsScreen()),
-                );
-              } else if (index == 4) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
-                );
-              }
-            },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.accent.withValues(alpha: 0.1)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Icon(
-                        item['icon'] as IconData,
-                        color: isSelected
-                            ? AppColors.accentLight
-                            : AppColors.textTertiary,
-                        size: 22,
-                      ),
-                      if (index == 3)
-                        Positioned(
-                          top: -3,
-                          right: -3,
-                          child: Container(
-                            width: 7,
-                            height: 7,
-                            decoration: const BoxDecoration(
-                              color: AppColors.accentLight,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                    ],
+              if (isAccent) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.accent.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: AppColors.accent.withValues(alpha: 0.3),
+                    ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    item['label'] as String,
+                  child: const Text(
+                    'NEW',
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 9,
-                      color: isSelected
-                          ? AppColors.accentLight
-                          : AppColors.textMuted,
-                      fontWeight: isSelected
-                          ? FontWeight.w600
-                          : FontWeight.w400,
-                      letterSpacing: 0.2,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.accentLight,
+                      letterSpacing: 1,
                     ),
                   ),
-                ],
-              ),
-            ),
-          );
-        }),
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
