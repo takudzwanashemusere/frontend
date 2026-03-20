@@ -51,7 +51,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        title: const Text(
+        title: Text(
           'Log Out',
           style: TextStyle(
             fontFamily: 'Poppins',
@@ -60,7 +60,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             fontSize: 17,
           ),
         ),
-        content: const Text(
+        content: Text(
           'Are you sure you want to log out of ReelScholar?',
           style: TextStyle(
             fontFamily: 'Poppins',
@@ -72,7 +72,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
+            child: Text(
               'Cancel',
               style: TextStyle(
                 fontFamily: 'Poppins',
@@ -378,9 +378,9 @@ class _ProfileScreenState extends State<ProfileScreen>
               color: AppColors.textMuted,
             ),
             const SizedBox(height: 16),
-            const Text('No videos yet', style: AppTextStyles.headingMedium),
+            Text('No videos yet', style: AppTextStyles.headingMedium),
             const SizedBox(height: 6),
-            const Text(
+            Text(
               'Upload your first educational video',
               style: AppTextStyles.bodyMedium,
             ),
@@ -518,9 +518,9 @@ class _ProfileScreenState extends State<ProfileScreen>
             color: AppColors.textMuted,
           ),
           const SizedBox(height: 16),
-          const Text('No liked videos yet', style: AppTextStyles.headingMedium),
+          Text('No liked videos yet', style: AppTextStyles.headingMedium),
           const SizedBox(height: 6),
-          const Text(
+          Text(
             'Videos you like will appear here',
             style: AppTextStyles.bodyMedium,
           ),

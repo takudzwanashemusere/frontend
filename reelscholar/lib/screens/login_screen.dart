@@ -113,12 +113,12 @@ class _LoginScreenState extends State<LoginScreen>
                           const SizedBox(height: 52),
 
                           // Page title
-                          const Text(
+                          Text(
                             'Welcome back',
                             style: AppTextStyles.displayMedium,
                           ),
                           const SizedBox(height: 8),
-                          const Text(
+                          Text(
                             'Sign in with your CUT student account\nto continue learning.',
                             style: AppTextStyles.bodyMedium,
                           ),
@@ -195,7 +195,7 @@ class _LoginScreenState extends State<LoginScreen>
                                     ),
                                   ),
                                   const SizedBox(width: 8),
-                                  const Text(
+                                  Text(
                                     'Remember me',
                                     style: AppTextStyles.labelMedium,
                                   ),
@@ -270,7 +270,7 @@ class _LoginScreenState extends State<LoginScreen>
                                 size: 26,
                                 color: AppColors.textSecondary,
                               ),
-                              label: const Text(
+                              label: Text(
                                 'Continue with Google',
                                 style: TextStyle(
                                   fontFamily: 'Poppins',
@@ -349,7 +349,7 @@ class _LogoRow extends StatelessWidget {
         RichText(
           text: TextSpan(
             children: [
-              const TextSpan(
+              TextSpan(
                 text: 'Reel',
                 style: TextStyle(
                   fontFamily: 'Poppins',
@@ -385,7 +385,7 @@ class _FieldLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: const TextStyle(
+      style: TextStyle(
         fontFamily: 'Poppins',
         fontSize: 12,
         fontWeight: FontWeight.w600,

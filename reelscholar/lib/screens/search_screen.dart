@@ -158,9 +158,9 @@ class _SearchScreenState extends State<SearchScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Discover', style: AppTextStyles.displayMedium),
+                  Text('Discover', style: AppTextStyles.displayMedium),
                   const SizedBox(height: 4),
-                  const Text(
+                  Text(
                     'Find educational content across CUT schools',
                     style: AppTextStyles.bodyMedium,
                   ),
@@ -268,7 +268,7 @@ class _SearchScreenState extends State<SearchScreen>
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Recent', style: AppTextStyles.headingMedium),
+                Text('Recent', style: AppTextStyles.headingMedium),
                 GestureDetector(
                   onTap: () {},
                   child: Text(
@@ -328,7 +328,7 @@ class _SearchScreenState extends State<SearchScreen>
           ],
 
           // Browse by School
-          const Text('Browse by School', style: AppTextStyles.headingMedium),
+          Text('Browse by School', style: AppTextStyles.headingMedium),
           const SizedBox(height: 12),
           GridView.builder(
             shrinkWrap: true,

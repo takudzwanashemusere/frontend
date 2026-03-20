@@ -95,7 +95,7 @@ class ShareSheet extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Share Video', style: AppTextStyles.headingMedium),
+                Text('Share Video', style: AppTextStyles.headingMedium),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
                   icon: Icon(
@@ -168,8 +168,8 @@ class ShareSheet extends StatelessWidget {
 
           const SizedBox(height: 20),
 
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(

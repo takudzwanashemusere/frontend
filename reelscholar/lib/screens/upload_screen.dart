@@ -210,7 +210,7 @@ class _UploadScreenState extends State<UploadScreen>
             size: 22,
           ),
         ),
-        title: const Text(
+        title: Text(
           'Upload Video',
           style: TextStyle(
             fontFamily: 'Poppins',
@@ -343,7 +343,7 @@ class _UploadScreenState extends State<UploadScreen>
                                     ),
                                   ),
                                   const SizedBox(height: 12),
-                                  const Text(
+                                  Text(
                                     'Tap to select video',
                                     style: TextStyle(
                                       fontFamily: 'Poppins',
@@ -431,7 +431,7 @@ class _UploadScreenState extends State<UploadScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Row(
+                          Row(
                             children: [
                               Icon(
                                 Icons.info_outline_rounded,
@@ -528,12 +528,12 @@ class _UploadScreenState extends State<UploadScreen>
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'Uploading your video',
               style: AppTextStyles.headingLarge,
             ),
             const SizedBox(height: 6),
-            const Text(
+            Text(
               'Please keep the app open',
               style: AppTextStyles.bodyMedium,
             ),
@@ -676,7 +676,7 @@ class _FieldLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: const TextStyle(
+      style: TextStyle(
         fontFamily: 'Poppins',
         fontSize: 12,
         fontWeight: FontWeight.w600,

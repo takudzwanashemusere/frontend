@@ -145,7 +145,7 @@ class _AlertsScreenState extends State<AlertsScreen>
         ),
         title: Row(
           children: [
-            const Text(
+            Text(
               'Alerts',
               style: TextStyle(
                 fontFamily: 'Poppins',
@@ -243,7 +243,7 @@ class _AlertsScreenState extends State<AlertsScreen>
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             Icon(
               Icons.notifications_off_outlined,
               size: 48,

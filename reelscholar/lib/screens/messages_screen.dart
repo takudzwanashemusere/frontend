@@ -99,7 +99,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
             size: 18,
           ),
         ),
-        title: const Text(
+        title: Text(
           'Messages',
           style: TextStyle(
             fontFamily: 'Poppins',
@@ -252,7 +252,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
           // Conversations
           Expanded(
             child: _filtered.isEmpty
-                ? const Center(
+                ? Center(
                     child: Text(
                       'No conversations found',
                       style: AppTextStyles.bodyMedium,

@@ -255,7 +255,7 @@ class _Wordmark extends StatelessWidget {
     return RichText(
       text: TextSpan(
         children: [
-          const TextSpan(
+          TextSpan(
             text: 'Reel',
             style: TextStyle(
               fontFamily: 'Poppins',
@@ -293,7 +293,7 @@ class _SubtitleTag extends StatelessWidget {
         borderRadius: BorderRadius.circular(6),
         border: Border.all(color: AppColors.border),
       ),
-      child: const Text(
+      child: Text(
         'CHINHOYI UNIVERSITY OF TECHNOLOGY',
         style: TextStyle(
           fontFamily: 'Poppins',
@@ -327,7 +327,7 @@ class _BottomFooter extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        const Text(
+        Text(
           'Learn · Share · Grow',
           style: TextStyle(
             fontFamily: 'Poppins',

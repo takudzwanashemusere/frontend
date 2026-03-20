@@ -11,108 +11,232 @@ void main() {
 
 // ─── CLEAN SLATE Design Tokens ───────────────────────────────────────────────
 
-class AppColors {
-  // Backgrounds — dynamic based on mode
-  static Color get bg =>
-      ThemeService.isDark ? const Color(0xFF0F1117) : const Color(0xFFF8FAFC);
-  static Color get surface =>
-      ThemeService.isDark ? const Color(0xFF1A1D27) : const Color(0xFFFFFFFF);
-  static Color get surfaceVariant =>
-      ThemeService.isDark ? const Color(0xFF252836) : const Color(0xFFF1F5F9);
-  static Color get border =>
-      ThemeService.isDark ? const Color(0xFF1E2230) : const Color(0xFFE2E8F0);
-  static Color get borderMid =>
-      ThemeService.isDark ? const Color(0xFF2A2E3F) : const Color(0xFFCBD5E1);
-
-  // Accent — fixed Electric Blue
-  static Color get accent => ThemeService.accentColor;
-  static Color get accentLight => ThemeService.accentColorLight;
-  static Color get accentDim => ThemeService.accentColorDim;
-  static Color get accentGlow => ThemeService.accentColorGlow;
-
-  // Text — dynamic based on mode
-  static Color get textPrimary =>
-      ThemeService.isDark ? const Color(0xFFF1F5F9) : const Color(0xFF0F172A);
-  static Color get textSecondary =>
-      ThemeService.isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569);
-  static Color get textTertiary =>
-      ThemeService.isDark ? const Color(0xFF475569) : const Color(0xFF94A3B8);
-  static Color get textMuted =>
-      ThemeService.isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1);
-
-  // Semantic
-  static const error = Color(0xFFEF4444);
-  static const success = Color(0xFF22C55E);
-  static const warning = Color(0xFFF59E0B);
+class AppColorsDark {
+  static const Color bg = Color(0xFF0F1117);
+  static const Color surface = Color(0xFF1A1D27);
+  static const Color surfaceVariant = Color(0xFF252836);
+  static const Color border = Color(0xFF1E2230);
+  static const Color borderMid = Color(0xFF2A2E3F);
+  static const Color accent = ThemeService.accentColor;
+  static const Color accentLight = ThemeService.accentColorLight;
+  static const Color accentDim = ThemeService.accentColorDim;
+  static const Color accentGlow = ThemeService.accentColorGlow;
+  static const Color textPrimary = Color(0xFFF1F5F9);
+  static const Color textSecondary = Color(0xFF94A3B8);
+  static const Color textTertiary = Color(0xFF475569);
+  static const Color textMuted = Color(0xFF334155);
+  static const Color error = Color(0xFFEF4444);
+  static const Color success = Color(0xFF22C55E);
+  static const Color warning = Color(0xFFF59E0B);
 }
 
-class AppTextStyles {
-  static TextStyle get displayLarge => TextStyle(
+class AppColorsLight {
+  static const Color bg = Color(0xFFF8FAFC);
+  static const Color surface = Color(0xFFFFFFFF);
+  static const Color surfaceVariant = Color(0xFFF1F5F9);
+  static const Color border = Color(0xFFE2E8F0);
+  static const Color borderMid = Color(0xFFCBD5E1);
+  static const Color accent = ThemeService.accentColor;
+  static const Color accentLight = ThemeService.accentColorLight;
+  static const Color accentDim = ThemeService.accentColorDim;
+  static const Color accentGlow = ThemeService.accentColorGlow;
+  static const Color textPrimary = Color(0xFF0F172A);
+  static const Color textSecondary = Color(0xFF475569);
+  static const Color textTertiary = Color(0xFF94A3B8);
+  static const Color textMuted = Color(0xFFCBD5E1);
+  static const Color error = Color(0xFFEF4444);
+  static const Color success = Color(0xFF22C55E);
+  static const Color warning = Color(0xFFF59E0B);
+}
+
+class AppColors {
+  // Accent & semantic — mode-independent, const
+  static const Color accent = ThemeService.accentColor;
+  static const Color accentLight = ThemeService.accentColorLight;
+  static const Color accentDim = ThemeService.accentColorDim;
+  static const Color accentGlow = ThemeService.accentColorGlow;
+  static const Color error = Color(0xFFEF4444);
+  static const Color success = Color(0xFF22C55E);
+  static const Color warning = Color(0xFFF59E0B);
+
+  // Dynamic based on mode — delegate to const classes
+  static Color get bg =>
+      ThemeService.isDark ? AppColorsDark.bg : AppColorsLight.bg;
+  static Color get surface =>
+      ThemeService.isDark ? AppColorsDark.surface : AppColorsLight.surface;
+  static Color get surfaceVariant =>
+      ThemeService.isDark ? AppColorsDark.surfaceVariant : AppColorsLight.surfaceVariant;
+  static Color get border =>
+      ThemeService.isDark ? AppColorsDark.border : AppColorsLight.border;
+  static Color get borderMid =>
+      ThemeService.isDark ? AppColorsDark.borderMid : AppColorsLight.borderMid;
+  static Color get textPrimary =>
+      ThemeService.isDark ? AppColorsDark.textPrimary : AppColorsLight.textPrimary;
+  static Color get textSecondary =>
+      ThemeService.isDark ? AppColorsDark.textSecondary : AppColorsLight.textSecondary;
+  static Color get textTertiary =>
+      ThemeService.isDark ? AppColorsDark.textTertiary : AppColorsLight.textTertiary;
+  static Color get textMuted =>
+      ThemeService.isDark ? AppColorsDark.textMuted : AppColorsLight.textMuted;
+}
+
+class AppTextStylesDark {
+  static const TextStyle displayLarge = TextStyle(
     fontFamily: 'Poppins',
     fontSize: 32,
     fontWeight: FontWeight.w700,
-    color: AppColors.textPrimary,
+    color: AppColorsDark.textPrimary,
     letterSpacing: -0.5,
     height: 1.2,
   );
-  static TextStyle get displayMedium => TextStyle(
+  static const TextStyle displayMedium = TextStyle(
     fontFamily: 'Poppins',
     fontSize: 26,
     fontWeight: FontWeight.w700,
-    color: AppColors.textPrimary,
+    color: AppColorsDark.textPrimary,
     letterSpacing: -0.3,
     height: 1.25,
   );
-  static TextStyle get headingLarge => TextStyle(
+  static const TextStyle headingLarge = TextStyle(
     fontFamily: 'Poppins',
     fontSize: 20,
     fontWeight: FontWeight.w600,
-    color: AppColors.textPrimary,
+    color: AppColorsDark.textPrimary,
     letterSpacing: -0.2,
     height: 1.3,
   );
-  static TextStyle get headingMedium => TextStyle(
+  static const TextStyle headingMedium = TextStyle(
     fontFamily: 'Poppins',
     fontSize: 16,
     fontWeight: FontWeight.w600,
-    color: AppColors.textPrimary,
+    color: AppColorsDark.textPrimary,
     height: 1.4,
   );
-  static TextStyle get bodyLarge => TextStyle(
+  static const TextStyle bodyLarge = TextStyle(
     fontFamily: 'Poppins',
     fontSize: 15,
     fontWeight: FontWeight.w400,
-    color: AppColors.textPrimary,
+    color: AppColorsDark.textPrimary,
     height: 1.6,
   );
-  static TextStyle get bodyMedium => TextStyle(
+  static const TextStyle bodyMedium = TextStyle(
     fontFamily: 'Poppins',
     fontSize: 14,
     fontWeight: FontWeight.w400,
-    color: AppColors.textSecondary,
+    color: AppColorsDark.textSecondary,
     height: 1.6,
   );
-  static TextStyle get bodySmall => TextStyle(
+  static const TextStyle bodySmall = TextStyle(
     fontFamily: 'Poppins',
     fontSize: 12,
     fontWeight: FontWeight.w400,
-    color: AppColors.textSecondary,
+    color: AppColorsDark.textSecondary,
     height: 1.5,
   );
-  static TextStyle get labelMedium => TextStyle(
+  static const TextStyle labelMedium = TextStyle(
     fontFamily: 'Poppins',
     fontSize: 13,
     fontWeight: FontWeight.w500,
-    color: AppColors.textSecondary,
+    color: AppColorsDark.textSecondary,
     letterSpacing: 0.1,
   );
-  static TextStyle get labelSmall => TextStyle(
+  static const TextStyle labelSmall = TextStyle(
     fontFamily: 'Poppins',
     fontSize: 10,
     fontWeight: FontWeight.w500,
-    color: AppColors.textTertiary,
+    color: AppColorsDark.textTertiary,
     letterSpacing: 0.8,
   );
+}
+
+class AppTextStylesLight {
+  static const TextStyle displayLarge = TextStyle(
+    fontFamily: 'Poppins',
+    fontSize: 32,
+    fontWeight: FontWeight.w700,
+    color: AppColorsLight.textPrimary,
+    letterSpacing: -0.5,
+    height: 1.2,
+  );
+  static const TextStyle displayMedium = TextStyle(
+    fontFamily: 'Poppins',
+    fontSize: 26,
+    fontWeight: FontWeight.w700,
+    color: AppColorsLight.textPrimary,
+    letterSpacing: -0.3,
+    height: 1.25,
+  );
+  static const TextStyle headingLarge = TextStyle(
+    fontFamily: 'Poppins',
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    color: AppColorsLight.textPrimary,
+    letterSpacing: -0.2,
+    height: 1.3,
+  );
+  static const TextStyle headingMedium = TextStyle(
+    fontFamily: 'Poppins',
+    fontSize: 16,
+    fontWeight: FontWeight.w600,
+    color: AppColorsLight.textPrimary,
+    height: 1.4,
+  );
+  static const TextStyle bodyLarge = TextStyle(
+    fontFamily: 'Poppins',
+    fontSize: 15,
+    fontWeight: FontWeight.w400,
+    color: AppColorsLight.textPrimary,
+    height: 1.6,
+  );
+  static const TextStyle bodyMedium = TextStyle(
+    fontFamily: 'Poppins',
+    fontSize: 14,
+    fontWeight: FontWeight.w400,
+    color: AppColorsLight.textSecondary,
+    height: 1.6,
+  );
+  static const TextStyle bodySmall = TextStyle(
+    fontFamily: 'Poppins',
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+    color: AppColorsLight.textSecondary,
+    height: 1.5,
+  );
+  static const TextStyle labelMedium = TextStyle(
+    fontFamily: 'Poppins',
+    fontSize: 13,
+    fontWeight: FontWeight.w500,
+    color: AppColorsLight.textSecondary,
+    letterSpacing: 0.1,
+  );
+  static const TextStyle labelSmall = TextStyle(
+    fontFamily: 'Poppins',
+    fontSize: 10,
+    fontWeight: FontWeight.w500,
+    color: AppColorsLight.textTertiary,
+    letterSpacing: 0.8,
+  );
+}
+
+class AppTextStyles {
+  static TextStyle get displayLarge =>
+      ThemeService.isDark ? AppTextStylesDark.displayLarge : AppTextStylesLight.displayLarge;
+  static TextStyle get displayMedium =>
+      ThemeService.isDark ? AppTextStylesDark.displayMedium : AppTextStylesLight.displayMedium;
+  static TextStyle get headingLarge =>
+      ThemeService.isDark ? AppTextStylesDark.headingLarge : AppTextStylesLight.headingLarge;
+  static TextStyle get headingMedium =>
+      ThemeService.isDark ? AppTextStylesDark.headingMedium : AppTextStylesLight.headingMedium;
+  static TextStyle get bodyLarge =>
+      ThemeService.isDark ? AppTextStylesDark.bodyLarge : AppTextStylesLight.bodyLarge;
+  static TextStyle get bodyMedium =>
+      ThemeService.isDark ? AppTextStylesDark.bodyMedium : AppTextStylesLight.bodyMedium;
+  static TextStyle get bodySmall =>
+      ThemeService.isDark ? AppTextStylesDark.bodySmall : AppTextStylesLight.bodySmall;
+  static TextStyle get labelMedium =>
+      ThemeService.isDark ? AppTextStylesDark.labelMedium : AppTextStylesLight.labelMedium;
+  static TextStyle get labelSmall =>
+      ThemeService.isDark ? AppTextStylesDark.labelSmall : AppTextStylesLight.labelSmall;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

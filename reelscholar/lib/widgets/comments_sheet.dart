@@ -127,7 +127,7 @@ class _CommentsSheetState extends State<CommentsSheet> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Comments',
                       style: AppTextStyles.headingMedium,
                     ),
@@ -286,7 +286,7 @@ class _CommentsSheetState extends State<CommentsSheet> {
                                 const SizedBox(width: 16),
                                 GestureDetector(
                                   onTap: () {},
-                                  child: const Text(
+                                  child: Text(
                                     'Reply',
                                     style: TextStyle(
                                       fontFamily: 'Poppins',

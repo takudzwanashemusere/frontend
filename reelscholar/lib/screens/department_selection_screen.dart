@@ -153,7 +153,7 @@ class _DepartmentSelectionScreenState extends State<DepartmentSelectionScreen>
                           RichText(
                             text: TextSpan(
                               children: [
-                                const TextSpan(
+                                TextSpan(
                                   text: 'Reel',
                                   style: TextStyle(
                                     fontFamily: 'Poppins',
@@ -181,12 +181,12 @@ class _DepartmentSelectionScreenState extends State<DepartmentSelectionScreen>
 
                       const SizedBox(height: 36),
 
-                      const Text(
+                      Text(
                         'Choose your\nDepartment',
                         style: AppTextStyles.displayMedium,
                       ),
                       const SizedBox(height: 10),
-                      const Text(
+                      Text(
                         'We\'ll personalise your feed to show content\nrelevant to your programme.',
                         style: AppTextStyles.bodyMedium,
                       ),
@@ -335,7 +335,7 @@ class _DepartmentCard extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     description,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 11,
                       color: AppColors.textTertiary,
