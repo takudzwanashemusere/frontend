@@ -586,7 +586,7 @@ class _AppDrawer extends StatelessWidget {
     {'icon': Icons.person_outline_rounded, 'label': 'Profile', 'route': 'profile'},
     {'icon': Icons.auto_awesome_outlined, 'label': 'Chat with AI', 'route': 'ai'},
     {'icon': Icons.quiz_outlined, 'label': 'Take a Quiz', 'route': 'quiz'},
-    {'icon': Icons.palette_outlined, 'label': 'Theme', 'route': 'theme'},
+    {'icon': Icons.contrast_rounded, 'label': 'Appearance', 'route': 'theme'},
   ];
 
   void _navigate(BuildContext context, String route) {
@@ -959,7 +959,7 @@ class _ThemePickerSheet extends StatefulWidget {
 }
 
 class _ThemePickerSheetState extends State<_ThemePickerSheet> {
-  AppAccentTheme _selected = ThemeService.current;
+  AppThemeMode _selected = ThemeService.current;
 
   @override
   Widget build(BuildContext context) {
@@ -984,83 +984,113 @@ class _ThemePickerSheetState extends State<_ThemePickerSheet> {
             ),
           ),
           const SizedBox(height: 20),
-          const Text(
-            'Choose Theme',
+          Text(
+            'Appearance',
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 18,
               fontWeight: FontWeight.w700,
-              color: Colors.white,
+              color: AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: 6),
-          const Text(
-            'Pick an accent color for the app',
+          Text(
+            'Choose between dark and light mode',
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 13,
-              color: Colors.white54,
+              color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 24),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 4,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 0.85,
-            ),
-            itemCount: ThemeService.themes.length,
-            itemBuilder: (_, i) {
-              final theme = ThemeService.themes[i];
-              final isSelected = _selected.name == theme.name;
-              return GestureDetector(
+          Row(
+            children: [
+              _ThemeOption(
+                mode: AppThemeMode.dark,
+                icon: Icons.dark_mode_rounded,
+                label: 'Dark',
+                selected: _selected == AppThemeMode.dark,
                 onTap: () {
-                  setState(() => _selected = theme);
-                  ThemeService.setTheme(theme);
+                  setState(() => _selected = AppThemeMode.dark);
+                  ThemeService.setMode(AppThemeMode.dark);
                 },
-                child: Column(
-                  children: [
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: theme.accent,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: isSelected ? Colors.white : Colors.transparent,
-                          width: 3,
-                        ),
-                        boxShadow: isSelected
-                            ? [BoxShadow(color: theme.accentGlow, blurRadius: 12, spreadRadius: 2)]
-                            : [],
-                      ),
-                      child: isSelected
-                          ? const Icon(Icons.check_rounded, color: Colors.white, size: 22)
-                          : null,
-                    ),
-                    const SizedBox(height: 6),
-                    Text(theme.emoji, style: const TextStyle(fontSize: 14)),
-                    Text(
-                      theme.name,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 9,
-                        color: isSelected ? Colors.white : Colors.white54,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
+              ),
+              const SizedBox(width: 12),
+              _ThemeOption(
+                mode: AppThemeMode.light,
+                icon: Icons.light_mode_rounded,
+                label: 'Light',
+                selected: _selected == AppThemeMode.light,
+                onTap: () {
+                  setState(() => _selected = AppThemeMode.light);
+                  ThemeService.setMode(AppThemeMode.light);
+                },
+              ),
+            ],
           ),
           const SizedBox(height: 16),
         ],
+      ),
+    );
+  }
+}
+
+class _ThemeOption extends StatelessWidget {
+  final AppThemeMode mode;
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _ThemeOption({
+    required this.mode,
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          decoration: BoxDecoration(
+            color: selected ? AppColors.accentGlow : AppColors.surfaceVariant,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: selected ? AppColors.accent : AppColors.border,
+              width: selected ? 2 : 1,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 32,
+                color: selected ? AppColors.accent : AppColors.textSecondary,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 13,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                  color: selected ? AppColors.accent : AppColors.textSecondary,
+                ),
+              ),
+              if (selected) ...[
+                const SizedBox(height: 4),
+                Icon(Icons.check_circle_rounded, size: 16, color: AppColors.accent),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
