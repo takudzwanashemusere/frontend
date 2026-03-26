@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 import '../main.dart';
+import '../services/auth_service.dart';
 
 class QuizQuestion {
   final String question;
@@ -433,6 +434,60 @@ class QuizBank {
       ),
     ],
   };
+
+  // Department → allowed modules map
+  static const Map<String, List<String>> _departmentModules = {
+    'School of Natural Sciences and Mathematics': [
+      'Calculus', 'Linear Algebra', 'Statistics & Probability',
+      'Discrete Mathematics', 'Organic Chemistry', 'Analytical Chemistry',
+      'Classical Physics', 'Quantum Mechanics',
+    ],
+    'School of Engineering Science and Technology': [
+      'Software Engineering', 'Computer Science', 'ICT & Networking',
+      'Electronics Engineering', 'Civil Engineering', 'Mechanical Engineering',
+      'Database Systems', 'Artificial Intelligence',
+    ],
+    'School of Entrepreneurship and Business Sciences': [
+      'Business Management', 'Accounting & Finance', 'Economics',
+      'Marketing Management', 'Human Resource Management',
+      'Strategic Management', 'Entrepreneurship', 'Supply Chain Management',
+    ],
+    'School of Agriculture Sciences and Technology': [
+      'Crop Science', 'Animal Science', 'Agronomy', 'Agricultural Economics',
+      'Soil Science', 'Horticulture', 'Agricultural Engineering',
+      'Post-Harvest Technology',
+    ],
+    'School of Wildlife and Environmental Science': [
+      'Wildlife Management', 'Ecology & Conservation', 'Environmental Science',
+      'Tourism & Wildlife', 'Forest Management', 'Environmental Policy',
+      'Animal Behaviour', 'GIS & Remote Sensing',
+    ],
+    'School of Health Sciences and Technology': [
+      'Nursing Science', 'Public Health', 'Biomedical Science', 'Pharmacy',
+      'Environmental Health', 'Medical Laboratory', 'Nutrition & Dietetics',
+      'Health Informatics',
+    ],
+    'School of Hospitality and Tourism': [
+      'Hotel Management', 'Tourism Management', 'Food & Beverage Management',
+      'Events Management', 'Travel & Tourism', 'Hospitality Operations',
+      'Culinary Arts', 'Resort Management',
+    ],
+    'School of Art and Design': [
+      'Graphic Design', 'Visual Arts', 'Digital Media', 'Fine Arts',
+      'Interior Design', 'Fashion Design', 'Photography', 'Animation & Film',
+    ],
+  };
+
+  static bool isModuleAllowedForDepartment(String subject, String department) {
+    final modules = _departmentModules[department];
+    if (modules == null) return true;
+    return modules.any(
+      (m) =>
+          m.toLowerCase() == subject.toLowerCase() ||
+          m.toLowerCase().contains(subject.toLowerCase()) ||
+          subject.toLowerCase().contains(m.toLowerCase()),
+    );
+  }
 
   static List<QuizQuestion> getRandomQuestions(String subject,
       {int count = 3}) {
@@ -876,12 +931,118 @@ class _QuizPopupState extends State<QuizPopup>
   }
 }
 
-void showQuiz(BuildContext context, String subject, String videoTitle) {
+Future<void> showQuiz(
+    BuildContext context, String subject, String videoTitle) async {
+  final dept = await AuthService.getDepartment();
+
+  if (!context.mounted) return;
+
+  if (dept != null &&
+      dept.isNotEmpty &&
+      !QuizBank.isModuleAllowedForDepartment(subject, dept)) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _QuizBlockedSheet(subject: subject, department: dept),
+    );
+    return;
+  }
+
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (_) =>
-        QuizPopup(subject: subject, videoTitle: videoTitle),
+    builder: (_) => QuizPopup(subject: subject, videoTitle: videoTitle),
   );
+}
+
+class _QuizBlockedSheet extends StatelessWidget {
+  final String subject;
+  final String department;
+
+  const _QuizBlockedSheet({
+    required this.subject,
+    required this.department,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 36),
+      decoration: BoxDecoration(
+        color: AppColors.bg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: AppColors.error.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.lock_outline_rounded,
+                color: AppColors.error, size: 30),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Quiz Not Available',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '$subject is not part of your department\'s curriculum.\nYou can only take quizzes for your enrolled modules.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.55),
+              fontSize: 13,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            department,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: AppColors.accent,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.accent,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              child: const Text('Got it',
+                  style:
+                      TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
