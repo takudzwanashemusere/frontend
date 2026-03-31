@@ -1,31 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import 'home_screen.dart';
+import 'login_screen.dart';
 import 'department_selection_screen.dart';
-import 'register_screen.dart';
 import '../services/auth_service.dart';
 import '../main.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen>
+class _RegisterScreenState extends State<RegisterScreen>
     with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _schoolIdController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
 
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
   bool _isLoading = false;
-  bool _rememberMe = false;
+  String? _selectedFaculty;
 
   late AnimationController _animController;
   late Animation<double> _fadeIn;
   late Animation<Offset> _slideUp;
+
+  static const List<String> _faculties = [
+    'School of Engineering Science and Technology',
+    'School of Agriculture Sciences and Technology',
+    'School of Entrepreneurship and Business Sciences',
+    'School of Health Sciences and Technology',
+    'School of Wildlife and Environmental Science',
+    'School of Hospitality and Tourism',
+  ];
 
   @override
   void initState() {
@@ -48,33 +60,32 @@ class _LoginScreenState extends State<LoginScreen>
   @override
   void dispose() {
     _animController.dispose();
+    _nameController.dispose();
+    _schoolIdController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  void _handleLogin() async {
+  void _handleRegister() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
       await Future.delayed(const Duration(seconds: 2));
 
       await AuthService.saveSession(
         email: _emailController.text.trim(),
-        name: _emailController.text.split('@')[0],
+        name: _nameController.text.trim(),
         token: 'dummy_token_replace_with_real_jwt',
       );
 
       setState(() => _isLoading = false);
+
       if (mounted) {
-        final hasDept = await AuthService.hasDepartment();
-        if (!mounted) return;
-        final destination = hasDept
-            ? const HomeScreen()
-            : const DepartmentSelectionScreen();
         Navigator.pushReplacement(
           context,
           PageRouteBuilder(
-            pageBuilder: (_, _, _) => destination,
+            pageBuilder: (_, _, _) => const DepartmentSelectionScreen(),
             transitionsBuilder: (_, animation, _, child) =>
                 FadeTransition(opacity: animation, child: child),
             transitionDuration: const Duration(milliseconds: 400),
@@ -111,20 +122,59 @@ class _LoginScreenState extends State<LoginScreen>
                           // Header row — logomark + wordmark
                           _LogoRow(),
 
-                          const SizedBox(height: 52),
+                          const SizedBox(height: 40),
 
                           // Page title
                           Text(
-                            'Welcome back',
+                            'Create account',
                             style: AppTextStyles.displayMedium,
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Sign in with your CUT student account\nto continue learning.',
+                            'Register with your CUT student details\nto start learning.',
                             style: AppTextStyles.bodyMedium,
                           ),
 
-                          const SizedBox(height: 40),
+                          const SizedBox(height: 32),
+
+                          // Full Name
+                          _FieldLabel('Full Name'),
+                          const SizedBox(height: 8),
+                          _CleanTextField(
+                            controller: _nameController,
+                            hint: 'e.g. Takudzwa Musere',
+                            icon: Icons.person_outline_rounded,
+                            keyboardType: TextInputType.name,
+                            validator: (val) {
+                              if (val == null || val.trim().isEmpty) {
+                                return 'Full name is required';
+                              }
+                              if (val.trim().split(' ').length < 2) {
+                                return 'Enter your first and last name';
+                              }
+                              return null;
+                            },
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // School ID
+                          _FieldLabel('Student ID'),
+                          const SizedBox(height: 8),
+                          _CleanTextField(
+                            controller: _schoolIdController,
+                            hint: 'e.g. C22150617N',
+                            icon: Icons.badge_outlined,
+                            keyboardType: TextInputType.text,
+                            validator: (val) {
+                              if (val == null || val.trim().isEmpty) {
+                                return 'Student ID is required';
+                              }
+                              return null;
+                            },
+                          ),
+
+                          const SizedBox(height: 20),
 
                           // Email
                           _FieldLabel('Student Email'),
@@ -147,12 +197,28 @@ class _LoginScreenState extends State<LoginScreen>
 
                           const SizedBox(height: 20),
 
+                          // Faculty dropdown
+                          _FieldLabel('Faculty'),
+                          const SizedBox(height: 8),
+                          _FacultyDropdown(
+                            value: _selectedFaculty,
+                            faculties: _faculties,
+                            onChanged: (val) =>
+                                setState(() => _selectedFaculty = val),
+                            validator: (val) {
+                              if (val == null) return 'Please select your faculty';
+                              return null;
+                            },
+                          ),
+
+                          const SizedBox(height: 20),
+
                           // Password
                           _FieldLabel('Password'),
                           const SizedBox(height: 8),
                           _CleanTextField(
                             controller: _passwordController,
-                            hint: 'Enter your password',
+                            hint: 'Create a password',
                             icon: Icons.lock_outline_rounded,
                             obscureText: _obscurePassword,
                             suffixIcon: GestureDetector(
@@ -171,50 +237,45 @@ class _LoginScreenState extends State<LoginScreen>
                               if (val == null || val.isEmpty) {
                                 return 'Password is required';
                               }
-                              if (val.length < 6) {
-                                return 'Must be at least 6 characters';
+                              if (val.length < 8) {
+                                return 'Must be at least 8 characters';
                               }
                               return null;
                             },
                           ),
 
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 20),
 
-                          // Remember me + forgot password
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: Checkbox(
-                                      value: _rememberMe,
-                                      onChanged: (val) =>
-                                          setState(() => _rememberMe = val!),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Remember me',
-                                    style: AppTextStyles.labelMedium,
-                                  ),
-                                ],
+                          // Confirm Password
+                          _FieldLabel('Confirm Password'),
+                          const SizedBox(height: 8),
+                          _CleanTextField(
+                            controller: _confirmPasswordController,
+                            hint: 'Repeat your password',
+                            icon: Icons.lock_outline_rounded,
+                            obscureText: _obscureConfirmPassword,
+                            suffixIcon: GestureDetector(
+                              onTap: () => setState(
+                                () => _obscureConfirmPassword =
+                                    !_obscureConfirmPassword,
                               ),
-                              GestureDetector(
-                                onTap: () {},
-                                child: Text(
-                                  'Forgot password?',
-                                  style: TextStyle(
-                                    fontFamily: 'Poppins',
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
-                                    color: AppColors.accent,
-                                  ),
-                                ),
+                              child: Icon(
+                                _obscureConfirmPassword
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
+                                color: AppColors.textTertiary,
+                                size: 20,
                               ),
-                            ],
+                            ),
+                            validator: (val) {
+                              if (val == null || val.isEmpty) {
+                                return 'Please confirm your password';
+                              }
+                              if (val != _passwordController.text) {
+                                return 'Passwords do not match';
+                              }
+                              return null;
+                            },
                           ),
 
                           const SizedBox(height: 32),
@@ -224,7 +285,7 @@ class _LoginScreenState extends State<LoginScreen>
                             width: double.infinity,
                             height: 52,
                             child: ElevatedButton(
-                              onPressed: _isLoading ? null : _handleLogin,
+                              onPressed: _isLoading ? null : _handleRegister,
                               child: _isLoading
                                   ? const SizedBox(
                                       width: 20,
@@ -234,68 +295,23 @@ class _LoginScreenState extends State<LoginScreen>
                                         strokeWidth: 2,
                                       ),
                                     )
-                                  : const Text('Sign In'),
-                            ),
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // Divider
-                          Row(
-                            children: [
-                              const Expanded(child: Divider()),
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 16),
-                                child: Text(
-                                  'or',
-                                  style: AppTextStyles.labelMedium.copyWith(
-                                    color: AppColors.textMuted,
-                                  ),
-                                ),
-                              ),
-                              const Expanded(child: Divider()),
-                            ],
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // Google SSO
-                          SizedBox(
-                            width: double.infinity,
-                            height: 52,
-                            child: OutlinedButton.icon(
-                              onPressed: () {},
-                              icon: Icon(
-                                Icons.g_mobiledata_rounded,
-                                size: 26,
-                                color: AppColors.textSecondary,
-                              ),
-                              label: Text(
-                                'Continue with Google',
-                                style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
+                                  : const Text('Create Account'),
                             ),
                           ),
 
                           const Spacer(),
 
-                          // Register link
+                          // Sign in link
                           Center(
                             child: Padding(
-                              padding: const EdgeInsets.only(bottom: 28),
+                              padding: const EdgeInsets.only(bottom: 28, top: 24),
                               child: RichText(
                                 text: TextSpan(
-                                  text: "Don't have an account? ",
+                                  text: 'Already have an account? ',
                                   style: AppTextStyles.bodySmall,
                                   children: [
                                     TextSpan(
-                                      text: 'Register',
+                                      text: 'Sign In',
                                       style: TextStyle(
                                         fontFamily: 'Poppins',
                                         fontSize: 12,
@@ -308,7 +324,7 @@ class _LoginScreenState extends State<LoginScreen>
                                             context,
                                             PageRouteBuilder(
                                               pageBuilder: (_, _, _) =>
-                                                  const RegisterScreen(),
+                                                  const LoginScreen(),
                                               transitionsBuilder:
                                                   (_, animation, _, child) =>
                                                       FadeTransition(
@@ -342,7 +358,89 @@ class _LoginScreenState extends State<LoginScreen>
   }
 }
 
-// ─── Reusable sub-widgets ─────────────────────────────────────────────────────
+// ─── Faculty dropdown ─────────────────────────────────────────────────────────
+
+class _FacultyDropdown extends StatelessWidget {
+  final String? value;
+  final List<String> faculties;
+  final ValueChanged<String?> onChanged;
+  final String? Function(String?)? validator;
+
+  const _FacultyDropdown({
+    required this.value,
+    required this.faculties,
+    required this.onChanged,
+    this.validator,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButtonFormField<String>(
+      initialValue: value,
+      onChanged: onChanged,
+      validator: validator,
+      isExpanded: true,
+      icon: Icon(
+        Icons.keyboard_arrow_down_rounded,
+        color: AppColors.textTertiary,
+        size: 20,
+      ),
+      dropdownColor: AppColors.surface,
+      style: TextStyle(
+        color: AppColors.textPrimary,
+        fontFamily: 'Poppins',
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+      ),
+      hint: Padding(
+        padding: const EdgeInsets.only(left: 0),
+        child: Text(
+          'Select your faculty',
+          style: TextStyle(
+            color: AppColors.textTertiary,
+            fontFamily: 'Poppins',
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+      ),
+      decoration: InputDecoration(
+        prefixIcon: Padding(
+          padding: const EdgeInsets.only(left: 14, right: 10),
+          child: Icon(
+            Icons.school_outlined,
+            color: AppColors.textTertiary,
+            size: 18,
+          ),
+        ),
+        prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+        errorStyle: TextStyle(
+          fontFamily: 'Poppins',
+          fontSize: 11,
+          color: AppColors.error,
+        ),
+      ),
+      items: faculties
+          .map(
+            (faculty) => DropdownMenuItem(
+              value: faculty,
+              child: Text(
+                faculty,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontFamily: 'Poppins',
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          )
+          .toList(),
+    );
+  }
+}
+
+// ─── Reusable sub-widgets (mirrors login_screen.dart) ────────────────────────
 
 class _LogoRow extends StatelessWidget {
   @override
@@ -448,7 +546,7 @@ class _CleanTextField extends StatelessWidget {
       decoration: InputDecoration(
         hintText: hint,
         prefixIcon: Padding(
-          padding: EdgeInsets.only(left: 14, right: 10),
+          padding: const EdgeInsets.only(left: 14, right: 10),
           child: Icon(icon, color: AppColors.textTertiary, size: 18),
         ),
         prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),

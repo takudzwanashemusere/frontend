@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc -l \"c:\\\\Users\\\\pc\\\\OneDrive\\\\Desktop\\\\frontend\\\\reelscholar\\\\lib\\\\widgets\"/*.dart)",
+      "Bash(wc -l \"c:\\\\Users\\\\pc\\\\OneDrive\\\\Desktop\\\\frontend\\\\reelscholar\\\\lib\\\\models\"/*.dart)",
+      "Bash(wc -l \"c:\\\\Users\\\\pc\\\\OneDrive\\\\Desktop\\\\frontend\\\\reelscholar\\\\lib\\\\screens\"/*.dart)"
+    ]
+  }
+}
