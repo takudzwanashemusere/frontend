@@ -1,9 +1,12 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:http/http.dart' as http;
 import 'home_screen.dart';
 import 'department_selection_screen.dart';
 import 'register_screen.dart';
 import '../services/auth_service.dart';
+import '../services/api_constants.dart';
 import '../main.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -56,30 +59,52 @@ class _LoginScreenState extends State<LoginScreen>
   void _handleLogin() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      await Future.delayed(const Duration(seconds: 2));
-
-      await AuthService.saveSession(
-        email: _emailController.text.trim(),
-        name: _emailController.text.split('@')[0],
-        token: 'dummy_token_replace_with_real_jwt',
-      );
-
-      setState(() => _isLoading = false);
-      if (mounted) {
-        final hasDept = await AuthService.hasDepartment();
-        if (!mounted) return;
-        final destination = hasDept
-            ? const HomeScreen()
-            : const DepartmentSelectionScreen();
-        Navigator.pushReplacement(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (_, _, _) => destination,
-            transitionsBuilder: (_, animation, _, child) =>
-                FadeTransition(opacity: animation, child: child),
-            transitionDuration: const Duration(milliseconds: 400),
-          ),
+      try {
+        final res = await http.post(
+          Uri.parse('$kBaseUrl/auth/login'),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode({
+            'email': _emailController.text.trim(),
+            'password': _passwordController.text,
+          }),
         );
+        if (!mounted) return;
+        if (res.statusCode == 200) {
+          final data = json.decode(res.body);
+          await AuthService.saveSession(
+            email: _emailController.text.trim(),
+            name: data['name'],
+            token: data['access_token'],
+            userId: data['user_id'],
+            username: data['username'],
+          );
+          if (!mounted) return;
+          final hasDept = await AuthService.hasDepartment();
+          if (!mounted) return;
+          Navigator.pushReplacement(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (_, _, _) =>
+                  hasDept ? const HomeScreen() : const DepartmentSelectionScreen(),
+              transitionsBuilder: (_, animation, _, child) =>
+                  FadeTransition(opacity: animation, child: child),
+              transitionDuration: const Duration(milliseconds: 400),
+            ),
+          );
+        } else {
+          final detail = json.decode(res.body)['detail'] ?? 'Invalid credentials';
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(detail.toString())),
+          );
+        }
+      } catch (_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Cannot connect to server. Is it running?')),
+          );
+        }
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
       }
     }
   }

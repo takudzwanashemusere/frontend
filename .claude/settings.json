@@ -15,7 +15,8 @@
       "Bash(/c/Users/pc/OneDrive/Desktop/cut-auth-api/venv/Scripts/python.exe -c \"import fastapi; print\\(fastapi.__version__\\)\")",
       "Bash(where python:*)",
       "Bash(python -c \"import fastapi; import passlib; import jwt; import pydantic; print\\('all OK, fastapi:', fastapi.__version__\\)\")",
-      "Bash(python -c \"import main; print\\('main.py imports OK'\\)\")"
+      "Bash(python -c \"import main; print\\('main.py imports OK'\\)\")",
+      "Bash(flutter pub:*)"
     ],
     "additionalDirectories": [
       "C:\\Users\\pc\\OneDrive\\Desktop\\messaging-api"

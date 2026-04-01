@@ -1,8 +1,11 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:http/http.dart' as http;
 import 'login_screen.dart';
 import 'home_screen.dart';
 import '../services/auth_service.dart';
+import '../services/api_constants.dart';
 import '../main.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -72,28 +75,53 @@ class _RegisterScreenState extends State<RegisterScreen>
   void _handleRegister() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      await Future.delayed(const Duration(seconds: 2));
-
-      await AuthService.saveSession(
-        email: _emailController.text.trim(),
-        name: _nameController.text.trim(),
-        token: 'dummy_token_replace_with_real_jwt',
-      );
-      await AuthService.saveDepartment(_selectedFaculty!);
-      await AuthService.saveSemester(_selectedSemester);
-
-      setState(() => _isLoading = false);
-
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (_, _, _) => const HomeScreen(),
-            transitionsBuilder: (_, animation, _, child) =>
-                FadeTransition(opacity: animation, child: child),
-            transitionDuration: const Duration(milliseconds: 400),
-          ),
+      try {
+        final res = await http.post(
+          Uri.parse('$kBaseUrl/auth/register'),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode({
+            'email': _emailController.text.trim(),
+            'username': _schoolIdController.text.trim(),
+            'name': _nameController.text.trim(),
+            'password': _passwordController.text,
+          }),
         );
+        if (!mounted) return;
+        if (res.statusCode == 201) {
+          final data = json.decode(res.body);
+          await AuthService.saveSession(
+            email: _emailController.text.trim(),
+            name: _nameController.text.trim(),
+            token: data['access_token'],
+            userId: data['user_id'],
+            username: data['username'],
+          );
+          await AuthService.saveDepartment(_selectedFaculty!);
+          await AuthService.saveSemester(_selectedSemester);
+          if (!mounted) return;
+          Navigator.pushReplacement(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (_, _, _) => const HomeScreen(),
+              transitionsBuilder: (_, animation, _, child) =>
+                  FadeTransition(opacity: animation, child: child),
+              transitionDuration: const Duration(milliseconds: 400),
+            ),
+          );
+        } else {
+          final detail = json.decode(res.body)['detail'] ?? 'Registration failed';
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(detail.toString())),
+          );
+        }
+      } catch (_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Cannot connect to server. Is it running?')),
+          );
+        }
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
       }
     }
   }

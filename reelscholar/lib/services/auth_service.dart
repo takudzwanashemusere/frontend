@@ -8,19 +8,29 @@ class AuthService {
   static const _keyToken = 'auth_token';
   static const _keyEmail = 'user_email';
   static const _keyName = 'user_name';
+  static const _keyUserId = 'user_id';
+  static const _keyUsername = 'user_username';
   static const _keyIsLoggedIn = 'is_logged_in';
   static const _keyDepartment = 'user_department';
   static const _keySemester = 'user_semester';
 
-  // Save session after login
+  // Save session after login / register
   static Future<void> saveSession({
     required String email,
     required String name,
     required String token,
+    int? userId,
+    String? username,
   }) async {
     await _storage.write(key: _keyToken, value: token);
     await _storage.write(key: _keyEmail, value: email);
     await _storage.write(key: _keyName, value: name);
+    if (userId != null) {
+      await _storage.write(key: _keyUserId, value: userId.toString());
+    }
+    if (username != null) {
+      await _storage.write(key: _keyUsername, value: username);
+    }
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_keyIsLoggedIn, true);
@@ -75,6 +85,17 @@ class AuthService {
   // Get auth token (for API calls)
   static Future<String?> getToken() async {
     return await _storage.read(key: _keyToken);
+  }
+
+  // Get saved user id
+  static Future<int?> getUserId() async {
+    final v = await _storage.read(key: _keyUserId);
+    return v != null ? int.tryParse(v) : null;
+  }
+
+  // Get saved username
+  static Future<String?> getUsername() async {
+    return await _storage.read(key: _keyUsername);
   }
 
   // Clear session on logout
