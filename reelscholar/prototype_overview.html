@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReelScholar — App Prototype Overview</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --cut-navy: #0D2347;
+  --cut-blue: #1A3A6B;
+  --cut-mid: #2D5FA6;
+  --cut-light: #E8EFF8;
+  --cut-gold: #F5A623;
+  --cut-gold-dk: #D4891A;
+  --white: #fff;
+  --page-bg: #F0F4FB;
+  --card-bg: #fff;
+  --text-1: #0D1B2A;
+  --text-2: #4B5563;
+  --text-3: #9CA3AF;
+  --border: rgba(26,58,107,0.1);
+  --success: #16A34A;
+  --danger: #DC2626;
+  --gold-glow: rgba(245,166,35,0.3);
+  --blue-glow: rgba(26,58,107,0.15);
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--page-bg);
+  color: var(--text-1);
+  line-height: 1.5;
+}
+
+/* ═══════════ LANDING HERO ═══════════ */
+.hero {
+  background: var(--cut-navy);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 60px 40px;
+}
+
+.hero-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(245,166,35,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(245,166,35,0.06) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+.hero-glow {
+  position: absolute;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(245,166,35,0.12) 0%, transparent 70%);
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.hero-content {
+  position: relative; z-index: 2;
+  text-align: center; max-width: 720px;
+}
+
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(245,166,35,0.12);
+  border: 1px solid rgba(245,166,35,0.3);
+  color: var(--cut-gold);
+  font-size: 11px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 6px 16px; border-radius: 30px;
+  margin-bottom: 28px;
+  animation: fadeUp 0.6s ease both;
+}
+
+.hero-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(52px, 8vw, 88px);
+  color: #fff;
+  line-height: 0.95;
+  letter-spacing: -2px;
+  margin-bottom: 10px;
+  animation: fadeUp 0.6s 0.1s ease both;
+}
+
+.hero-title .accent { color: var(--cut-gold); font-style: italic; }
+
+.hero-sub {
+  font-size: 18px; font-weight: 300;
+  color: rgba(255,255,255,0.55);
+  margin-bottom: 12px;
+  animation: fadeUp 0.6s 0.2s ease both;
+  letter-spacing: 0.5px;
+}
+
+.hero-desc {
+  font-size: 15px; color: rgba(255,255,255,0.4);
+  max-width: 480px; margin: 0 auto 40px;
+  animation: fadeUp 0.6s 0.25s ease both;
+}
+
+.hero-pages-row {
+  display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+  animation: fadeUp 0.6s 0.3s ease both;
+}
+
+.hero-page-pill {
+  padding: 8px 18px;
+  border-radius: 30px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.7);
+  font-size: 13px; font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.hero-page-pill:hover {
+  background: rgba(245,166,35,0.15);
+  border-color: rgba(245,166,35,0.4);
+  color: var(--cut-gold);
+}
+
+.hero-scroll {
+  position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
+  color: rgba(255,255,255,0.3); font-size: 12px; letter-spacing: 1px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  animation: float 2s ease-in-out infinite;
+}
+.hero-scroll::after {
+  content: '';
+  width: 1px; height: 40px;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.3), transparent);
+}
+
+/* ═══════════ SECTION DIVIDERS ═══════════ */
+.section-divider {
+  padding: 80px 40px 40px;
+  text-align: center;
+}
+
+.section-num {
+  font-size: 11px; font-weight: 700; letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--cut-gold);
+  margin-bottom: 10px;
+}
+
+.section-heading {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(32px, 4vw, 48px);
+  color: var(--cut-navy);
+  letter-spacing: -1px;
+  margin-bottom: 10px;
+}
+
+.section-tagline {
+  font-size: 15px; color: var(--text-2);
+  max-width: 480px; margin: 0 auto;
+}
+
+/* ═══════════ SCREEN FRAME ═══════════ */
+.screen-showcase {
+  padding: 20px 40px 80px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.screen-frame {
+  background: var(--cut-navy);
+  border-radius: 20px;
+  padding: 3px;
+  box-shadow:
+    0 0 0 1px rgba(245,166,35,0.15),
+    0 24px 80px rgba(13,35,71,0.35),
+    0 0 120px rgba(245,166,35,0.06);
+  margin-bottom: 60px;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.screen-frame:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 0 0 1px rgba(245,166,35,0.25),
+    0 36px 100px rgba(13,35,71,0.4),
+    0 0 150px rgba(245,166,35,0.10);
+}
+
+.screen-bar {
+  background: rgba(255,255,255,0.07);
+  border-radius: 16px 16px 0 0;
+  padding: 10px 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.screen-dots { display: flex; gap: 5px; }
+.screen-dot { width: 9px; height: 9px; border-radius: 50%; }
+.screen-dot:nth-child(1) { background: #FF5F57; }
+.screen-dot:nth-child(2) { background: #FFBD2E; }
+.screen-dot:nth-child(3) { background: #28CA42; }
+.screen-url {
+  flex: 1; background: rgba(255,255,255,0.06); border-radius: 6px;
+  padding: 4px 12px; font-size: 11px; color: rgba(255,255,255,0.35);
+  margin: 0 8px; letter-spacing: 0.3px;
+}
+
+.screen-inner {
+  background: var(--page-bg);
+  border-radius: 0 0 16px 16px;
+  overflow: hidden;
+  font-size: 12px;
+}
+
+/* ═══════════ MINI APP CHROME ═══════════ */
+.mini-app {
+  display: flex; min-height: 520px;
+}
+
+.mini-sidebar {
+  width: 180px; flex-shrink: 0;
+  background: var(--cut-navy);
+  padding: 20px 14px;
+  display: flex; flex-direction: column;
+}
+
+.ms-brand {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 24px; padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.ms-icon {
+  width: 28px; height: 28px; border-radius: 7px;
+  background: var(--cut-gold);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800; color: var(--cut-navy);
+}
+.ms-name { font-size: 13px; font-weight: 700; color: #fff; }
+.ms-nav { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.ms-item {
+  padding: 7px 10px; border-radius: 7px;
+  font-size: 11px; font-weight: 500;
+  color: rgba(255,255,255,0.5);
+  display: flex; align-items: center; gap: 7px;
+}
+.ms-item.active {
+  background: rgba(245,166,35,0.15);
+  color: var(--cut-gold);
+}
+.ms-item .dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.ms-badge {
+  margin-left: auto; background: var(--cut-gold); color: var(--cut-navy);
+  font-size: 8px; font-weight: 800; padding: 1px 5px; border-radius: 10px;
+}
+.ms-user {
+  display: flex; align-items: center; gap: 7px; margin-top: 16px;
+  padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.07);
+}
+.ms-ava {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--cut-gold), var(--cut-mid));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 700; color: #fff;
+}
+.ms-uname { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.7); }
+.ms-urole { font-size: 9px; color: rgba(255,255,255,0.35); }
+
+.mini-main { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+.mini-topbar {
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+.mini-topbar-title { font-size: 13px; font-weight: 700; color: var(--cut-navy); }
+.mini-search {
+  flex: 1; max-width: 200px; margin-left: auto;
+  background: var(--page-bg); border: 1px solid var(--border);
+  border-radius: 14px; padding: 5px 12px;
+  font-size: 10px; color: var(--text-3);
+  display: flex; align-items: center; gap: 5px;
+}
+.mini-topbar-btn {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--page-bg); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; position: relative;
+}
+.mini-notif-dot {
+  position: absolute; top: 4px; right: 4px;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--cut-gold); border: 1px solid var(--card-bg);
+}
+
+.mini-content { flex: 1; padding: 14px 16px; overflow: hidden; }
+
+/* ═══════════ PAGE CONTENT COMPONENTS ═══════════ */
+
+/* --- DASHBOARD --- */
+.dash-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+  margin-bottom: 12px;
+}
+.dash-stat {
+  background: var(--card-bg); border-radius: 10px;
+  border: 1px solid var(--border); padding: 10px 12px;
+}
+.ds-icon { font-size: 14px; margin-bottom: 4px; }
+.ds-val {
+  font-family: 'DM Serif Display', serif;
+  font-size: 20px; font-weight: 700; color: var(--cut-navy);
+  letter-spacing: -0.5px;
+}
+.ds-label { font-size: 9px; color: var(--text-3); margin-top: 1px; }
+.ds-change { font-size: 9px; font-weight: 600; color: var(--success); margin-top: 3px; }
+
+.dash-grid { display: grid; grid-template-columns: 1fr 140px; gap: 10px; }
+
+.featured-mini {
+  background: linear-gradient(135deg, var(--cut-navy), var(--cut-mid));
+  border-radius: 10px; padding: 14px;
+  position: relative; overflow: hidden; cursor: pointer;
+  min-height: 100px;
+}
+.fm-pattern {
+  position: absolute; inset: 0; opacity: 0.06;
+  background-image: radial-gradient(circle, #fff 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+.fm-badge {
+  font-size: 8px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  background: rgba(245,166,35,0.2); border: 1px solid rgba(245,166,35,0.35);
+  color: var(--cut-gold); padding: 2px 7px; border-radius: 20px;
+  margin-bottom: 6px; display: inline-block;
+}
+.fm-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 13px; color: #fff; line-height: 1.25;
+  margin-bottom: 6px; position: relative;
+}
+.fm-meta { font-size: 9px; color: rgba(255,255,255,0.55); display: flex; gap: 8px; position: relative; }
+.fm-play {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--cut-gold);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+  box-shadow: 0 2px 12px var(--gold-glow);
+}
+
+.dash-right { display: flex; flex-direction: column; gap: 8px; }
+
+.follow-mini {
+  background: var(--card-bg); border-radius: 10px;
+  border: 1px solid var(--border); overflow: hidden;
+}
+.fm-header {
+  padding: 8px 10px; border-bottom: 1px solid var(--border);
+  font-size: 10px; font-weight: 700; color: var(--cut-navy);
+}
+.fi { display: flex; align-items: center; gap: 7px; padding: 7px 10px; border-bottom: 1px solid var(--border); }
+.fi:last-child { border-bottom: none; }
+.fi-ava {
+  width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 8px; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+.fi-name { font-size: 9px; font-weight: 600; color: var(--text-1); }
+.fi-role { font-size: 8px; color: var(--text-3); }
+.fi-btn {
+  margin-left: auto; font-size: 8px; font-weight: 700;
+  padding: 3px 8px; border-radius: 10px;
+  border: 1px solid var(--cut-blue); color: var(--cut-blue);
+  background: none; cursor: pointer; white-space: nowrap;
+}
+.fi-btn.followed { background: var(--cut-blue); color: #fff; }
+
+.chart-mini {
+  background: var(--card-bg); border-radius: 10px;
+  border: 1px solid var(--border); padding: 10px;
+  margin-top: 2px;
+}
+.cm-label { font-size: 9px; font-weight: 700; color: var(--cut-navy); margin-bottom: 8px; }
+.cm-bars {
+  display: flex; align-items: flex-end; gap: 3px; height: 50px;
+}
+.cm-bar { flex: 1; border-radius: 3px 3px 0 0; min-height: 4px; }
+.cm-days {
+  display: flex; gap: 3px; margin-top: 4px;
+}
+.cm-day { flex: 1; font-size: 7px; text-align: center; color: var(--text-3); }
+
+.vgrid-mini { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-top: 10px; }
+.vc-mini {
+  background: var(--card-bg); border-radius: 8px;
+  border: 1px solid var(--border); overflow: hidden;
+}
+.vc-thumb {
+  width: 100%; aspect-ratio: 16/9;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+.vc-info { padding: 5px 7px 7px; }
+.vc-tag {
+  font-size: 7px; font-weight: 700;
+  background: var(--cut-light); color: var(--cut-mid);
+  padding: 1px 5px; border-radius: 10px; display: inline-block; margin-bottom: 2px;
+}
+.vc-title { font-size: 8px; font-weight: 600; color: var(--text-1); line-height: 1.3; }
+.vc-meta { font-size: 7px; color: var(--text-3); margin-top: 2px; display: flex; justify-content: space-between; }
+
+/* --- QUIZ --- */
+.quiz-hero-mini {
+  background: linear-gradient(135deg, var(--cut-navy), var(--cut-blue));
+  border-radius: 12px; padding: 16px 18px;
+  margin-bottom: 10px; position: relative; overflow: hidden;
+}
+.qhm-pattern {
+  position: absolute; inset: 0; opacity: 0.05;
+  background-image: radial-gradient(circle, #fff 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+.qhm-title { font-family: 'DM Serif Display', serif; font-size: 18px; color: #fff; margin-bottom: 4px; position: relative; }
+.qhm-sub { font-size: 9px; color: rgba(255,255,255,0.5); margin-bottom: 12px; position: relative; }
+.qhm-stats { display: flex; gap: 20px; position: relative; }
+.qhm-stat-val { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--cut-gold); }
+.qhm-stat-label { font-size: 8px; color: rgba(255,255,255,0.4); }
+
+.school-chips-mini { display: flex; gap: 5px; margin-bottom: 10px; flex-wrap: wrap; }
+.chip-mini {
+  padding: 3px 10px; border-radius: 20px; font-size: 8px; font-weight: 600;
+  border: 1px solid var(--border); color: var(--text-2); cursor: pointer;
+}
+.chip-mini.active { background: var(--cut-navy); color: var(--cut-gold); border-color: var(--cut-navy); }
+
+.quiz-cards-mini { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+.qcard-mini {
+  background: var(--card-bg); border-radius: 9px;
+  border: 1px solid var(--border); padding: 10px;
+}
+.qcm-icon { font-size: 16px; margin-bottom: 5px; }
+.qcm-title { font-size: 9px; font-weight: 700; color: var(--cut-navy); margin-bottom: 2px; }
+.qcm-sub { font-size: 8px; color: var(--text-3); margin-bottom: 7px; }
+.qcm-diff {
+  font-size: 7px; font-weight: 700; padding: 2px 6px; border-radius: 10px; display: inline-block;
+}
+.qcm-diff.easy { background: #D1FAE5; color: #065F46; }
+.qcm-diff.medium { background: #FEF3C7; color: #92400E; }
+.qcm-diff.hard { background: #FEE2E2; color: #991B1B; }
+.qcm-prog { margin-top: 6px; height: 3px; background: var(--page-bg); border-radius: 2px; }
+.qcm-prog-fill { height: 100%; border-radius: 2px; background: var(--cut-mid); }
+
+.quiz-q-mini {
+  background: var(--card-bg); border-radius: 10px;
+  border: 1px solid var(--border); overflow: hidden;
+}
+.qqm-progbar { height: 3px; background: var(--cut-gold); width: 30%; }
+.qqm-header {
+  padding: 8px 12px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+}
+.qqm-tag {
+  font-size: 8px; font-weight: 700; background: var(--cut-light);
+  color: var(--cut-navy); padding: 2px 7px; border-radius: 10px;
+}
+.qqm-counter { font-size: 8px; color: var(--text-3); margin-left: auto; }
+.qqm-timer {
+  font-size: 9px; font-weight: 700; background: var(--page-bg);
+  padding: 3px 8px; border-radius: 10px; color: var(--cut-navy);
+  display: flex; align-items: center; gap: 3px;
+}
+.qqm-body { padding: 12px; }
+.qqm-question { font-size: 11px; font-weight: 700; color: var(--cut-navy); line-height: 1.35; margin-bottom: 10px; font-family: 'DM Serif Display', serif; }
+.qqm-opts { display: flex; flex-direction: column; gap: 5px; }
+.qqm-opt {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; border-radius: 8px;
+  border: 1.5px solid var(--border); font-size: 9px;
+}
+.qqm-opt.correct { border-color: var(--success); background: #F0FDF4; }
+.qqm-opt.wrong { border-color: var(--danger); background: #FFF1F2; }
+.qqm-opt-letter {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--page-bg); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 8px; font-weight: 700; flex-shrink: 0;
+}
+.qqm-opt.correct .qqm-opt-letter { background: var(--success); color: #fff; border-color: var(--success); }
+.qqm-opt.wrong .qqm-opt-letter { background: var(--danger); color: #fff; border-color: var(--danger); }
+.qqm-expl {
+  margin-top: 8px; padding: 7px 10px;
+  background: #F0FDF4; border-radius: 7px;
+  border-left: 2px solid var(--success);
+  font-size: 8px; color: #15803D; line-height: 1.4;
+}
+
+/* --- HACKATHON --- */
+.hack-hero-mini {
+  background: linear-gradient(135deg, var(--cut-navy) 0%, var(--cut-blue) 60%, var(--cut-mid) 100%);
+  border-radius: 12px; padding: 16px 18px;
+  margin-bottom: 10px; position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.hhm-badge {
+  font-size: 7px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  background: rgba(245,166,35,0.2); border: 1px solid rgba(245,166,35,0.35);
+  color: var(--cut-gold); padding: 2px 7px; border-radius: 20px; margin-bottom: 6px; display: inline-block;
+}
+.hhm-title { font-family: 'DM Serif Display', serif; font-size: 15px; color: #fff; margin-bottom: 4px; }
+.hhm-sub { font-size: 8px; color: rgba(255,255,255,0.5); margin-bottom: 8px; }
+.hhm-countdown { display: flex; gap: 10px; }
+.hhm-unit { text-align: center; }
+.hhm-val { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--cut-gold); display: block; }
+.hhm-label { font-size: 7px; color: rgba(255,255,255,0.4); text-transform: uppercase; }
+.hhm-btn {
+  background: var(--cut-gold); color: var(--cut-navy);
+  font-size: 9px; font-weight: 700; padding: 7px 14px;
+  border-radius: 8px; border: none; white-space: nowrap;
+}
+
+.pgrid-mini { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.pcard-mini {
+  background: var(--card-bg); border-radius: 9px;
+  border: 1px solid var(--border); padding: 10px;
+}
+.pcm-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px; }
+.pcm-title { font-size: 10px; font-weight: 700; color: var(--cut-navy); }
+.pcm-team { font-size: 8px; color: var(--text-3); }
+.pcm-badge { font-size: 7px; font-weight: 700; padding: 2px 6px; border-radius: 10px; }
+.pcm-badge.gold { background: #FEF3C7; color: #92400E; }
+.pcm-badge.voting { background: #D1FAE5; color: #065F46; }
+.pcm-badge.open { background: var(--cut-light); color: var(--cut-mid); }
+.pcm-desc { font-size: 8px; color: var(--text-2); line-height: 1.4; margin-bottom: 8px; }
+.pcm-footer { display: flex; align-items: center; justify-content: space-between; }
+.pcm-votes { font-size: 9px; font-weight: 600; color: var(--text-1); }
+.pcm-vote-btn {
+  font-size: 8px; font-weight: 700; padding: 3px 8px;
+  border-radius: 10px; border: 1px solid var(--cut-blue);
+  color: var(--cut-blue); background: none;
+}
+.pcm-vote-btn.voted { background: var(--cut-blue); color: #fff; }
+
+/* --- MESSAGES --- */
+.msgs-layout { display: flex; height: 100%; }
+.msgs-list { width: 150px; border-right: 1px solid var(--border); overflow: hidden; }
+.msgs-search {
+  padding: 8px; border-bottom: 1px solid var(--border);
+  font-size: 8px; color: var(--text-3);
+  background: var(--page-bg); margin: 8px;
+  border-radius: 12px; padding: 4px 8px;
+}
+.ci-mini {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 10px; border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+.ci-mini.active { background: var(--cut-light); }
+.ci-ava {
+  width: 26px; height: 26px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+.ci-name { font-size: 9px; font-weight: 600; color: var(--text-1); }
+.ci-prev { font-size: 8px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px; }
+.ci-time { font-size: 7px; color: var(--text-3); margin-left: auto; flex-shrink: 0; }
+.unread { min-width: 14px; height: 14px; background: var(--cut-blue); color: #fff; border-radius: 7px; font-size: 7px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+
+.chat-area-mini { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.cha-header {
+  padding: 8px 12px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 7px;
+}
+.cha-ava { width: 24px; height: 24px; border-radius: 50%; font-size: 8px; font-weight: 700; color: #fff; display: flex; align-items: center; justify-content: center; }
+.cha-name { font-size: 10px; font-weight: 700; color: var(--cut-navy); }
+.cha-status { font-size: 8px; color: var(--success); }
+.chat-msgs-mini { flex: 1; padding: 10px; display: flex; flex-direction: column; gap: 7px; overflow: hidden; }
+.msg-mini { max-width: 75%; }
+.msg-mini.sent { align-self: flex-end; }
+.msg-mini.recv { align-self: flex-start; }
+.msg-bubble-mini {
+  padding: 6px 10px; border-radius: 12px;
+  font-size: 8.5px; line-height: 1.45;
+}
+.msg-mini.sent .msg-bubble-mini { background: var(--cut-navy); color: #fff; border-bottom-right-radius: 3px; }
+.msg-mini.recv .msg-bubble-mini { background: var(--card-bg); border: 1px solid var(--border); color: var(--text-1); border-bottom-left-radius: 3px; }
+.chat-input-mini {
+  padding: 8px 10px; border-top: 1px solid var(--border);
+  display: flex; gap: 6px; align-items: center;
+}
+.chat-inp-mini {
+  flex: 1; background: var(--page-bg); border: 1px solid var(--border);
+  border-radius: 14px; padding: 5px 10px; font-size: 8px; color: var(--text-3);
+}
+.chat-send-mini {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--cut-navy); color: #fff;
+  display: flex; align-items: center; justify-content: center; font-size: 10px;
+}
+
+/* --- PROFILE --- */
+.profile-cover-mini {
+  height: 70px;
+  background: linear-gradient(135deg, var(--cut-navy), var(--cut-blue), var(--cut-mid));
+  position: relative; overflow: hidden;
+}
+.profile-cover-pattern {
+  position: absolute; inset: 0; opacity: 0.07;
+  background-image: radial-gradient(circle, #fff 1px, transparent 1px);
+  background-size: 14px 14px;
+}
+.profile-info-mini {
+  padding: 0 16px 12px;
+  display: flex; align-items: flex-end; gap: 10px;
+}
+.profile-ava-mini {
+  width: 50px; height: 50px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--cut-gold), var(--cut-mid));
+  border: 3px solid var(--card-bg);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 700; color: #fff;
+  margin-top: -25px; font-family: 'DM Serif Display', serif;
+  flex-shrink: 0;
+}
+.profile-name-mini { font-size: 13px; font-weight: 700; color: var(--cut-navy); font-family: 'DM Serif Display', serif; }
+.profile-handle-mini { font-size: 9px; color: var(--text-3); }
+.profile-tag-mini {
+  font-size: 8px; font-weight: 700; background: var(--cut-light);
+  color: var(--cut-navy); padding: 2px 8px; border-radius: 10px; margin-top: 3px; display: inline-block;
+}
+.profile-stats-mini {
+  display: flex; gap: 20px; padding: 10px 16px;
+  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  background: var(--card-bg);
+}
+.psm-val { font-family: 'DM Serif Display', serif; font-size: 16px; font-weight: 700; color: var(--cut-navy); }
+.psm-label { font-size: 8px; color: var(--text-3); }
+
+.achievements-mini { display: flex; gap: 8px; padding: 10px 16px; flex-wrap: wrap; }
+.achv {
+  text-align: center; padding: 8px 10px;
+  background: var(--page-bg); border-radius: 8px;
+}
+.achv-icon { font-size: 18px; display: block; margin-bottom: 2px; }
+.achv-label { font-size: 8px; font-weight: 600; color: var(--text-2); }
+
+.radar-mini {
+  padding: 10px 16px;
+}
+.radar-label { font-size: 9px; font-weight: 700; color: var(--cut-navy); margin-bottom: 6px; }
+
+/* ═══════════ FLOW DIAGRAM ═══════════ */
+.flow-section {
+  background: var(--cut-navy);
+  padding: 80px 40px;
+}
+.flow-title {
+  text-align: center;
+  font-family: 'DM Serif Display', serif;
+  font-size: 40px; color: #fff;
+  margin-bottom: 8px; letter-spacing: -1px;
+}
+.flow-sub { text-align: center; font-size: 14px; color: rgba(255,255,255,0.4); margin-bottom: 60px; }
+
+.flow-diagram {
+  max-width: 900px; margin: 0 auto;
+  display: flex; align-items: flex-start; justify-content: center;
+  gap: 0; position: relative;
+}
+
+.flow-col {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 12px; flex: 1;
+}
+
+.flow-node {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px; padding: 14px 16px;
+  text-align: center; width: 130px;
+  cursor: pointer; transition: all 0.2s;
+}
+.flow-node:hover {
+  background: rgba(245,166,35,0.1);
+  border-color: rgba(245,166,35,0.3);
+}
+.flow-node.primary {
+  background: rgba(245,166,35,0.12);
+  border-color: rgba(245,166,35,0.35);
+}
+.flow-node-icon { font-size: 22px; margin-bottom: 6px; }
+.flow-node-name { font-size: 11px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+.flow-node-desc { font-size: 9px; color: rgba(255,255,255,0.4); line-height: 1.3; }
+
+.flow-arrow {
+  display: flex; align-items: center; padding-top: 40px;
+  color: rgba(245,166,35,0.4); font-size: 18px; flex-shrink: 0; padding: 40px 4px 0;
+}
+
+/* ═══════════ TECH STACK SECTION ═══════════ */
+.tech-section {
+  padding: 80px 40px;
+  text-align: center;
+}
+
+.tech-grid {
+  display: flex; flex-wrap: wrap; justify-content: center;
+  gap: 12px; max-width: 800px; margin: 40px auto 0;
+}
+
+.tech-pill {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 30px; padding: 10px 20px;
+  font-size: 13px; font-weight: 600; color: var(--text-1);
+  box-shadow: var(--blue-glow) 0 2px 12px;
+  transition: all 0.2s;
+}
+.tech-pill:hover {
+  border-color: var(--cut-gold);
+  box-shadow: var(--gold-glow) 0 4px 20px;
+  transform: translateY(-2px);
+}
+.tech-pill-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+/* ═══════════ FOOTER ═══════════ */
+.proto-footer {
+  background: var(--cut-navy);
+  padding: 40px;
+  text-align: center;
+  border-top: 1px solid rgba(245,166,35,0.15);
+}
+.proto-footer-brand {
+  font-family: 'DM Serif Display', serif;
+  font-size: 28px; color: #fff; margin-bottom: 6px;
+}
+.proto-footer-brand span { color: var(--cut-gold); }
+.proto-footer-sub { font-size: 12px; color: rgba(255,255,255,0.3); letter-spacing: 1px; }
+
+/* ═══════════ PAGE LABEL CHIP ═══════════ */
+.page-label {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 16px;
+}
+.pl-num {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: var(--cut-navy); color: var(--cut-gold);
+  font-size: 11px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+}
+.pl-name { font-size: 20px; font-weight: 700; color: var(--cut-navy); font-family: 'DM Serif Display', serif; }
+.pl-tag {
+  margin-left: auto; font-size: 10px; font-weight: 600;
+  background: var(--cut-light); color: var(--cut-mid);
+  padding: 3px 10px; border-radius: 20px;
+}
+
+/* ═══════════ ANIMATIONS ═══════════ */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes float {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(6px); }
+}
+
+.reveal {
+  opacity: 0; transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.in { opacity: 1; transform: translateY(0); }
+
+/* scrollbar */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-thumb { background: rgba(26,58,107,0.2); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- HERO -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-content">
+    <div class="hero-badge">✦ App Prototype Overview · 6 Screens</div>
+    <div class="hero-title">Reel<span class="accent">Scholar</span></div>
+    <div class="hero-sub">CUT's Academic Video Community</div>
+    <div class="hero-desc">A complete interactive platform built for Chinhoyi University of Technology students — short-form academic video, school-specific quizzes, hackathons & peer messaging.</div>
+    <div class="hero-pages-row">
+      <a class="hero-page-pill" href="#pg-dashboard">⊞ Dashboard</a>
+      <a class="hero-page-pill" href="#pg-feed">▶ Video Feed</a>
+      <a class="hero-page-pill" href="#pg-quiz">🎯 Quiz Module</a>
+      <a class="hero-page-pill" href="#pg-hackathon">⚡ Hackathon</a>
+      <a class="hero-page-pill" href="#pg-messages">💬 Messages</a>
+      <a class="hero-page-pill" href="#pg-profile">◎ Profile</a>
+    </div>
+  </div>
+  <div class="hero-scroll">scroll</div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- PAGE 1: DASHBOARD -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div id="pg-dashboard" class="section-divider reveal">
+  <div class="section-num">01 / 06</div>
+  <div class="section-heading">Dashboard</div>
+  <div class="section-tagline">Your academic home — analytics, trending content, suggested creators & activity at a glance</div>
+</div>
+
+<div class="screen-showcase reveal">
+  <div class="page-label">
+    <div class="pl-num">1</div>
+    <div class="pl-name">Main Dashboard</div>
+    <div class="pl-tag">Home Screen</div>
+  </div>
+  <div class="screen-frame">
+    <div class="screen-bar">
+      <div class="screen-dots"><div class="screen-dot"></div><div class="screen-dot"></div><div class="screen-dot"></div></div>
+      <div class="screen-url">reelscholar.cut.ac.zw/dashboard</div>
+    </div>
+    <div class="screen-inner">
+      <div class="mini-app">
+        <!-- Sidebar -->
+        <div class="mini-sidebar">
+          <div class="ms-brand"><div class="ms-icon">RS</div><div class="ms-name">ReelScholar</div></div>
+          <div class="ms-nav">
+            <div style="font-size:8px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,0.25);padding:8px 10px 3px;text-transform:uppercase;">Main</div>
+            <div class="ms-item active"><div class="dot"></div> Dashboard</div>
+            <div class="ms-item"><div class="dot"></div> Video Feed</div>
+            <div class="ms-item"><div class="dot"></div> Quiz Module <span class="ms-badge">12</span></div>
+            <div class="ms-item"><div class="dot"></div> Hackathon</div>
+            <div style="font-size:8px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,0.25);padding:8px 10px 3px;text-transform:uppercase;">Community</div>
+            <div class="ms-item"><div class="dot"></div> Messages <span class="ms-badge">3</span></div>
+            <div class="ms-item"><div class="dot"></div> My Profile</div>
+          </div>
+          <div class="ms-user">
+            <div class="ms-ava">TM</div>
+            <div><div class="ms-uname">Takudzwa M.</div><div class="ms-urole">Engineering</div></div>
+          </div>
+        </div>
+        <!-- Main -->
+        <div class="mini-main">
+          <div class="mini-topbar">
+            <div class="mini-topbar-title">Dashboard</div>
+            <div class="mini-search">🔍 Search videos, students…</div>
+            <div class="mini-topbar-btn">➕</div>
+            <div class="mini-topbar-btn">🔔<div class="mini-notif-dot"></div></div>
+          </div>
+          <div class="mini-content">
+            <!-- Stats -->
+            <div class="dash-stats">
+              <div class="dash-stat">
+                <div class="ds-icon">▶</div>
+                <div class="ds-val">1,284</div>
+                <div class="ds-label">Total Views</div>
+                <div class="ds-change">↑ 18% this week</div>
+              </div>
+              <div class="dash-stat">
+                <div class="ds-icon">👥</div>
+                <div class="ds-val">347</div>
+                <div class="ds-label">Followers</div>
+                <div class="ds-change">↑ 24 new</div>
+              </div>
+              <div class="dash-stat">
+                <div class="ds-icon">🎯</div>
+                <div class="ds-val">82%</div>
+                <div class="ds-label">Quiz Avg.</div>
+                <div class="ds-change">↑ +5pts</div>
+              </div>
+              <div class="dash-stat">
+                <div class="ds-icon">📹</div>
+                <div class="ds-val">11</div>
+                <div class="ds-label">Videos</div>
+                <div class="ds-change">↑ 2 this week</div>
+              </div>
+            </div>
+
+            <div class="dash-grid">
+              <div>
+                <!-- Featured + chart -->
+                <div style="font-size:10px;font-weight:700;color:var(--cut-navy);margin-bottom:6px">Featured Today</div>
+                <div class="featured-mini">
+                  <div class="fm-pattern"></div>
+                  <div class="fm-badge">🔥 Trending in Engineering</div>
+                  <div class="fm-title">Understanding Thermodynamic Cycles in Industrial Applications</div>
+                  <div class="fm-meta"><span>👤 Prof. Muvengwa T.</span><span>⏱ 4:32</span><span>❤ 248</span></div>
+                  <div class="fm-play">▶</div>
+                </div>
+
+                <div class="chart-mini" style="margin-top:8px">
+                  <div class="cm-label">📊 Engagement Analytics — This Week</div>
+                  <div class="cm-bars">
+                    <div class="cm-bar" style="height:38%;background:#1A3A6B"></div>
+                    <div class="cm-bar" style="height:60%;background:#1A3A6B"></div>
+                    <div class="cm-bar" style="height:48%;background:#1A3A6B"></div>
+                    <div class="cm-bar" style="height:90%;background:#F5A623"></div>
+                    <div class="cm-bar" style="height:65%;background:#1A3A6B"></div>
+                    <div class="cm-bar" style="height:100%;background:#2D5FA6"></div>
+                    <div class="cm-bar" style="height:77%;background:#1A3A6B"></div>
+                  </div>
+                  <div class="cm-days">
+                    <div class="cm-day">M</div><div class="cm-day">T</div><div class="cm-day">W</div>
+                    <div class="cm-day">T</div><div class="cm-day">F</div><div class="cm-day">S</div><div class="cm-day">S</div>
+                  </div>
+                </div>
+
+                <div class="vgrid-mini" style="margin-top:8px">
+                  <div class="vc-mini">
+                    <div class="vc-thumb" style="background:linear-gradient(135deg,#1A3A6B,#2D5FA6)">⚗️</div>
+                    <div class="vc-info"><div class="vc-tag">Natural Sci</div><div class="vc-title">Organic Chemistry Reactions</div><div class="vc-meta"><span>Dr. Nyandoro</span><span>❤ 89</span></div></div>
+                  </div>
+                  <div class="vc-mini">
+                    <div class="vc-thumb" style="background:linear-gradient(135deg,#065F46,#059669)">📊</div>
+                    <div class="vc-info"><div class="vc-tag">Business</div><div class="vc-title">Microeconomics: Supply & Demand</div><div class="vc-meta"><span>Ms. Chikwanda</span><span>❤ 142</span></div></div>
+                  </div>
+                  <div class="vc-mini">
+                    <div class="vc-thumb" style="background:linear-gradient(135deg,#831843,#BE185D)">🧬</div>
+                    <div class="vc-info"><div class="vc-tag">Medicine</div><div class="vc-title">Cell Biology: Mitosis vs Meiosis</div><div class="vc-meta"><span>Dr. Mhembere</span><span>❤ 213</span></div></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right column -->
+              <div class="dash-right">
+                <div class="follow-mini">
+                  <div class="fm-header">✨ Who to Follow</div>
+                  <div class="fi">
+                    <div class="fi-ava" style="background:linear-gradient(135deg,#1A3A6B,#2D5FA6)">PM</div>
+                    <div><div class="fi-name">Prof. Muvengwa</div><div class="fi-role">Engineering · 28 videos</div></div>
+                    <button class="fi-btn">Follow</button>
+                  </div>
+                  <div class="fi">
+                    <div class="fi-ava" style="background:linear-gradient(135deg,#065F46,#059669)">CN</div>
+                    <div><div class="fi-name">Chiedza N.</div><div class="fi-role">Natural Sci · 15 videos</div></div>
+                    <button class="fi-btn">Follow</button>
+                  </div>
+                  <div class="fi">
+                    <div class="fi-ava" style="background:linear-gradient(135deg,#831843,#BE185D)">DM</div>
+                    <div><div class="fi-name">Dr. Mhembere</div><div class="fi-role">Medicine · 41 videos</div></div>
+                    <button class="fi-btn followed">✓ Following</button>
+                  </div>
+                  <div class="fi">
+                    <div class="fi-ava" style="background:linear-gradient(135deg,#92400E,#D97706)">TK</div>
+                    <div><div class="fi-name">Tapiwa K.</div><div class="fi-role">Business · 9 videos</div></div>
+                    <button class="fi-btn">Follow</button>
+                  </div>
+                </div>
+
+                <div class="chart-mini">
+                  <div class="cm-label">🔥 Trending Topics</div>
+                  <div style="display:flex;flex-direction:column;gap:5px;margin-top:4px">
+                    <div style="display:flex;align-items:center;gap:6px">
+                      <span style="font-size:8px;font-weight:700;width:10px;color:var(--cut-gold)">1</span>
+                      <span style="font-size:8px;font-weight:600">#Thermodynamics</span>
+                      <div style="flex:1;height:3px;background:var(--page-bg);border-radius:2px;margin-left:auto"><div style="width:90%;height:100%;background:var(--cut-mid);border-radius:2px"></div></div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:6px">
+                      <span style="font-size:8px;font-weight:700;width:10px;color:var(--cut-gold)">2</span>
+                      <span style="font-size:8px;font-weight:600">#OrganicChem</span>
+                      <div style="flex:1;height:3px;background:var(--page-bg);border-radius:2px;margin-left:auto"><div style="width:70%;height:100%;background:var(--cut-mid);border-radius:2px"></div></div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:6px">
+                      <span style="font-size:8px;font-weight:700;width:10px;color:var(--text-3)">3</span>
+                      <span style="font-size:8px;font-weight:600">#Microeconomics</span>
+                      <div style="flex:1;height:3px;background:var(--page-bg);border-radius:2px;margin-left:auto"><div style="width:55%;height:100%;background:var(--cut-mid);border-radius:2px"></div></div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:6px">
+                      <span style="font-size:8px;font-weight:700;width:10px;color:var(--text-3)">4</span>
+                      <span style="font-size:8px;font-weight:600">#CellBiology</span>
+                      <div style="flex:1;height:3px;background:var(--page-bg);border-radius:2px;margin-left:auto"><div style="width:38%;height:100%;background:var(--cut-mid);border-radius:2px"></div></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Activity -->
+                <div class="chart-mini">
+                  <div class="cm-label">⚡ Recent Activity</div>
+                  <div style="display:flex;flex-direction:column;gap:7px;margin-top:5px">
+                    <div style="display:flex;gap:6px;align-items:flex-start">
+                      <div style="width:6px;height:6px;border-radius:50%;background:var(--cut-gold);margin-top:3px;flex-shrink:0"></div>
+                      <div style="font-size:8px;color:var(--text-2);line-height:1.4"><strong style="color:var(--text-1)">Dr. Mhembere</strong> liked your video on Data Structures <span style="color:var(--text-3)">2m ago</span></div>
+                    </div>
+                    <div style="display:flex;gap:6px;align-items:flex-start">
+                      <div style="width:6px;height:6px;border-radius:50%;background:var(--success);margin-top:3px;flex-shrink:0"></div>
+                      <div style="font-size:8px;color:var(--text-2);line-height:1.4"><strong style="color:var(--text-1)">Chiedza N.</strong> started following you <span style="color:var(--text-3)">14m ago</span></div>
+                    </div>
+                    <div style="display:flex;gap:6px;align-items:flex-start">
+                      <div style="width:6px;height:6px;border-radius:50%;background:var(--cut-mid);margin-top:3px;flex-shrink:0"></div>
+                      <div style="font-size:8px;color:var(--text-2);line-height:1.4">You scored <strong style="color:var(--text-1)">9/10</strong> on Thermodynamics Quiz 🎉 <span style="color:var(--text-3)">1h ago</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- PAGE 2: VIDEO FEED -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div id="pg-feed" class="section-divider reveal">
+  <div class="section-num">02 / 06</div>
+  <div class="section-heading">Video Feed</div>
+  <div class="section-tagline">Scroll through short academic reels filtered by school, topic or who you follow</div>
+</div>
+
+<div class="screen-showcase reveal">
+  <div class="page-label">
+    <div class="pl-num">2</div>
+    <div class="pl-name">Video Feed</div>
+    <div class="pl-tag">For You · Following · My School</div>
+  </div>
+  <div class="screen-frame">
+    <div class="screen-bar">
+      <div class="screen-dots"><div class="screen-dot"></div><div class="screen-dot"></div><div class="screen-dot"></div></div>
+      <div class="screen-url">reelscholar.cut.ac.zw/feed</div>
+    </div>
+    <div class="screen-inner">
+      <div class="mini-app">
+        <div class="mini-sidebar">
+          <div class="ms-brand"><div class="ms-icon">RS</div><div class="ms-name">ReelScholar</div></div>
+          <div class="ms-nav">
+            <div class="ms-item"><div class="dot"></div> Dashboard</div>
+            <div class="ms-item active"><div class="dot"></div> Video Feed</div>
+            <div class="ms-item"><div class="dot"></div> Quiz Module <span class="ms-badge">12</span></div>
+            <div class="ms-item"><div class="dot"></div> Hackathon</div>
+            <div class="ms-item"><div class="dot"></div> Messages <span class="ms-badge">3</span></div>
+            <div class="ms-item"><div class="dot"></div> My Profile</div>
+          </div>
+          <div class="ms-user"><div class="ms-ava">TM</div><div><div class="ms-uname">Takudzwa M.</div><div class="ms-urole">Engineering</div></div></div>
+        </div>
+        <div class="mini-main">
+          <div class="mini-topbar">
+            <div class="mini-topbar-title">Video Feed</div>
+            <div style="display:flex;gap:4px;background:var(--page-bg);border-radius:10px;padding:3px;margin-left:8px">
+              <div style="padding:4px 10px;border-radius:7px;background:var(--card-bg);font-size:9px;font-weight:700;color:var(--cut-navy)">For You</div>
+              <div style="padding:4px 10px;border-radius:7px;font-size:9px;font-weight:600;color:var(--text-3)">Following</div>
+              <div style="padding:4px 10px;border-radius:7px;font-size:9px;font-weight:600;color:var(--text-3)">My School</div>
+            </div>
+            <div class="mini-search" style="margin-left:auto">🔍 Search…</div>
+          </div>
+          <div class="mini-content">
+            <div class="vgrid-mini" style="grid-template-columns:repeat(3,1fr)">
+              <div class="vc-mini"><div class="vc-thumb" style="background:linear-gradient(135deg,#1A3A6B,#2D5FA6)">⚙️</div><div class="vc-info"><div class="vc-tag">Engineering</div><div class="vc-title">Fluid Mechanics: Bernoulli's Principle</div><div class="vc-meta"><span>Dr. Choto</span><span>❤ 184</span></div></div></div>
+              <div class="vc-mini"><div class="vc-thumb" style="background:linear-gradient(135deg,#065F46,#059669)">🔬</div><div class="vc-info"><div class="vc-tag">Natural Sci</div><div class="vc-title">Introduction to Quantum Mechanics</div><div class="vc-meta"><span>Prof. Mutisi</span><span>❤ 321</span></div></div></div>
+              <div class="vc-mini"><div class="vc-thumb" style="background:linear-gradient(135deg,#92400E,#D97706)">📈</div><div class="vc-info"><div class="vc-tag">Business</div><div class="vc-title">Financial Modelling: DCF Analysis</div><div class="vc-meta"><span>Ms. Chikwanda</span><span>❤ 97</span></div></div></div>
+              <div class="vc-mini"><div class="vc-thumb" style="background:linear-gradient(135deg,#1e40af,#6366f1)">💻</div><div class="vc-info"><div class="vc-tag">Engineering</div><div class="vc-title">Data Structures: Trees & Graphs</div><div class="vc-meta"><span>Mr. Dhliwayo</span><span>❤ 276</span></div></div></div>
+              <div class="vc-mini"><div class="vc-thumb" style="background:linear-gradient(135deg,#831843,#BE185D)">🫀</div><div class="vc-info"><div class="vc-tag">Medicine</div><div class="vc-title">Cardiovascular System Explained</div><div class="vc-meta"><span>Dr. Mhembere</span><span>❤ 409</span></div></div></div>
+              <div class="vc-mini"><div class="vc-thumb" style="background:linear-gradient(135deg,#134e4a,#0d9488)">🌿</div><div class="vc-info"><div class="vc-tag">Agriculture</div><div class="vc-title">Crop Rotation for Zimbabwean Farms</div><div class="vc-meta"><span>Ag. Dept.</span><span>❤ 118</span></div></div></div>
+              <div class="vc-mini"><div class="vc-thumb" style="background:linear-gradient(135deg,#3730a3,#7c3aed)">🧠</div><div class="vc-info"><div class="vc-tag">Natural Sci</div><div class="vc-title">Neural Networks: How AI Learns</div><div class="vc-meta"><span>Dr. Sithole</span><span>❤ 502</span></div></div></div>
+              <div class="vc-mini"><div class="vc-thumb" style="background:linear-gradient(135deg,#b45309,#f59e0b)">🌾</div><div class="vc-info"><div class="vc-tag">Agriculture</div><div class="vc-title">Irrigation Systems for Arid Regions</div><div class="vc-meta"><span>Ag. Dept.</span><span>❤ 88</span></div></div></div>
+              <div class="vc-mini"><div class="vc-thumb" style="background:linear-gradient(135deg,#0e7490,#0284c7)">⚡</div><div class="vc-info"><div class="vc-tag">Engineering</div><div class="vc-title">AC Circuit Analysis: Phasors</div><div class="vc-meta"><span>Mr. Zvobgo</span><span>❤ 167</span></div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- PAGE 3: QUIZ MODULE -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div id="pg-quiz" class="section-divider reveal">
+  <div class="section-num">03 / 06</div>
+  <div class="section-heading">Quiz Module</div>
+  <div class="section-tagline">School-specific quizzes with instant explanations, timers, streaks & performance tracking</div>
+</div>
+
+<div class="screen-showcase reveal">
+  <div class="page-label">
+    <div class="pl-num">3</div>
+    <div class="pl-name">Quiz — Selection View</div>
+    <div class="pl-tag">Browse & filter by school</div>
+  </div>
+  <div class="screen-frame">
+    <div class="screen-bar">
+      <div class="screen-dots"><div class="screen-dot"></div><div class="screen-dot"></div><div class="screen-dot"></div></div>
+      <div class="screen-url">reelscholar.cut.ac.zw/quiz</div>
+    </div>
+    <div class="screen-inner">
+      <div class="mini-app">
+        <div class="mini-sidebar">
+          <div class="ms-brand"><div class="ms-icon">RS</div><div class="ms-name">ReelScholar</div></div>
+          <div class="ms-nav">
+            <div class="ms-item"><div class="dot"></div> Dashboard</div>
+            <div class="ms-item"><div class="dot"></div> Video Feed</div>
+            <div class="ms-item active"><div class="dot"></div> Quiz Module <span class="ms-badge">12</span></div>
+            <div class="ms-item"><div class="dot"></div> Hackathon</div>
+            <div class="ms-item"><div class="dot"></div> Messages <span class="ms-badge">3</span></div>
+            <div class="ms-item"><div class="dot"></div> My Profile</div>
+          </div>
+          <div class="ms-user"><div class="ms-ava">TM</div><div><div class="ms-uname">Takudzwa M.</div><div class="ms-urole">Engineering</div></div></div>
+        </div>
+        <div class="mini-main">
+          <div class="mini-topbar">
+            <div class="mini-topbar-title">🎯 Quiz Module</div>
+            <div class="mini-search" style="margin-left:auto">🔍 Search quizzes…</div>
+          </div>
+          <div class="mini-content">
+            <div class="quiz-hero-mini">
+              <div class="qhm-pattern"></div>
+              <div class="qhm-title">🎯 Quiz Module</div>
+              <div class="qhm-sub">School-specific quizzes curated by CUT faculty</div>
+              <div class="qhm-stats">
+                <div><div class="qhm-stat-val">24</div><div class="qhm-stat-label">Available</div></div>
+                <div><div class="qhm-stat-val">82%</div><div class="qhm-stat-label">Avg. Score</div></div>
+                <div><div class="qhm-stat-val">🔥 5</div><div class="qhm-stat-label">Day Streak</div></div>
+              </div>
+            </div>
+
+            <div class="school-chips-mini">
+              <div class="chip-mini active">All Schools</div>
+              <div class="chip-mini">Engineering</div>
+              <div class="chip-mini">Natural Sciences</div>
+              <div class="chip-mini">Business</div>
+              <div class="chip-mini">Agriculture</div>
+              <div class="chip-mini">Medicine</div>
+            </div>
+
+            <div class="quiz-cards-mini">
+              <div class="qcard-mini"><div class="qcm-icon">⚙️</div><div class="qcm-title">Thermodynamics</div><div class="qcm-sub">Engineering Sciences</div><span class="qcm-diff medium">Medium</span><div class="qcm-prog"><div class="qcm-prog-fill" style="width:30%"></div></div></div>
+              <div class="qcard-mini"><div class="qcm-icon">⚗️</div><div class="qcm-title">Organic Chemistry</div><div class="qcm-sub">Natural Sciences</div><span class="qcm-diff hard">Hard</span><div class="qcm-prog"><div class="qcm-prog-fill" style="width:0%"></div></div></div>
+              <div class="qcard-mini"><div class="qcm-icon">📊</div><div class="qcm-title">Microeconomics</div><div class="qcm-sub">Business Sciences</div><span class="qcm-diff easy">Easy</span><div class="qcm-prog"><div class="qcm-prog-fill" style="width:100%;background:var(--success)"></div></div></div>
+              <div class="qcard-mini"><div class="qcm-icon">🌱</div><div class="qcm-title">Soil Science</div><div class="qcm-sub">Agriculture</div><span class="qcm-diff medium">Medium</span><div class="qcm-prog"><div class="qcm-prog-fill" style="width:50%"></div></div></div>
+              <div class="qcard-mini"><div class="qcm-icon">🫀</div><div class="qcm-title">Cardiovascular</div><div class="qcm-sub">Medicine & Health</div><span class="qcm-diff hard">Hard</span><div class="qcm-prog"><div class="qcm-prog-fill" style="width:0%"></div></div></div>
+              <div class="qcard-mini"><div class="qcm-icon">💻</div><div class="qcm-title">Data Structures</div><div class="qcm-sub">Engineering</div><span class="qcm-diff hard">Hard</span><div class="qcm-prog"><div class="qcm-prog-fill" style="width:20%"></div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="screen-showcase reveal" style="padding-top:0">
+  <div class="page-label">
+    <div class="pl-num">3b</div>
+    <div class="pl-name">Quiz — Active Question</div>
+    <div class="pl-tag">Timer · Options · Instant Explanation</div>
+  </div>
+  <div class="screen-frame">
+    <div class="screen-bar">
+      <div class="screen-dots"><div class="screen-dot"></div><div class="screen-dot"></div><div class="screen-dot"></div></div>
+      <div class="screen-url">reelscholar.cut.ac.zw/quiz/thermodynamics</div>
+    </div>
+    <div class="screen-inner">
+      <div class="mini-app">
+        <div class="mini-sidebar">
+          <div class="ms-brand"><div class="ms-icon">RS</div><div class="ms-name">ReelScholar</div></div>
+          <div class="ms-nav">
+            <div class="ms-item"><div class="dot"></div> Dashboard</div>
+            <div class="ms-item"><div class="dot"></div> Video Feed</div>
+            <div class="ms-item active"><div class="dot"></div> Quiz Module <span class="ms-badge">12</span></div>
+            <div class="ms-item"><div class="dot"></div> Hackathon</div>
+            <div class="ms-item"><div class="dot"></div> Messages</div>
+            <div class="ms-item"><div class="dot"></div> My Profile</div>
+          </div>
+          <div class="ms-user"><div class="ms-ava">TM</div><div><div class="ms-uname">Takudzwa M.</div><div class="ms-urole">Engineering</div></div></div>
+        </div>
+        <div class="mini-main">
+          <div class="mini-topbar">
+            <div class="mini-topbar-title">⚙️ Thermodynamics Quiz</div>
+          </div>
+          <div class="mini-content" style="padding:10px 14px">
+            <div class="quiz-q-mini">
+              <div class="qqm-progbar"></div>
+              <div class="qqm-header">
+                <span class="qqm-tag">Engineering Sciences</span>
+                <span class="qqm-counter">Question 3 of 10</span>
+                <div class="qqm-timer">⏱ <span style="color:var(--cut-gold)">24s</span></div>
+              </div>
+              <div class="qqm-body">
+                <div class="qqm-question">What does the First Law of Thermodynamics state?</div>
+                <div class="qqm-opts">
+                  <div class="qqm-opt correct">
+                    <div class="qqm-opt-letter">A</div>
+                    <span>Energy cannot be created or destroyed, only transformed</span>
+                  </div>
+                  <div class="qqm-opt wrong">
+                    <div class="qqm-opt-letter">B</div>
+                    <span>Entropy always increases in an isolated system</span>
+                  </div>
+                  <div class="qqm-opt" style="opacity:0.5">
+                    <div class="qqm-opt-letter">C</div>
+                    <span>Heat flows from cold to hot bodies naturally</span>
+                  </div>
+                  <div class="qqm-opt" style="opacity:0.5">
+                    <div class="qqm-opt-letter">D</div>
+                    <span>Work and heat are unrelated quantities</span>
+                  </div>
+                </div>
+                <div class="qqm-expl">💡 The First Law states that energy is conserved — it can change forms (heat, work, internal energy) but the total is always constant.</div>
+              </div>
+              <div style="padding:8px 12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:9px;color:var(--text-3)">Skip</span>
+                <div style="padding:7px 16px;background:var(--cut-navy);color:#fff;font-size:9px;font-weight:700;border-radius:8px">Next Question →</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- PAGE 4: HACKATHON -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div id="pg-hackathon" class="section-divider reveal">
+  <div class="section-num">04 / 06</div>
+  <div class="section-heading">Hackathon Hub</div>
+  <div class="section-tagline">Live innovation challenges — submit projects, community voting & live countdown</div>
+</div>
+
+<div class="screen-showcase reveal">
+  <div class="page-label">
+    <div class="pl-num">4</div>
+    <div class="pl-name">Hackathon Hub</div>
+    <div class="pl-tag">Submit · Vote · Win</div>
+  </div>
+  <div class="screen-frame">
+    <div class="screen-bar">
+      <div class="screen-dots"><div class="screen-dot"></div><div class="screen-dot"></div><div class="screen-dot"></div></div>
+      <div class="screen-url">reelscholar.cut.ac.zw/hackathon</div>
+    </div>
+    <div class="screen-inner">
+      <div class="mini-app">
+        <div class="mini-sidebar">
+          <div class="ms-brand"><div class="ms-icon">RS</div><div class="ms-name">ReelScholar</div></div>
+          <div class="ms-nav">
+            <div class="ms-item"><div class="dot"></div> Dashboard</div>
+            <div class="ms-item"><div class="dot"></div> Video Feed</div>
+            <div class="ms-item"><div class="dot"></div> Quiz Module</div>
+            <div class="ms-item active"><div class="dot"></div> Hackathon</div>
+            <div class="ms-item"><div class="dot"></div> Messages <span class="ms-badge">3</span></div>
+            <div class="ms-item"><div class="dot"></div> My Profile</div>
+          </div>
+          <div class="ms-user"><div class="ms-ava">TM</div><div><div class="ms-uname">Takudzwa M.</div><div class="ms-urole">Engineering</div></div></div>
+        </div>
+        <div class="mini-main">
+          <div class="mini-topbar">
+            <div class="mini-topbar-title">⚡ Hackathon Hub</div>
+          </div>
+          <div class="mini-content">
+            <div class="hack-hero-mini">
+              <div>
+                <div class="hhm-badge">⚡ LIVE NOW</div>
+                <div class="hhm-title">CUT Innovation Challenge 2025</div>
+                <div class="hhm-sub">Submit your project, get voted on by the CUT community</div>
+                <div class="hhm-countdown">
+                  <div class="hhm-unit"><span class="hhm-val">03</span><span class="hhm-label">Days</span></div>
+                  <div class="hhm-unit"><span class="hhm-val">14</span><span class="hhm-label">Hours</span></div>
+                  <div class="hhm-unit"><span class="hhm-val">27</span><span class="hhm-label">Min</span></div>
+                </div>
+              </div>
+              <button class="hhm-btn">+ Submit Project</button>
+            </div>
+
+            <div style="font-size:10px;font-weight:700;color:var(--cut-navy);margin-bottom:8px">Current Submissions</div>
+
+            <div class="pgrid-mini">
+              <div class="pcard-mini">
+                <div class="pcm-header">
+                  <div><div class="pcm-title">AgroSense IoT Platform</div><div class="pcm-team">Team Mwana Earth · Agriculture</div></div>
+                  <span class="pcm-badge gold">🥇 Top Pick</span>
+                </div>
+                <div class="pcm-desc">Smart farming IoT that monitors soil moisture, temperature & pH with real-time SMS alerts to farmers across Zimbabwe.</div>
+                <div class="pcm-footer"><div class="pcm-votes">❤ 247 votes</div><button class="pcm-vote-btn voted">Voted ✓</button></div>
+              </div>
+              <div class="pcard-mini">
+                <div class="pcm-header">
+                  <div><div class="pcm-title">MedAssist ZW</div><div class="pcm-team">HealthTech CUT · Medicine</div></div>
+                  <span class="pcm-badge voting">Voting Open</span>
+                </div>
+                <div class="pcm-desc">Mobile app connecting rural patients to telemedicine, with offline symptom checking using a locally-trained ML model.</div>
+                <div class="pcm-footer"><div class="pcm-votes">❤ 189 votes</div><button class="pcm-vote-btn">Vote</button></div>
+              </div>
+              <div class="pcard-mini">
+                <div class="pcm-header">
+                  <div><div class="pcm-title">CampusPay Wallet</div><div class="pcm-team">FinTech Squad · Business</div></div>
+                  <span class="pcm-badge voting">Voting Open</span>
+                </div>
+                <div class="pcm-desc">Campus digital wallet for students — pay fees, buy meals, split costs, integrated with ZimSwitch.</div>
+                <div class="pcm-footer"><div class="pcm-votes">❤ 156 votes</div><button class="pcm-vote-btn">Vote</button></div>
+              </div>
+              <div class="pcard-mini">
+                <div class="pcm-header">
+                  <div><div class="pcm-title">ReelScholar AI Tutor</div><div class="pcm-team">AI Lab CUT · Engineering</div></div>
+                  <span class="pcm-badge open">Open</span>
+                </div>
+                <div class="pcm-desc">AI tutoring chatbot trained on CUT curriculum, offering 24/7 student support and interactive concept explanations.</div>
+                <div class="pcm-footer"><div class="pcm-votes">❤ 134 votes</div><button class="pcm-vote-btn">Vote</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- PAGE 5: MESSAGES -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div id="pg-messages" class="section-divider reveal">
+  <div class="section-num">05 / 06</div>
+  <div class="section-heading">Messages</div>
+  <div class="section-tagline">Direct peer & faculty messaging — threaded conversations, real-time chat</div>
+</div>
+
+<div class="screen-showcase reveal">
+  <div class="page-label">
+    <div class="pl-num">5</div>
+    <div class="pl-name">Messages</div>
+    <div class="pl-tag">Direct Messaging</div>
+  </div>
+  <div class="screen-frame">
+    <div class="screen-bar">
+      <div class="screen-dots"><div class="screen-dot"></div><div class="screen-dot"></div><div class="screen-dot"></div></div>
+      <div class="screen-url">reelscholar.cut.ac.zw/messages</div>
+    </div>
+    <div class="screen-inner">
+      <div class="mini-app">
+        <div class="mini-sidebar">
+          <div class="ms-brand"><div class="ms-icon">RS</div><div class="ms-name">ReelScholar</div></div>
+          <div class="ms-nav">
+            <div class="ms-item"><div class="dot"></div> Dashboard</div>
+            <div class="ms-item"><div class="dot"></div> Video Feed</div>
+            <div class="ms-item"><div class="dot"></div> Quiz Module</div>
+            <div class="ms-item"><div class="dot"></div> Hackathon</div>
+            <div class="ms-item active"><div class="dot"></div> Messages <span class="ms-badge">3</span></div>
+            <div class="ms-item"><div class="dot"></div> My Profile</div>
+          </div>
+          <div class="ms-user"><div class="ms-ava">TM</div><div><div class="ms-uname">Takudzwa M.</div><div class="ms-urole">Engineering</div></div></div>
+        </div>
+        <div class="mini-main" style="overflow:hidden">
+          <div class="mini-topbar">
+            <div class="mini-topbar-title">💬 Messages</div>
+          </div>
+          <div style="display:flex;height:100%">
+            <!-- Conversation list -->
+            <div class="msgs-list">
+              <div style="padding:7px;border-bottom:1px solid var(--border)">
+                <div style="background:var(--page-bg);border:1px solid var(--border);border-radius:12px;padding:4px 9px;font-size:8px;color:var(--text-3)">🔍 Search students…</div>
+              </div>
+              <div class="ci-mini active">
+                <div class="ci-ava" style="background:linear-gradient(135deg,#831843,#BE185D)">DM</div>
+                <div style="flex:1;min-width:0">
+                  <div class="ci-name">Dr. Mhembere N.</div>
+                  <div class="ci-prev">Great question! Mitosis...</div>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+                  <div class="ci-time">2m</div>
+                  <div class="unread">2</div>
+                </div>
+              </div>
+              <div class="ci-mini">
+                <div class="ci-ava" style="background:linear-gradient(135deg,#065F46,#059669)">CN</div>
+                <div style="flex:1;min-width:0">
+                  <div class="ci-name">Chiedza N.</div>
+                  <div class="ci-prev">Do you have the notes?</div>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+                  <div class="ci-time">1h</div>
+                  <div class="unread">1</div>
+                </div>
+              </div>
+              <div class="ci-mini">
+                <div class="ci-ava" style="background:linear-gradient(135deg,#1A3A6B,#2D5FA6)">PM</div>
+                <div style="flex:1;min-width:0">
+                  <div class="ci-name">Prof. Muvengwa</div>
+                  <div class="ci-prev">Assignment graded</div>
+                </div>
+                <div><div class="ci-time">3h</div></div>
+              </div>
+              <div class="ci-mini">
+                <div class="ci-ava" style="background:linear-gradient(135deg,#92400E,#D97706)">TK</div>
+                <div style="flex:1;min-width:0">
+                  <div class="ci-name">Tapiwa K.</div>
+                  <div class="ci-prev">Study group at 4pm?</div>
+                </div>
+                <div><div class="ci-time">1d</div></div>
+              </div>
+            </div>
+            <!-- Chat -->
+            <div class="chat-area-mini" style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+              <div class="cha-header">
+                <div class="cha-ava" style="width:26px;height:26px;background:linear-gradient(135deg,#831843,#BE185D);font-size:9px;flex-shrink:0">DM</div>
+                <div><div class="cha-name">Dr. Mhembere N.</div><div class="cha-status">● Online</div></div>
+              </div>
+              <div class="chat-msgs-mini">
+                <div class="msg-mini recv">
+                  <div class="msg-bubble-mini">Hi Takudzwa! I saw you watched my cell biology video. Any questions?</div>
+                </div>
+                <div class="msg-mini sent">
+                  <div class="msg-bubble-mini">Could you clarify the difference between mitosis and meiosis in chromosome count?</div>
+                </div>
+                <div class="msg-mini recv">
+                  <div class="msg-bubble-mini">Great question! Mitosis produces 2 diploid cells (2n), while meiosis produces 4 haploid cells (n) through two divisions. The key is the chromosome halving in meiosis I.</div>
+                </div>
+              </div>
+              <div class="chat-input-mini">
+                <div class="chat-inp-mini">Type a message…</div>
+                <div class="chat-send-mini">➤</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- PAGE 6: PROFILE -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div id="pg-profile" class="section-divider reveal">
+  <div class="section-num">06 / 06</div>
+  <div class="section-heading">Profile</div>
+  <div class="section-tagline">Personal stats, uploaded videos, quiz performance radar & achievement badges</div>
+</div>
+
+<div class="screen-showcase reveal">
+  <div class="page-label">
+    <div class="pl-num">6</div>
+    <div class="pl-name">Student Profile</div>
+    <div class="pl-tag">Stats · Badges · Videos</div>
+  </div>
+  <div class="screen-frame">
+    <div class="screen-bar">
+      <div class="screen-dots"><div class="screen-dot"></div><div class="screen-dot"></div><div class="screen-dot"></div></div>
+      <div class="screen-url">reelscholar.cut.ac.zw/profile/@takudzwa.m</div>
+    </div>
+    <div class="screen-inner">
+      <div class="mini-app">
+        <div class="mini-sidebar">
+          <div class="ms-brand"><div class="ms-icon">RS</div><div class="ms-name">ReelScholar</div></div>
+          <div class="ms-nav">
+            <div class="ms-item"><div class="dot"></div> Dashboard</div>
+            <div class="ms-item"><div class="dot"></div> Video Feed</div>
+            <div class="ms-item"><div class="dot"></div> Quiz Module</div>
+            <div class="ms-item"><div class="dot"></div> Hackathon</div>
+            <div class="ms-item"><div class="dot"></div> Messages</div>
+            <div class="ms-item active"><div class="dot"></div> My Profile</div>
+          </div>
+          <div class="ms-user"><div class="ms-ava">TM</div><div><div class="ms-uname">Takudzwa M.</div><div class="ms-urole">Engineering</div></div></div>
+        </div>
+        <div class="mini-main">
+          <div class="mini-topbar">
+            <div class="mini-topbar-title">◎ My Profile</div>
+            <div style="margin-left:auto;padding:5px 12px;background:var(--cut-navy);color:#fff;font-size:9px;font-weight:700;border-radius:7px">Edit Profile</div>
+          </div>
+          <div class="mini-content" style="padding:0">
+            <div style="background:var(--card-bg)">
+              <div class="profile-cover-mini"><div class="profile-cover-pattern"></div></div>
+              <div class="profile-info-mini">
+                <div class="profile-ava-mini">TM</div>
+                <div style="padding-top:8px">
+                  <div class="profile-name-mini">Takudzwa Munyaradzi</div>
+                  <div class="profile-handle-mini">@takudzwa.m · C22150617N</div>
+                  <div class="profile-tag-mini">School of Engineering Sciences & Technology</div>
+                </div>
+              </div>
+              <div class="profile-stats-mini">
+                <div><div class="psm-val">11</div><div class="psm-label">Videos</div></div>
+                <div><div class="psm-val">347</div><div class="psm-label">Followers</div></div>
+                <div><div class="psm-val">89</div><div class="psm-label">Following</div></div>
+                <div><div class="psm-val">1.2K</div><div class="psm-label">Views</div></div>
+                <div><div class="psm-val">82%</div><div class="psm-label">Quiz Avg.</div></div>
+              </div>
+            </div>
+
+            <div style="padding:10px 14px">
+              <div style="font-size:10px;font-weight:700;color:var(--cut-navy);margin-bottom:7px">Achievements</div>
+              <div class="achievements-mini">
+                <div class="achv"><span class="achv-icon">🏆</span><div class="achv-label">Top Scorer</div></div>
+                <div class="achv"><span class="achv-icon">🔥</span><div class="achv-label">5-Day Streak</div></div>
+                <div class="achv"><span class="achv-icon">📹</span><div class="achv-label">10 Videos</div></div>
+                <div class="achv"><span class="achv-icon">💬</span><div class="achv-label">Commentator</div></div>
+                <div class="achv"><span class="achv-icon">⚡</span><div class="achv-label">Hackathon</div></div>
+              </div>
+
+              <div style="font-size:10px;font-weight:700;color:var(--cut-navy);margin:10px 0 7px">My Videos</div>
+              <div class="vgrid-mini">
+                <div class="vc-mini"><div class="vc-thumb" style="background:linear-gradient(135deg,#1A3A6B,#2D5FA6)">💻</div><div class="vc-info"><div class="vc-tag">Engineering</div><div class="vc-title">Data Structures: Trees</div><div class="vc-meta"><span>342 views</span><span>❤ 89</span></div></div></div>
+                <div class="vc-mini"><div class="vc-thumb" style="background:linear-gradient(135deg,#1e40af,#6366f1)">⚙️</div><div class="vc-info"><div class="vc-tag">Engineering</div><div class="vc-title">Circuit Analysis: KVL & KCL</div><div class="vc-meta"><span>218 views</span><span>❤ 56</span></div></div></div>
+                <div class="vc-mini"><div class="vc-thumb" style="background:linear-gradient(135deg,#0e7490,#0284c7)">⚡</div><div class="vc-info"><div class="vc-tag">Engineering</div><div class="vc-title">AC Circuits & Phasors</div><div class="vc-meta"><span>180 views</span><span>❤ 41</span></div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- USER FLOW -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section class="flow-section">
+  <div class="flow-title">User Flow</div>
+  <div class="flow-sub">How students move through ReelScholar</div>
+
+  <div class="flow-diagram">
+    <div class="flow-col">
+      <div class="flow-node">
+        <div class="flow-node-icon">🔐</div>
+        <div class="flow-node-name">Sign In</div>
+        <div class="flow-node-desc">Institutional email & student ID</div>
+      </div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-col">
+      <div class="flow-node primary">
+        <div class="flow-node-icon">⊞</div>
+        <div class="flow-node-name">Dashboard</div>
+        <div class="flow-node-desc">Analytics, trending, suggestions</div>
+      </div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-col" style="gap:8px">
+      <div class="flow-node" style="width:120px">
+        <div class="flow-node-icon">▶</div>
+        <div class="flow-node-name">Watch Videos</div>
+        <div class="flow-node-desc">Like, share, comment</div>
+      </div>
+      <div class="flow-node" style="width:120px">
+        <div class="flow-node-icon">🎯</div>
+        <div class="flow-node-name">Take Quiz</div>
+        <div class="flow-node-desc">School-specific topics</div>
+      </div>
+      <div class="flow-node" style="width:120px">
+        <div class="flow-node-icon">⚡</div>
+        <div class="flow-node-name">Hackathon</div>
+        <div class="flow-node-desc">Submit & vote on projects</div>
+      </div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-col">
+      <div class="flow-node primary">
+        <div class="flow-node-icon">◎</div>
+        <div class="flow-node-name">Profile</div>
+        <div class="flow-node-desc">Stats, badges & uploads</div>
+      </div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-col">
+      <div class="flow-node">
+        <div class="flow-node-icon">📹</div>
+        <div class="flow-node-name">Upload & Share</div>
+        <div class="flow-node-desc">Contribute to the community</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- TECH STACK -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section class="tech-section reveal">
+  <div class="section-num">Tech Stack</div>
+  <div class="section-heading">Built with</div>
+  <div class="section-tagline">The recommended implementation stack for production deployment</div>
+  <div class="tech-grid">
+    <div class="tech-pill"><div class="tech-pill-dot" style="background:#54C5F8"></div>Flutter (Mobile)</div>
+    <div class="tech-pill"><div class="tech-pill-dot" style="background:#FF2D20"></div>Laravel (Backend API)</div>
+    <div class="tech-pill"><div class="tech-pill-dot" style="background:#4479A1"></div>MySQL / PostgreSQL</div>
+    <div class="tech-pill"><div class="tech-pill-dot" style="background:#F05032"></div>Git Version Control</div>
+    <div class="tech-pill"><div class="tech-pill-dot" style="background:#F5A623"></div>CUT Brand Identity</div>
+    <div class="tech-pill"><div class="tech-pill-dot" style="background:#0D2347"></div>DM Sans + DM Serif</div>
+    <div class="tech-pill"><div class="tech-pill-dot" style="background:#764ABC"></div>Firebase Auth</div>
+    <div class="tech-pill"><div class="tech-pill-dot" style="background:#00C7B7"></div>Cloudinary (Video CDN)</div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- FOOTER -->
+<!-- ═══════════════════════════════════════════════════ -->
+<footer class="proto-footer">
+  <div class="proto-footer-brand">Reel<span>Scholar</span></div>
+  <div class="proto-footer-sub">CHINHOYI UNIVERSITY OF TECHNOLOGY · PROTOTYPE OVERVIEW · 2025</div>
+</footer>
+
+
+<script>
+// Scroll reveal
+const reveals = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+}, { threshold: 0.08 });
+reveals.forEach(r => io.observe(r));
+
+// Smooth scroll for hero pills
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const t = document.querySelector(a.getAttribute('href'));
+    if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+</script>
+</body>
+</html>
