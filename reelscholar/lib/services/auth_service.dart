@@ -10,6 +10,7 @@ class AuthService {
   static const _keyName = 'user_name';
   static const _keyIsLoggedIn = 'is_logged_in';
   static const _keyDepartment = 'user_department';
+  static const _keySemester = 'user_semester';
 
   // Save session after login
   static Future<void> saveSession({
@@ -47,6 +48,18 @@ class AuthService {
   static Future<bool> hasDepartment() async {
     final dept = await getDepartment();
     return dept != null && dept.isNotEmpty;
+  }
+
+  // Save current semester (1–8)
+  static Future<void> saveSemester(int semester) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_keySemester, semester);
+  }
+
+  // Get current semester (defaults to 1)
+  static Future<int> getSemester() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_keySemester) ?? 1;
   }
 
   // Get saved user email

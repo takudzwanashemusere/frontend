@@ -745,28 +745,82 @@ class _AppDrawer extends StatelessWidget {
     );
   }
 
-  void _showSubjectPicker(BuildContext context) {
-    const subjects = [
-      'Software Engineering',
-      'Database Systems',
-      'ICT & Networking',
-      'Business Management',
-      'Entrepreneurship',
-      'Accounting & Finance',
-      'Crop Science',
-      'Soil Science',
-      'Animal Science',
-      'Wildlife Management',
-      'Ecology & Conservation',
-      'Public Health',
-      'Nursing Science',
-      'Hotel Management',
-      'Tourism Management',
-      'Calculus',
-      'Statistics & Probability',
-      'Graphic Design',
-      'General',
-    ];
+  // Faculty → Semester → Modules
+  static const Map<String, Map<int, List<String>>> _semesterModules = {
+    'School of Engineering Science and Technology': {
+      1: ['Software Engineering Fundamentals', 'Introduction to Programming', 'Mathematics 1', 'ICT Fundamentals', 'Communication Skills'],
+      2: ['Data Structures & Algorithms', 'Database Systems', 'Web Development', 'Mathematics 2', 'Technical Writing'],
+      3: ['Software Design Patterns', 'Networking Fundamentals', 'Operating Systems', 'Statistics & Probability', 'Technical English'],
+      4: ['Mobile App Development', 'Cyber Security', 'Cloud Computing', 'Artificial Intelligence', 'Software Project Management'],
+      5: ['System Analysis & Design', 'Software Testing', 'Advanced Databases', 'Machine Learning', 'Research Methods'],
+      6: ['Final Year Project', 'Software Architecture', 'DevOps & CI/CD', 'Entrepreneurship', 'ICT Law & Ethics'],
+      7: ['Advanced Software Engineering', 'Distributed Systems', 'Blockchain Technology', 'Data Science', 'Technical Management'],
+      8: ['Dissertation', 'Enterprise Architecture', 'Advanced Networking', 'Innovation & Technology', 'Professional Ethics'],
+    },
+    'School of Agriculture Sciences and Technology': {
+      1: ['Introduction to Agriculture', 'Crop Science I', 'Soil Science I', 'Mathematics 1', 'Communication Skills'],
+      2: ['Crop Science II', 'Soil Science II', 'Plant Physiology', 'Agricultural Chemistry', 'Technical Writing'],
+      3: ['Animal Science I', 'Irrigation Systems', 'Agricultural Economics', 'Research Methods', 'Agronomy'],
+      4: ['Animal Science II', 'Crop Protection', 'Farm Management', 'Agricultural Extension', 'Environmental Science'],
+      5: ['Advanced Crop Production', 'Livestock Management', 'Environmental Impact Assessment', 'Agribusiness', 'Remote Sensing'],
+      6: ['Final Year Project', 'Agricultural Policy', 'Food Science', 'Entrepreneurship', 'Post-Harvest Technology'],
+      7: ['Advanced Animal Husbandry', 'Precision Agriculture', 'Agricultural Biotechnology', 'Watershed Management', 'Rural Development'],
+      8: ['Dissertation', 'Agricultural Finance', 'International Agri-Trade', 'Climate Smart Agriculture', 'Professional Practice'],
+    },
+    'School of Entrepreneurship and Business Sciences': {
+      1: ['Introduction to Business', 'Mathematics for Business', 'Communication Skills', 'Principles of Management', 'Economics I'],
+      2: ['Accounting I', 'Marketing Fundamentals', 'Business Law', 'Statistics for Business', 'Economics II'],
+      3: ['Financial Management', 'Entrepreneurship I', 'Human Resource Management', 'Business Research Methods', 'Microeconomics'],
+      4: ['Strategic Management', 'Entrepreneurship II', 'Operations Management', 'Business Ethics', 'Macroeconomics'],
+      5: ['Financial Modelling', 'Investment Analysis', 'Supply Chain Management', 'Digital Marketing', 'International Business'],
+      6: ['Final Year Project', 'Corporate Governance', 'Venture Capital', 'Entrepreneurship & Innovation', 'Business Strategy'],
+      7: ['Advanced Accounting', 'Mergers & Acquisitions', 'E-Commerce', 'Business Intelligence', 'Taxation'],
+      8: ['Dissertation', 'Advanced Financial Management', 'Global Business Strategy', 'Social Entrepreneurship', 'Professional Ethics'],
+    },
+    'School of Health Sciences and Technology': {
+      1: ['Anatomy & Physiology I', 'Introduction to Health Sciences', 'Mathematics', 'Communication Skills', 'Medical Terminology'],
+      2: ['Anatomy & Physiology II', 'Biochemistry', 'Microbiology', 'Pharmacology I', 'Nutrition Science'],
+      3: ['Pathology', 'Pharmacology II', 'Clinical Skills I', 'Public Health', 'Research Methods'],
+      4: ['Clinical Skills II', 'Community Health', 'Epidemiology', 'Medical Ethics', 'Health Policy'],
+      5: ['Advanced Clinical Practice', 'Mental Health', 'Maternal & Child Health', 'Disease Prevention', 'Health Informatics'],
+      6: ['Final Year Project', 'Healthcare Management', 'Geriatric Care', 'Emergency Medicine', 'Global Health'],
+      7: ['Advanced Pharmacology', 'Surgical Nursing', 'Critical Care', 'Health Systems Management', 'Medical Research'],
+      8: ['Dissertation', 'Health Economics', 'Advanced Public Health', 'Healthcare Leadership', 'Professional Ethics'],
+    },
+    'School of Wildlife and Environmental Science': {
+      1: ['Introduction to Wildlife', 'Ecology I', 'Environmental Science I', 'Mathematics', 'Communication Skills'],
+      2: ['Ecology II', 'Zoology', 'Botany', 'Conservation Biology', 'Environmental Science II'],
+      3: ['Wildlife Management I', 'Remote Sensing & GIS', 'Animal Behaviour', 'Research Methods', 'Environmental Policy'],
+      4: ['Wildlife Management II', 'Protected Area Management', 'Tourism & Conservation', 'Environmental Impact Assessment', 'Aquatic Science'],
+      5: ['Advanced Ecology', 'Human-Wildlife Conflict', 'Climate Change', 'Biodiversity Conservation', 'Conservation Finance'],
+      6: ['Final Year Project', 'Environmental Law', 'Wildlife Photography', 'Entrepreneurship', 'Global Conservation Issues'],
+      7: ['Advanced Wildlife Management', 'Landscape Ecology', 'Marine Biology', 'Conservation Genetics', 'Environmental Consultancy'],
+      8: ['Dissertation', 'Wildlife Policy', 'Advanced GIS', 'Environmental Economics', 'Professional Ethics'],
+    },
+    'School of Hospitality and Tourism': {
+      1: ['Introduction to Hospitality', 'Tourism Fundamentals', 'Communication Skills', 'Mathematics', 'Food & Beverage I'],
+      2: ['Hotel Operations', 'Tourism Marketing', 'Food & Beverage II', 'Front Office Management', 'Business Communication'],
+      3: ['Tourism Planning', 'Event Management', 'Revenue Management', 'Customer Service', 'Research Methods'],
+      4: ['Hotel Financial Management', 'Tourism Policy', 'Sustainable Tourism', 'Human Resources in Hospitality', 'Digital Tourism'],
+      5: ['Advanced Hotel Management', 'Tour Guiding', 'International Tourism', 'Strategic Management', 'Ecotourism'],
+      6: ['Final Year Project', 'Tourism Entrepreneurship', 'Convention & Meetings Management', 'Crisis Management', 'Heritage Tourism'],
+      7: ['Advanced Food Science', 'Destination Management', 'Tourism Economics', 'Hospitality Technology', 'Luxury Brand Management'],
+      8: ['Dissertation', 'Global Tourism Trends', 'Hospitality Leadership', 'Cultural Tourism', 'Professional Ethics'],
+    },
+  };
+
+  void _showSubjectPicker(BuildContext context) async {
+    final faculty = await AuthService.getDepartment();
+    final semester = await AuthService.getSemester();
+
+    if (!context.mounted) return;
+
+    // Get modules for this faculty + semester
+    final facultyModules = _semesterModules[faculty ?? ''] ?? {};
+    final modules = facultyModules[semester] ?? [];
+
+    // Fall back to General if no modules found
+    final subjects = modules.isNotEmpty ? modules : ['General'];
 
     showModalBottomSheet(
       context: context,
@@ -793,23 +847,62 @@ class _AppDrawer extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24),
-                child: Text(
-                  'Choose a Subject',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Semester $semester Modules',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          if (faculty != null && faculty.isNotEmpty)
+                            Text(
+                              faculty,
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 11,
+                                color: AppColors.textTertiary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.accent.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.accent.withValues(alpha: 0.3)),
+                      ),
+                      child: Text(
+                        'Sem $semester',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.accentLight,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 8),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 24),
                 child: Text(
-                  'Pick a topic and test your knowledge',
+                  'Select a module and test your knowledge',
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 13,
@@ -844,21 +937,22 @@ class _AppDrawer extends StatelessWidget {
                           child: Row(
                             children: [
                               Icon(
-                                Icons.quiz_outlined,
+                                Icons.menu_book_outlined,
                                 color: AppColors.accentLight,
                                 size: 20,
                               ),
                               const SizedBox(width: 12),
-                              Text(
-                                subject,
-                                style: const TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.white,
+                              Expanded(
+                                child: Text(
+                                  subject,
+                                  style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColors.textPrimary,
+                                  ),
                                 ),
                               ),
-                              const Spacer(),
                               const Icon(
                                 Icons.arrow_forward_ios_rounded,
                                 color: Colors.white38,

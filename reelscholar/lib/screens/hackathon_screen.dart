@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../main.dart';
+import '../services/auth_service.dart';
 
 class HackathonScreen extends StatefulWidget {
   const HackathonScreen({super.key});
@@ -12,48 +13,75 @@ class HackathonScreen extends StatefulWidget {
 class _HackathonScreenState extends State<HackathonScreen> {
   late Duration _remaining;
   Timer? _timer;
+  String _userFaculty = '';
 
-  // voted[i] = true means user voted for project i
-  final Map<int, bool> _voted = {0: true};
+  // voted[i] = true means user has permanently voted for project i
+  final Map<int, bool> _voted = {};
 
-  static const _projects = [
+  static const _allProjects = [
     {
       'title': 'AgroSense IoT Platform',
-      'team': 'Team Mwana Earth · Agriculture',
+      'team': 'Team Mwana Earth',
       'desc':
           'Smart farming IoT that monitors soil moisture, temperature & pH with real-time SMS alerts to farmers across Zimbabwe.',
       'votes': 247,
       'badge': 'Top Pick',
       'badgeType': 'gold',
+      'faculty': 'School of Agriculture Sciences and Technology',
     },
     {
       'title': 'MedAssist ZW',
-      'team': 'HealthTech CUT · Medicine',
+      'team': 'HealthTech CUT',
       'desc':
           'Mobile app connecting rural patients to telemedicine, with offline symptom checking using a locally-trained ML model.',
       'votes': 189,
       'badge': 'Voting Open',
       'badgeType': 'voting',
+      'faculty': 'School of Health Sciences and Technology',
     },
     {
       'title': 'CampusPay Wallet',
-      'team': 'FinTech Squad · Business',
+      'team': 'FinTech Squad',
       'desc':
           'Campus digital wallet for students — pay fees, buy meals, split costs, integrated with ZimSwitch.',
       'votes': 156,
       'badge': 'Voting Open',
       'badgeType': 'voting',
+      'faculty': 'School of Entrepreneurship and Business Sciences',
     },
     {
       'title': 'ReelScholar AI Tutor',
-      'team': 'AI Lab CUT · Engineering',
+      'team': 'AI Lab CUT',
       'desc':
           'AI tutoring chatbot trained on CUT curriculum, offering 24/7 student support and interactive concept explanations.',
       'votes': 134,
       'badge': 'Open',
       'badgeType': 'open',
+      'faculty': 'School of Engineering Science and Technology',
+    },
+    {
+      'title': 'EcoTrack ZW',
+      'team': 'GreenTech CUT',
+      'desc':
+          'Mobile platform for tracking wildlife populations and reporting illegal poaching activities in real time using GPS.',
+      'votes': 98,
+      'badge': 'Open',
+      'badgeType': 'open',
+      'faculty': 'School of Wildlife and Environmental Science',
+    },
+    {
+      'title': 'HotelPro Dashboard',
+      'team': 'Hospitality Innovators',
+      'desc':
+          'Smart hotel management system with AI-powered booking forecasts, staff scheduling, and guest feedback analytics.',
+      'votes': 76,
+      'badge': 'Open',
+      'badgeType': 'open',
+      'faculty': 'School of Hospitality and Tourism',
     },
   ];
+
+  List<Map<String, dynamic>> _projects = [];
 
   @override
   void initState() {
@@ -64,6 +92,24 @@ class _HackathonScreenState extends State<HackathonScreen> {
         setState(() => _remaining -= const Duration(seconds: 1));
       }
     });
+    _loadFacultyProjects();
+  }
+
+  Future<void> _loadFacultyProjects() async {
+    final faculty = await AuthService.getDepartment();
+    final filtered = _allProjects
+        .where((p) => p['faculty'] == faculty)
+        .map((p) => Map<String, dynamic>.from(p))
+        .toList();
+    if (mounted) {
+      setState(() {
+        _userFaculty = faculty ?? '';
+        // Show faculty projects; if none matched show all (fallback)
+        _projects = filtered.isNotEmpty
+            ? filtered
+            : _allProjects.map((p) => Map<String, dynamic>.from(p)).toList();
+      });
+    }
   }
 
   @override
@@ -74,10 +120,10 @@ class _HackathonScreenState extends State<HackathonScreen> {
 
   String _pad(int n) => n.toString().padLeft(2, '0');
 
-  void _toggleVote(int index) {
-    setState(() {
-      _voted[index] = !(_voted[index] ?? false);
-    });
+  void _castVote(int index) {
+    // Voting is permanent — once cast it cannot be undone
+    if (_voted[index] == true) return;
+    setState(() => _voted[index] = true);
   }
 
   @override
@@ -260,68 +306,107 @@ class _HackathonScreenState extends State<HackathonScreen> {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.workspace_premium_rounded, size: 16, color: AppColors.accent),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Current Submissions',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
-                      ),
+                    Row(
+                      children: [
+                        Icon(Icons.workspace_premium_rounded,
+                            size: 16, color: AppColors.accent),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Your Faculty Challenges',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          '${_projects.length} project${_projects.length == 1 ? '' : 's'}',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 11,
+                            color: AppColors.textTertiary,
+                          ),
+                        ),
+                      ],
                     ),
-                    const Spacer(),
-                    Text(
-                      '${_projects.length} projects',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 11,
-                        color: AppColors.textTertiary,
+                    if (_userFaculty.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        _userFaculty,
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 11,
+                          color: AppColors.textTertiary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
             ),
 
             // ── Project cards grid ───────────────────────────────
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
-              sliver: SliverGrid(
-                delegate: SliverChildBuilderDelegate(
-                  (context, i) {
-                    final p = _projects[i];
-                    final voted = _voted[i] ?? false;
-                    final baseVotes = p['votes'] as int;
-                    // For project 0, base already includes 1 vote; adjust display
-                    final displayVotes = i == 0
-                        ? (voted ? baseVotes : baseVotes - 1)
-                        : (voted ? baseVotes + 1 : baseVotes);
+            _projects.isEmpty
+                ? SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(40),
+                      child: Center(
+                        child: Column(
+                          children: [
+                            Icon(Icons.hourglass_empty_rounded,
+                                size: 48, color: AppColors.textMuted),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Loading challenges...',
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 14,
+                                color: AppColors.textTertiary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                : SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+                    sliver: SliverGrid(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, i) {
+                          final p = _projects[i];
+                          final voted = _voted[i] ?? false;
+                          final baseVotes = p['votes'] as int;
+                          final displayVotes = voted ? baseVotes + 1 : baseVotes;
 
-                    return _ProjectCard(
-                      title: p['title'] as String,
-                      team: p['team'] as String,
-                      desc: p['desc'] as String,
-                      votes: displayVotes,
-                      badge: p['badge'] as String,
-                      badgeType: p['badgeType'] as String,
-                      voted: voted,
-                      onVote: () => _toggleVote(i),
-                    );
-                  },
-                  childCount: _projects.length,
-                ),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                  childAspectRatio: 0.72,
-                ),
-              ),
-            ),
+                          return _ProjectCard(
+                            title: p['title'] as String,
+                            team: p['team'] as String,
+                            desc: p['desc'] as String,
+                            votes: displayVotes,
+                            badge: p['badge'] as String,
+                            badgeType: p['badgeType'] as String,
+                            voted: voted,
+                            onVote: () => _castVote(i),
+                          );
+                        },
+                        childCount: _projects.length,
+                      ),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                        childAspectRatio: 0.72,
+                      ),
+                    ),
+                  ),
           ],
         ),
       ),
@@ -519,22 +604,27 @@ class _ProjectCard extends StatelessWidget {
               ),
               const Spacer(),
               GestureDetector(
-                onTap: onVote,
+                onTap: voted ? null : onVote,
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
-                    color: voted ? AppColors.accent : Colors.transparent,
+                    color: voted
+                        ? AppColors.success.withValues(alpha: 0.15)
+                        : Colors.transparent,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: voted ? AppColors.accent : AppColors.borderMid,
+                      color: voted
+                          ? AppColors.success.withValues(alpha: 0.4)
+                          : AppColors.borderMid,
                     ),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       if (voted) ...[
-                        const Icon(Icons.check_rounded, size: 11, color: Colors.white),
+                        Icon(Icons.how_to_vote_rounded,
+                            size: 11, color: AppColors.success),
                         const SizedBox(width: 3),
                       ],
                       Text(
@@ -543,7 +633,9 @@ class _ProjectCard extends StatelessWidget {
                           fontFamily: 'Poppins',
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
-                          color: voted ? Colors.white : AppColors.textSecondary,
+                          color: voted
+                              ? AppColors.success
+                              : AppColors.textSecondary,
                         ),
                       ),
                     ],
