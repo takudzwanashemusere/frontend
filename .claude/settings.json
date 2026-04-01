@@ -3,7 +3,22 @@
     "allow": [
       "Bash(wc -l \"c:\\\\Users\\\\pc\\\\OneDrive\\\\Desktop\\\\frontend\\\\reelscholar\\\\lib\\\\widgets\"/*.dart)",
       "Bash(wc -l \"c:\\\\Users\\\\pc\\\\OneDrive\\\\Desktop\\\\frontend\\\\reelscholar\\\\lib\\\\models\"/*.dart)",
-      "Bash(wc -l \"c:\\\\Users\\\\pc\\\\OneDrive\\\\Desktop\\\\frontend\\\\reelscholar\\\\lib\\\\screens\"/*.dart)"
+      "Bash(wc -l \"c:\\\\Users\\\\pc\\\\OneDrive\\\\Desktop\\\\frontend\\\\reelscholar\\\\lib\\\\screens\"/*.dart)",
+      "Bash(grep -E \"\\\\.\\(dart|js|ts\\)$\")",
+      "Bash(find /c/Users/pc/OneDrive/Desktop/frontend/reelscholar/lib -type f -name \"*.dart\" -exec wc -l {} +)",
+      "Bash(find /c/Users/pc/OneDrive/Desktop/frontend/reelscholar/lib -type f -name \"*.dart\" -exec grep -l \"Dio\\\\|HttpClient\\\\|http\\\\.\" {} \\\\;)",
+      "Read(//c/Users/pc/OneDrive/Desktop//**)",
+      "Bash(python -m py_compile main.py)",
+      "Bash(python -m venv venv)",
+      "Bash(pip install:*)",
+      "Bash(python -c \"import fastapi; import passlib; import jwt; import pydantic; print\\('all imports OK'\\)\")",
+      "Bash(/c/Users/pc/OneDrive/Desktop/cut-auth-api/venv/Scripts/python.exe -c \"import fastapi; print\\(fastapi.__version__\\)\")",
+      "Bash(where python:*)",
+      "Bash(python -c \"import fastapi; import passlib; import jwt; import pydantic; print\\('all OK, fastapi:', fastapi.__version__\\)\")",
+      "Bash(python -c \"import main; print\\('main.py imports OK'\\)\")"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\pc\\OneDrive\\Desktop\\messaging-api"
     ]
   }
 }
