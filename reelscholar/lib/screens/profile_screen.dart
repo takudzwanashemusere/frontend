@@ -26,7 +26,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _loadUserData();
   }
 
@@ -170,6 +170,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                     tabs: const [
                       Tab(text: 'My Videos'),
                       Tab(text: 'Liked'),
+                      Tab(text: 'Achievements'),
                     ],
                   ),
                 ),
@@ -179,6 +180,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                 children: [
                   _buildMyVideosTab(myVideos),
                   _buildLikedTab(),
+                  _buildAchievementsTab(),
                 ],
               ),
             ),
@@ -523,6 +525,289 @@ class _ProfileScreenState extends State<ProfileScreen>
           Text(
             'Videos you like will appear here',
             style: AppTextStyles.bodyMedium,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAchievementsTab() {
+    const achievements = [
+      {
+        'icon': Icons.star_rounded,
+        'label': 'First Video',
+        'desc': 'Uploaded your first educational video',
+        'color': 0xFFF59E0B,
+        'unlocked': true,
+      },
+      {
+        'icon': Icons.local_fire_department_rounded,
+        'label': '5-Day Streak',
+        'desc': 'Completed quizzes 5 days in a row',
+        'color': 0xFFEF4444,
+        'unlocked': true,
+      },
+      {
+        'icon': Icons.school_rounded,
+        'label': 'Top Scorer',
+        'desc': 'Scored 90%+ on any quiz',
+        'color': 0xFF2563EB,
+        'unlocked': true,
+      },
+      {
+        'icon': Icons.people_rounded,
+        'label': '100 Followers',
+        'desc': 'Reached 100 followers',
+        'color': 0xFF8B5CF6,
+        'unlocked': false,
+      },
+      {
+        'icon': Icons.emoji_events_rounded,
+        'label': 'Hackathon',
+        'desc': 'Submitted a hackathon project',
+        'color': 0xFFF5A623,
+        'unlocked': false,
+      },
+      {
+        'icon': Icons.video_library_rounded,
+        'label': '10 Videos',
+        'desc': 'Uploaded 10 educational videos',
+        'color': 0xFF22C55E,
+        'unlocked': false,
+      },
+      {
+        'icon': Icons.chat_rounded,
+        'label': 'Commentator',
+        'desc': 'Left 25 comments on videos',
+        'color': 0xFF0EA5E9,
+        'unlocked': false,
+      },
+      {
+        'icon': Icons.share_rounded,
+        'label': 'Networker',
+        'desc': 'Shared 10 videos with peers',
+        'color': 0xFFEC4899,
+        'unlocked': false,
+      },
+    ];
+
+    final unlocked = achievements.where((a) => a['unlocked'] == true).toList();
+    final locked = achievements.where((a) => a['unlocked'] == false).toList();
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Summary banner
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF0D2347), Color(0xFF2D5FA6)],
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5A623).withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: const Color(0xFFF5A623).withValues(alpha: 0.4),
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.military_tech_rounded,
+                    color: Color(0xFFF5A623),
+                    size: 26,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Your Achievements',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      '${unlocked.length} of ${achievements.length} unlocked',
+                      style: const TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 12,
+                        color: Colors.white60,
+                      ),
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                Text(
+                  '${((unlocked.length / achievements.length) * 100).round()}%',
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFFF5A623),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Unlocked
+          Text(
+            'UNLOCKED',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textTertiary,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 10),
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+            childAspectRatio: 1.6,
+            children: unlocked
+                .map((a) => _AchievementCard(
+                      icon: a['icon'] as IconData,
+                      label: a['label'] as String,
+                      desc: a['desc'] as String,
+                      color: Color(a['color'] as int),
+                      unlocked: true,
+                    ))
+                .toList(),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Locked
+          Text(
+            'LOCKED',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textTertiary,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 10),
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+            childAspectRatio: 1.6,
+            children: locked
+                .map((a) => _AchievementCard(
+                      icon: a['icon'] as IconData,
+                      label: a['label'] as String,
+                      desc: a['desc'] as String,
+                      color: Color(a['color'] as int),
+                      unlocked: false,
+                    ))
+                .toList(),
+          ),
+
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+}
+
+class _AchievementCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String desc;
+  final Color color;
+  final bool unlocked;
+
+  const _AchievementCard({
+    required this.icon,
+    required this.label,
+    required this.desc,
+    required this.color,
+    required this.unlocked,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: unlocked ? color.withValues(alpha: 0.25) : AppColors.border,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: unlocked
+                  ? color.withValues(alpha: 0.12)
+                  : AppColors.surfaceVariant,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              color: unlocked ? color : AppColors.textMuted,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: unlocked ? AppColors.textPrimary : AppColors.textTertiary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  desc,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 9,
+                    color: AppColors.textTertiary,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

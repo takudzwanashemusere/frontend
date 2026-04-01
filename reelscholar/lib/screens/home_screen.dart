@@ -4,6 +4,8 @@ import 'upload_screen.dart';
 import 'profile_screen.dart';
 import 'alerts_screen.dart';
 import 'messages_screen.dart';
+import 'dashboard_screen.dart';
+import 'hackathon_screen.dart';
 import '../widgets/comments_sheet.dart';
 import '../widgets/share_sheet.dart';
 import '../models/video_store.dart';
@@ -24,6 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final PageController _pageController = PageController();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   List<Map<String, dynamic>> _videos = [];
+  int _selectedFeedTab = 0; // 0=For You, 1=Following, 2=My School
 
   @override
   void initState() {
@@ -40,11 +43,20 @@ class _HomeScreenState extends State<HomeScreen> {
     }).toList();
 
     setState(() {
-      if (dept == null || dept.isEmpty) {
-        _videos = all;
-      } else {
-        final filtered = all.where((v) => v['school'] == dept).toList();
-        _videos = filtered.isNotEmpty ? filtered : all;
+      switch (_selectedFeedTab) {
+        case 2: // My School
+          if (dept != null && dept.isNotEmpty) {
+            final filtered = all.where((v) => v['school'] == dept).toList();
+            _videos = filtered.isNotEmpty ? filtered : all;
+          } else {
+            _videos = all;
+          }
+          break;
+        case 1: // Following — demo: reversed list for variety
+          _videos = all.reversed.toList();
+          break;
+        default: // For You
+          _videos = all;
       }
     });
   }
@@ -74,79 +86,89 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
 
-          // Top bar
+          // Top bar + feed tabs
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Left: hamburger + logo
-                  Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Hamburger menu
-                      _TopBarButton(
-                        onTap: () => _scaffoldKey.currentState?.openDrawer(),
-                        icon: Icons.menu_rounded,
+                      // Left: hamburger + logo
+                      Row(
+                        children: [
+                          _TopBarButton(
+                            onTap: () => _scaffoldKey.currentState?.openDrawer(),
+                            icon: Icons.menu_rounded,
+                          ),
+                          const SizedBox(width: 10),
+                          RichText(
+                            text: TextSpan(
+                              children: [
+                                const TextSpan(
+                                  text: 'Reel',
+                                  style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontSize: 19,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                    letterSpacing: -0.3,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: 'Scholar',
+                                  style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontSize: 19,
+                                    fontWeight: FontWeight.w300,
+                                    color: AppColors.accentLight,
+                                    letterSpacing: -0.3,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 10),
-                      // Logo wordmark
-                      RichText(
-                        text: TextSpan(
-                          children: [
-                            const TextSpan(
-                              text: 'Reel',
-                              style: TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 19,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                                letterSpacing: -0.3,
-                              ),
+                      // Right icons
+                      Row(
+                        children: [
+                          _TopBarButton(
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const MessagesScreen()),
                             ),
-                            TextSpan(
-                              text: 'Scholar',
-                              style: TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 19,
-                                fontWeight: FontWeight.w300,
-                                color: AppColors.accentLight,
-                                letterSpacing: -0.3,
-                              ),
+                            icon: Icons.chat_bubble_outline_rounded,
+                            hasBadge: true,
+                          ),
+                          const SizedBox(width: 8),
+                          _TopBarButton(
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const SearchScreen()),
                             ),
-                          ],
-                        ),
+                            icon: Icons.search_rounded,
+                          ),
+                        ],
                       ),
                     ],
                   ),
-
-                  // Top right icons
-                  Row(
-                    children: [
-                      // Messages
-                      _TopBarButton(
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const MessagesScreen()),
-                        ),
-                        icon: Icons.chat_bubble_outline_rounded,
-                        hasBadge: true,
-                      ),
-                      const SizedBox(width: 8),
-                      // Search
-                      _TopBarButton(
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const SearchScreen()),
-                        ),
-                        icon: Icons.search_rounded,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                ),
+                // Feed tab switcher
+                _FeedTabSwitcher(
+                  selectedIndex: _selectedFeedTab,
+                  onChanged: (i) {
+                    setState(() => _selectedFeedTab = i);
+                    _loadVideos();
+                  },
+                ),
+                const SizedBox(height: 6),
+              ],
             ),
           ),
 
@@ -451,7 +473,11 @@ class _VideoCardState extends State<_VideoCard>
 
                 // Quiz button
                 GestureDetector(
-                  onTap: () {},
+                  onTap: () => showQuiz(
+                    context,
+                    video['subject'] as String,
+                    video['title'] as String,
+                  ),
                   child: Column(
                     children: [
                       Container(
@@ -576,12 +602,70 @@ class _TopBarButton extends StatelessWidget {
   }
 }
 
+// ─── Feed Tab Switcher ────────────────────────────────────────────────────────
+
+class _FeedTabSwitcher extends StatelessWidget {
+  final int selectedIndex;
+  final ValueChanged<int> onChanged;
+
+  const _FeedTabSwitcher({
+    required this.selectedIndex,
+    required this.onChanged,
+  });
+
+  static const _tabs = ['For You', 'Following', 'My School'];
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.all(3),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.35),
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: List.generate(_tabs.length, (i) {
+            final isSelected = i == selectedIndex;
+            return GestureDetector(
+              onTap: () => onChanged(i),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isSelected ? Colors.white : Colors.transparent,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  _tabs[i],
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 12,
+                    fontWeight:
+                        isSelected ? FontWeight.w600 : FontWeight.w400,
+                    color: isSelected
+                        ? Colors.black
+                        : Colors.white.withValues(alpha: 0.75),
+                  ),
+                ),
+              ),
+            );
+          }),
+        ),
+      ),
+    );
+  }
+}
+
 class _AppDrawer extends StatelessWidget {
   const _AppDrawer();
 
   static const _items = [
-    {'icon': Icons.home_rounded, 'label': 'Home', 'route': 'home'},
+    {'icon': Icons.dashboard_outlined, 'label': 'Dashboard', 'route': 'dashboard'},
+    {'icon': Icons.home_rounded, 'label': 'Video Feed', 'route': 'home'},
     {'icon': Icons.search_rounded, 'label': 'Discover', 'route': 'discover'},
+    {'icon': Icons.emoji_events_outlined, 'label': 'Hackathon', 'route': 'hackathon'},
     {'icon': Icons.notifications_outlined, 'label': 'Alerts', 'route': 'alerts'},
     {'icon': Icons.person_outline_rounded, 'label': 'Profile', 'route': 'profile'},
     {'icon': Icons.auto_awesome_outlined, 'label': 'Chat with AI', 'route': 'ai'},
@@ -620,10 +704,22 @@ class _AppDrawer extends StatelessWidget {
     switch (route) {
       case 'home':
         break;
+      case 'dashboard':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const DashboardScreen()),
+        );
+        break;
       case 'discover':
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const SearchScreen()),
+        );
+        break;
+      case 'hackathon':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const HackathonScreen()),
         );
         break;
       case 'alerts':

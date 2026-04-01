@@ -3,7 +3,8 @@
     "allow": [
       "Bash(flutter analyze:*)",
       "Bash(tee /tmp/flutter_analyze.txt)",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "Bash(wc:*)"
     ]
   }
 }
