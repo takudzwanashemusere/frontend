@@ -61,22 +61,24 @@ class _LoginScreenState extends State<LoginScreen>
       setState(() => _isLoading = true);
       try {
         final res = await http.post(
-          Uri.parse('$kBaseUrl/auth/login'),
-          headers: {'Content-Type': 'application/json'},
+          Uri.parse('$kLaravelUrl/api/auth/login'),
+          headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
           body: json.encode({
             'email': _emailController.text.trim(),
             'password': _passwordController.text,
+            'device_name': 'mobile',
           }),
         );
         if (!mounted) return;
-        if (res.statusCode == 200) {
-          final data = json.decode(res.body);
+        final data = json.decode(res.body);
+        if (res.statusCode == 200 && data['success'] == true) {
+          final user = data['user'] ?? {};
           await AuthService.saveSession(
             email: _emailController.text.trim(),
-            name: data['name'],
-            token: data['access_token'],
-            userId: data['user_id'],
-            username: data['username'],
+            name: user['name'] ?? user['full_name'] ?? '',
+            token: data['token'] ?? '',
+            userId: user['id'],
+            username: user['username'] ?? user['email'],
           );
           if (!mounted) return;
           final hasDept = await AuthService.hasDepartment();
@@ -92,15 +94,15 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           );
         } else {
-          final detail = json.decode(res.body)['detail'] ?? 'Invalid credentials';
+          final message = data['message'] ?? 'Invalid credentials';
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(detail.toString())),
+            SnackBar(content: Text(message.toString())),
           );
         }
-      } catch (_) {
+      } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Cannot connect to server. Is it running?')),
+            SnackBar(content: Text('Error: $e')),
           );
         }
       } finally {

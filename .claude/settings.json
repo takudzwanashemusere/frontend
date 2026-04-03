@@ -24,7 +24,10 @@
       "Bash(curl -s http://localhost:8001/docs)",
       "Bash(flutter run:*)",
       "Bash(kill %1)",
-      "Bash(pkill -f \"flutter run\")"
+      "Bash(pkill -f \"flutter run\")",
+      "Bash(curl -s https://reelscholarapi-main-l5f9h5.laravel.cloud/)",
+      "Bash(curl -s https://reelscholarapi-main-l5f9h5.laravel.cloud/api/login -X POST -H \"Content-Type: application/json\" -d '{\"email\":\"test@test.com\",\"password\":\"test\"}')",
+      "Bash(curl -sk https://reelscholarapi-main-l5f9h5.laravel.cloud/api/login -X POST -H \"Content-Type: application/json\" -d '{\"email\":\"test@test.com\",\"password\":\"test123\"}')"
     ],
     "additionalDirectories": [
       "C:\\Users\\pc\\OneDrive\\Desktop\\messaging-api"

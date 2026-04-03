@@ -6,5 +6,6 @@
 // iOS simulator → use localhost
 
 // Physical Android device on same Wi-Fi as your PC
-const String kBaseUrl = 'http://localhost:8001';
-const String kWsUrl   = 'ws://localhost:8001/ws';
+const String kBaseUrl    = 'http://localhost:8001';
+const String kWsUrl      = 'ws://localhost:8001/ws';
+const String kLaravelUrl = 'https://reelscholarapi-main-l5f9h5.laravel.cloud';
