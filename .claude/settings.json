@@ -19,7 +19,12 @@
       "Bash(flutter pub:*)",
       "Bash(ipconfig)",
       "Bash(netstat -ano)",
-      "Bash(netsh advfirewall:*)"
+      "Bash(netsh advfirewall:*)",
+      "Bash(curl -s http://localhost:8001/health)",
+      "Bash(curl -s http://localhost:8001/docs)",
+      "Bash(flutter run:*)",
+      "Bash(kill %1)",
+      "Bash(pkill -f \"flutter run\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\pc\\OneDrive\\Desktop\\messaging-api"
