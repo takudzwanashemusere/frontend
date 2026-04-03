@@ -114,10 +114,10 @@ class _RegisterScreenState extends State<RegisterScreen>
             SnackBar(content: Text(detail.toString())),
           );
         }
-      } catch (_) {
+      } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Cannot connect to server. Is it running?')),
+            SnackBar(content: Text('Error: $e')),
           );
         }
       } finally {
