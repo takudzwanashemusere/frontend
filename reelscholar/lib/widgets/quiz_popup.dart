@@ -613,36 +613,40 @@ class _QuizPopupState extends State<QuizPopup>
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.accent.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(8),
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.accent.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(children: [
+                          Icon(Icons.quiz_rounded,
+                              color: AppColors.accent, size: 14),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(widget.subject,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                    color: AppColors.accent,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600)),
+                          ),
+                        ]),
                       ),
-                      child: Row(children: [
-                        Icon(Icons.quiz_rounded,
-                            color: AppColors.accent, size: 14),
-                        SizedBox(width: 4),
-                        Text(widget.subject,
-                            style: TextStyle(
-                                color: AppColors.accent,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600)),
-                      ]),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text('Quick Quiz',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700)),
-                  ],
+                      const SizedBox(height: 4),
+                      const Text('Quick Quiz',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700)),
+                    ],
+                  ),
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),

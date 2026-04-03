@@ -193,13 +193,16 @@ class _CommentsSheetState extends State<CommentsSheet> {
                           children: [
                             Row(
                               children: [
-                                Text(
-                                  c['name'],
-                                  style: TextStyle(
-                                    fontFamily: 'Poppins',
-                                    color: AppColors.textPrimary,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 13,
+                                Flexible(
+                                  child: Text(
+                                    c['name'],
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      color: AppColors.textPrimary,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 13,
+                                    ),
                                   ),
                                 ),
                                 if (isAuthor) ...[
