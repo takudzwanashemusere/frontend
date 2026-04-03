@@ -17,7 +17,9 @@
       "Bash(python -c \"import fastapi; import passlib; import jwt; import pydantic; print\\('all OK, fastapi:', fastapi.__version__\\)\")",
       "Bash(python -c \"import main; print\\('main.py imports OK'\\)\")",
       "Bash(flutter pub:*)",
-      "Bash(ipconfig)"
+      "Bash(ipconfig)",
+      "Bash(netstat -ano)",
+      "Bash(netsh advfirewall:*)"
     ],
     "additionalDirectories": [
       "C:\\Users\\pc\\OneDrive\\Desktop\\messaging-api"
