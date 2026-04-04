@@ -28,7 +28,6 @@ class _RegisterScreenState extends State<RegisterScreen>
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
   String? _selectedFaculty;
-  int _selectedSemester = 1;
 
   late AnimationController _animController;
   late Animation<double> _fadeIn;
@@ -41,6 +40,8 @@ class _RegisterScreenState extends State<RegisterScreen>
     'School of Health Sciences and Technology',
     'School of Wildlife and Environmental Science',
     'School of Hospitality and Tourism',
+    'School of Natural Sciences and Mathematics',
+    'School of Art and Design',
   ];
 
   @override
@@ -86,7 +87,6 @@ class _RegisterScreenState extends State<RegisterScreen>
             'password': _passwordController.text,
             'password_confirmation': _confirmPasswordController.text,
             'faculty': _selectedFaculty,
-            'semester': _selectedSemester,
             'device_name': 'mobile',
           }),
         );
@@ -102,7 +102,6 @@ class _RegisterScreenState extends State<RegisterScreen>
             username: user['username'] ?? _schoolIdController.text.trim(),
           );
           await AuthService.saveDepartment(_selectedFaculty!);
-          await AuthService.saveSemester(_selectedSemester);
           if (!mounted) return;
           Navigator.pushReplacement(
             context,
@@ -245,17 +244,6 @@ class _RegisterScreenState extends State<RegisterScreen>
                               if (val == null) return 'Please select your faculty';
                               return null;
                             },
-                          ),
-
-                          const SizedBox(height: 20),
-
-                          // Semester selector
-                          _FieldLabel('Current Semester'),
-                          const SizedBox(height: 8),
-                          _SemesterSelector(
-                            selected: _selectedSemester,
-                            onChanged: (val) =>
-                                setState(() => _selectedSemester = val),
                           ),
 
                           const SizedBox(height: 20),
@@ -612,87 +600,6 @@ class _CleanTextField extends StatelessWidget {
           fontSize: 11,
           color: AppColors.error,
         ),
-      ),
-    );
-  }
-}
-
-class _SemesterSelector extends StatelessWidget {
-  final int selected;
-  final ValueChanged<int> onChanged;
-
-  const _SemesterSelector({required this.selected, required this.onChanged});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.calendar_today_outlined,
-                  size: 16, color: AppColors.textTertiary),
-              const SizedBox(width: 8),
-              Text(
-                'Semester $selected of 8',
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 13,
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: List.generate(8, (i) {
-              final sem = i + 1;
-              final isSelected = sem == selected;
-              return Expanded(
-                child: GestureDetector(
-                  onTap: () => onChanged(sem),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 150),
-                    margin: const EdgeInsets.symmetric(horizontal: 2),
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppColors.accent
-                          : AppColors.surfaceVariant,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: isSelected
-                            ? AppColors.accent
-                            : AppColors.border,
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        '$sem',
-                        style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: isSelected
-                              ? Colors.white
-                              : AppColors.textTertiary,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            }),
-          ),
-        ],
       ),
     );
   }

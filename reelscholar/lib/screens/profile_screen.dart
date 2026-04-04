@@ -130,7 +130,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               headerSliverBuilder: (_, _) => [
                 SliverAppBar(
                   backgroundColor: AppColors.bg,
-                  expandedHeight: 330,
+                  expandedHeight: 390,
                   pinned: true,
                   automaticallyImplyLeading: false,
                   surfaceTintColor: Colors.transparent,
@@ -148,7 +148,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   ],
                   flexibleSpace: FlexibleSpaceBar(
                     collapseMode: CollapseMode.pin,
-                    background: _buildProfileHeader(myVideos),
+                    background: ClipRect(child: _buildProfileHeader(myVideos)),
                   ),
                   bottom: TabBar(
                     controller: _tabController,
