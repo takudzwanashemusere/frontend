@@ -77,24 +77,29 @@ class _RegisterScreenState extends State<RegisterScreen>
       setState(() => _isLoading = true);
       try {
         final res = await http.post(
-          Uri.parse('$kBaseUrl/auth/register'),
-          headers: {'Content-Type': 'application/json'},
+          Uri.parse('$kLaravelUrl/api/auth/register'),
+          headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
           body: json.encode({
+            'full_name': _nameController.text.trim(),
+            'student_id': _schoolIdController.text.trim(),
             'email': _emailController.text.trim(),
-            'username': _schoolIdController.text.trim(),
-            'name': _nameController.text.trim(),
             'password': _passwordController.text,
+            'password_confirmation': _confirmPasswordController.text,
+            'faculty': _selectedFaculty,
+            'semester': _selectedSemester,
+            'device_name': 'mobile',
           }),
         );
         if (!mounted) return;
-        if (res.statusCode == 201) {
-          final data = json.decode(res.body);
+        final data = json.decode(res.body);
+        if ((res.statusCode == 200 || res.statusCode == 201) && data['success'] == true) {
+          final user = data['user'] ?? {};
           await AuthService.saveSession(
             email: _emailController.text.trim(),
             name: _nameController.text.trim(),
-            token: data['access_token'],
-            userId: data['user_id'],
-            username: data['username'],
+            token: data['token'] ?? '',
+            userId: user['id'],
+            username: user['username'] ?? _schoolIdController.text.trim(),
           );
           await AuthService.saveDepartment(_selectedFaculty!);
           await AuthService.saveSemester(_selectedSemester);
@@ -109,9 +114,9 @@ class _RegisterScreenState extends State<RegisterScreen>
             ),
           );
         } else {
-          final detail = json.decode(res.body)['detail'] ?? 'Registration failed';
+          final message = data['message'] ?? 'Registration failed';
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(detail.toString())),
+            SnackBar(content: Text(message.toString())),
           );
         }
       } catch (e) {
@@ -281,6 +286,9 @@ class _RegisterScreenState extends State<RegisterScreen>
                               }
                               if (val.length < 8) {
                                 return 'Must be at least 8 characters';
+                              }
+                              if (!val.contains(RegExp(r'[A-Z]')) || !val.contains(RegExp(r'[a-z]'))) {
+                                return 'Must have uppercase and lowercase letters';
                               }
                               return null;
                             },
