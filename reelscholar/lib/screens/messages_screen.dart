@@ -415,18 +415,22 @@ class _MessagesScreenState extends State<MessagesScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        name,
-                        style: TextStyle(
-                          fontFamily: 'Poppins',
-                          color: unread > 0
-                              ? AppColors.textPrimary
-                              : AppColors.textSecondary,
-                          fontWeight:
-                              unread > 0 ? FontWeight.w700 : FontWeight.w500,
-                          fontSize: 14,
+                      Expanded(
+                        child: Text(
+                          name,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            color: unread > 0
+                                ? AppColors.textPrimary
+                                : AppColors.textSecondary,
+                            fontWeight:
+                                unread > 0 ? FontWeight.w700 : FontWeight.w500,
+                            fontSize: 14,
+                          ),
                         ),
                       ),
+                      const SizedBox(width: 8),
                       Text(
                         time,
                         style: TextStyle(
