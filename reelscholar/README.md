@@ -24,9 +24,8 @@ samples, guidance on mobile development, and a full API reference.
   quizez should be generated with open ai 
 
 
-  added the messaging api in the folder extract it and run it on its own  
+  -added the messaging api in the folder extract it and run it on its own  
 
 
-  login auth is from the laravel , learn how it is connected 
+  -login auth is from the laravel , learn how it is connected 
 
-  
