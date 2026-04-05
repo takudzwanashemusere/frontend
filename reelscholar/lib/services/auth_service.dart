@@ -6,6 +6,7 @@ class AuthService {
 
   // Keys
   static const _keyToken = 'auth_token';
+  static const _keyMessagingToken = 'messaging_token';
   static const _keyEmail = 'user_email';
   static const _keyName = 'user_name';
   static const _keyUserId = 'user_id';
@@ -85,6 +86,16 @@ class AuthService {
   // Get auth token (for API calls)
   static Future<String?> getToken() async {
     return await _storage.read(key: _keyToken);
+  }
+
+  // Save messaging API JWT
+  static Future<void> saveMessagingToken(String token) async {
+    await _storage.write(key: _keyMessagingToken, value: token);
+  }
+
+  // Get messaging API JWT
+  static Future<String?> getMessagingToken() async {
+    return await _storage.read(key: _keyMessagingToken);
   }
 
   // Get saved user id

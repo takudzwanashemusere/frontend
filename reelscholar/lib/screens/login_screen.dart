@@ -80,6 +80,23 @@ class _LoginScreenState extends State<LoginScreen>
             userId: user['id'],
             username: user['username'] ?? user['email'],
           );
+          // Also authenticate with the messaging API
+          try {
+            final msgRes = await http.post(
+              Uri.parse('$kBaseUrl/auth/login'),
+              headers: {'Content-Type': 'application/json'},
+              body: json.encode({
+                'email': _emailController.text.trim(),
+                'password': _passwordController.text,
+              }),
+            );
+            if (msgRes.statusCode == 200) {
+              final msgData = json.decode(msgRes.body);
+              await AuthService.saveMessagingToken(msgData['access_token'] ?? '');
+            }
+          } catch (_) {
+            // Non-fatal — messaging will degrade gracefully
+          }
           if (!mounted) return;
           final hasDept = await AuthService.hasDepartment();
           if (!mounted) return;

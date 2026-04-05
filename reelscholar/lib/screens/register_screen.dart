@@ -94,14 +94,51 @@ class _RegisterScreenState extends State<RegisterScreen>
         final data = json.decode(res.body);
         if ((res.statusCode == 200 || res.statusCode == 201) && data['success'] == true) {
           final user = data['user'] ?? {};
+          final email = _emailController.text.trim();
+          final name = _nameController.text.trim();
+          final username = user['username'] ?? _schoolIdController.text.trim();
           await AuthService.saveSession(
-            email: _emailController.text.trim(),
-            name: _nameController.text.trim(),
+            email: email,
+            name: name,
             token: data['token'] ?? '',
             userId: user['id'],
-            username: user['username'] ?? _schoolIdController.text.trim(),
+            username: username,
           );
           await AuthService.saveDepartment(_selectedFaculty!);
+          // Also register/login with the messaging API
+          try {
+            // Try register first; if the account already exists, fall back to login
+            final msgRegRes = await http.post(
+              Uri.parse('$kBaseUrl/auth/register'),
+              headers: {'Content-Type': 'application/json'},
+              body: json.encode({
+                'email': email,
+                'username': username,
+                'name': name,
+                'password': _passwordController.text,
+              }),
+            );
+            if (msgRegRes.statusCode == 201) {
+              final msgData = json.decode(msgRegRes.body);
+              await AuthService.saveMessagingToken(msgData['access_token'] ?? '');
+            } else {
+              // Account may already exist — fall back to login
+              final msgLoginRes = await http.post(
+                Uri.parse('$kBaseUrl/auth/login'),
+                headers: {'Content-Type': 'application/json'},
+                body: json.encode({
+                  'email': email,
+                  'password': _passwordController.text,
+                }),
+              );
+              if (msgLoginRes.statusCode == 200) {
+                final msgData = json.decode(msgLoginRes.body);
+                await AuthService.saveMessagingToken(msgData['access_token'] ?? '');
+              }
+            }
+          } catch (_) {
+            // Non-fatal
+          }
           if (!mounted) return;
           Navigator.pushReplacement(
             context,

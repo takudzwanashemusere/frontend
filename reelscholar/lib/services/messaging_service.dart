@@ -5,7 +5,7 @@ import 'api_constants.dart';
 
 class MessagingService {
   static Future<Map<String, String>> _headers() async {
-    final token = await AuthService.getToken();
+    final token = await AuthService.getMessagingToken();
     return {
       'Content-Type': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',

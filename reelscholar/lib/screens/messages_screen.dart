@@ -75,8 +75,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
       _error = null;
     });
     try {
-      // Ensure WebSocket is connected
-      final token = await AuthService.getToken();
+      // Ensure WebSocket is connected using the messaging API token
+      final token = await AuthService.getMessagingToken();
       if (token != null) WebSocketService().connect(token);
 
       final convs = await MessagingService.getConversations();
