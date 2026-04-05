@@ -84,6 +84,9 @@ class _LoginScreenState extends State<LoginScreen>
           try {
             final email = _emailController.text.trim();
             final password = _passwordController.text;
+            // Use values from AuthService (saved from form / API response)
+            final savedName = await AuthService.getUserName() ?? '';
+            final savedUsername = await AuthService.getUsername() ?? '';
             final msgLoginRes = await http.post(
               Uri.parse('$kBaseUrl/auth/login'),
               headers: {'Content-Type': 'application/json'},
@@ -94,17 +97,17 @@ class _LoginScreenState extends State<LoginScreen>
               await AuthService.saveMessagingToken(msgData['access_token'] ?? '');
             } else {
               // Account doesn't exist in messaging DB yet — register it
-              final name = user['name'] ?? user['full_name'] ?? '';
-              final username = (user['username'] ?? user['email'] ?? email)
-                  .toString()
-                  .replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '_');
+              // Sanitise username: keep only alphanumeric + underscore
+              final safeUsername = savedUsername.isEmpty
+                  ? email.split('@').first.replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '_')
+                  : savedUsername.replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '_');
               final msgRegRes = await http.post(
                 Uri.parse('$kBaseUrl/auth/register'),
                 headers: {'Content-Type': 'application/json'},
                 body: json.encode({
                   'email': email,
-                  'username': username,
-                  'name': name,
+                  'username': safeUsername,
+                  'name': savedName.isNotEmpty ? savedName : email.split('@').first,
                   'password': password,
                 }),
               );
