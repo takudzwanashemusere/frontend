@@ -56,7 +56,9 @@
       "Bash(curl -s http://192.168.0.127:8001/health)",
       "Bash(curl -s -X POST http://192.168.0.127:8001/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"musere2002@gmail.com\",\"password\":\"test\"}')",
       "Bash(curl -s http://localhost:8001/)",
-      "Bash(curl -s http://localhost:8001/auth/login -X POST -H 'Content-Type: application/json' -d '{\"email\":\"test@test.com\",\"password\":\"x\"}')"
+      "Bash(curl -s http://localhost:8001/auth/login -X POST -H 'Content-Type: application/json' -d '{\"email\":\"test@test.com\",\"password\":\"x\"}')",
+      "Bash(curl -s 'http://localhost:8001/users/search?q=musere' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwiZXhwIjoxNzc1NDAwODYzfQ.cNl7nBs2wSeGZKIot6ThyhAxK81ZCpKHGr3VXfTFt0A')",
+      "Bash(taskkill /PID 17660 /F)"
     ],
     "additionalDirectories": [
       "C:\\Users\\pc\\OneDrive\\Desktop\\messaging-api"
