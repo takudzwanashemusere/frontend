@@ -15,7 +15,7 @@ class _HackathonScreenState extends State<HackathonScreen> {
   Timer? _timer;
   String _userFaculty = '';
 
-  // voted[i] = true means user has permanently voted for project i
+  // vote, if  you vote it becomes permanent fro the project 
   final Map<int, bool> _voted = {};
 
   static const _allProjects = [
