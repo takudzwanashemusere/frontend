@@ -135,7 +135,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       physics: const NeverScrollableScrollPhysics(),
                       crossAxisSpacing: 10,
                       mainAxisSpacing: 10,
-                      childAspectRatio: 1.65,
+                      childAspectRatio: 1.4,
                       children: List.generate(_stats.length, (i) {
                         final s = _stats[i];
                         return _StatCard(

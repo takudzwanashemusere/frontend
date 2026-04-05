@@ -130,7 +130,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               headerSliverBuilder: (_, _) => [
                 SliverAppBar(
                   backgroundColor: AppColors.bg,
-                  expandedHeight: 390,
+                  expandedHeight: 420,
                   pinned: true,
                   automaticallyImplyLeading: false,
                   surfaceTintColor: Colors.transparent,

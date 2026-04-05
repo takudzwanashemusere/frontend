@@ -58,7 +58,8 @@
       "Bash(curl -s http://localhost:8001/)",
       "Bash(curl -s http://localhost:8001/auth/login -X POST -H 'Content-Type: application/json' -d '{\"email\":\"test@test.com\",\"password\":\"x\"}')",
       "Bash(curl -s 'http://localhost:8001/users/search?q=musere' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwiZXhwIjoxNzc1NDAwODYzfQ.cNl7nBs2wSeGZKIot6ThyhAxK81ZCpKHGr3VXfTFt0A')",
-      "Bash(taskkill /PID 17660 /F)"
+      "Bash(taskkill /PID 17660 /F)",
+      "Bash(curl -s 'http://localhost:8001/users/search?q=musere' -H 'Authorization: Bearer __TRACKED_VAR__')"
     ],
     "additionalDirectories": [
       "C:\\Users\\pc\\OneDrive\\Desktop\\messaging-api"
