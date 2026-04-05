@@ -284,7 +284,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                 ),
 
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () => _showNewMessageSheet(context),
         backgroundColor: AppColors.accent,
         elevation: 2,
         child: const Icon(Icons.edit_rounded, color: Colors.white, size: 20),
@@ -499,6 +499,211 @@ class _MessagesScreenState extends State<MessagesScreen> {
     );
   }
 
+  void _showNewMessageSheet(BuildContext context) {
+    final TextEditingController searchCtrl = TextEditingController();
+    List<Map<String, dynamic>> results = [];
+    bool searching = false;
+    String? sheetError;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.bg,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(builder: (ctx, setSheet) {
+          Future<void> search(String q) async {
+            if (q.trim().isEmpty) {
+              setSheet(() { results = []; searching = false; });
+              return;
+            }
+            setSheet(() { searching = true; sheetError = null; });
+            try {
+              final r = await MessagingService.searchUsers(q.trim());
+              setSheet(() { results = r; searching = false; });
+            } catch (_) {
+              setSheet(() { searching = false; sheetError = 'Search failed'; });
+            }
+          }
+
+          return Padding(
+            padding: EdgeInsets.fromLTRB(
+              16, 16, 16,
+              MediaQuery.of(ctx).viewInsets.bottom + 24,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.border,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  'New Message',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: TextField(
+                    controller: searchCtrl,
+                    autofocus: true,
+                    onChanged: search,
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontFamily: 'Poppins',
+                      fontSize: 14,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Search by name or username...',
+                      hintStyle: TextStyle(
+                        color: AppColors.textMuted,
+                        fontFamily: 'Poppins',
+                        fontSize: 14,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.search_rounded,
+                        color: AppColors.textTertiary,
+                        size: 18,
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                if (searching)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24),
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                else if (sheetError != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Center(
+                      child: Text(sheetError!, style: AppTextStyles.bodyMedium),
+                    ),
+                  )
+                else if (results.isEmpty && searchCtrl.text.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Center(
+                      child: Text(
+                        'No users found',
+                        style: TextStyle(
+                          color: AppColors.textMuted,
+                          fontFamily: 'Poppins',
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(ctx).size.height * 0.4,
+                    ),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: results.length,
+                      itemBuilder: (_, i) {
+                        final user = results[i];
+                        final name = user['name']?.toString() ?? '';
+                        final username = user['username']?.toString() ?? '';
+                        return ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 4, vertical: 2,
+                          ),
+                          leading: CircleAvatar(
+                            radius: 20,
+                            backgroundColor: AppColors.surface,
+                            child: Text(
+                              name.isNotEmpty
+                                  ? name.substring(0, 1).toUpperCase()
+                                  : '?',
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                color: AppColors.textSecondary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          title: Text(
+                            name,
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                          subtitle: Text(
+                            '@$username',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              color: AppColors.textMuted,
+                              fontSize: 12,
+                            ),
+                          ),
+                          onTap: () async {
+                            Navigator.pop(ctx);
+                            try {
+                              final convId = await MessagingService
+                                  .startConversation(user['id'] as int);
+                              if (!mounted) return;
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ChatScreen(
+                                    conversationId: convId,
+                                    otherUserId: user['id'] as int,
+                                    otherName: name,
+                                    otherUsername: username,
+                                    initialIsOnline:
+                                        _isOnline(user['is_online']),
+                                  ),
+                                ),
+                              ).then((_) => _loadConversations());
+                            } catch (_) {
+                              if (!mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Could not start conversation'),
+                                ),
+                              );
+                            }
+                          },
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            ),
+          );
+        });
+      },
+    );
+  }
+
   void _openChat(BuildContext context, Map<String, dynamic> conv) {
     // Clear unread count locally
     final idx = _conversations
@@ -603,12 +808,30 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  void _sendMessage() {
+  Future<void> _sendMessage() async {
     final text = _msgController.text.trim();
     if (text.isEmpty) return;
-    // Send via WebSocket — the server echoes it back so it appears in the stream
-    WebSocketService().sendMessage(widget.conversationId, text);
     _msgController.clear();
+
+    if (WebSocketService().isConnected) {
+      // Send via WebSocket — server echoes it back into the stream
+      WebSocketService().sendMessage(widget.conversationId, text);
+    } else {
+      // Fallback: HTTP POST, then append locally
+      try {
+        final msg = await MessagingService.sendMessage(widget.conversationId, text);
+        if (mounted) {
+          setState(() => _messages.add(msg));
+          _scrollToBottom();
+        }
+      } catch (_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to send message')),
+          );
+        }
+      }
+    }
   }
 
   void _scrollToBottom() {

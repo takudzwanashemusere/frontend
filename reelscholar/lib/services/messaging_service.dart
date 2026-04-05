@@ -50,6 +50,19 @@ class MessagingService {
     throw Exception('Failed to load messages');
   }
 
+  /// Sends a message via HTTP (fallback when WebSocket is unavailable).
+  static Future<Map<String, dynamic>> sendMessage(int convId, String text) async {
+    final res = await http.post(
+      Uri.parse('$kBaseUrl/conversations/$convId/messages'),
+      headers: await _headers(),
+      body: json.encode({'text': text}),
+    );
+    if (res.statusCode == 201) {
+      return Map<String, dynamic>.from(json.decode(res.body));
+    }
+    throw Exception('Failed to send message: ${res.statusCode}');
+  }
+
   /// Searches for users by name or username.
   static Future<List<Map<String, dynamic>>> searchUsers(String q) async {
     final res = await http.get(

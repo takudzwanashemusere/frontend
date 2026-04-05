@@ -45,7 +45,11 @@
       "Read(//c/Users/pc/**)",
       "Bash(curl -sk https://reelscholarapi-main-l5f9h5.laravel.cloud/api/auth/register -X POST -H 'Content-Type: application/json' -H 'Accept: application/json' -d '{\"full_name\":\"Test\",\"email\":\"t999@cut.ac.zw\",\"password\":\"Test1234\",\"password_confirmation\":\"Test1234\",\"faculty\":\"__TRACKED_VAR__\",\"student_id\":\"CUT2023/999\",\"device_name\":\"mobile\"}')",
       "Bash(curl -sk https://reelscholarapi-main-l5f9h5.laravel.cloud/api/auth/register -X POST -H 'Content-Type: application/json' -H 'Accept: application/json' -d '{\"full_name\":\"Test\",\"email\":\"t999@cut.ac.zw\",\"password\":\"Test1234\",\"password_confirmation\":\"Test1234\",\"faculty\":__TRACKED_VAR__,\"student_id\":\"CUT2023/999\",\"device_name\":\"mobile\"}')",
-      "Bash(curl -sk \"https://reelscholarapi-main-l5f9h5.laravel.cloud/api/auth/register\" -X POST -H \"Content-Type: application/json\" -H \"Accept: application/json\" -d '{\"full_name\":\"Test\",\"email\":\"t999@cut.ac.zw\",\"password\":\"Test1234\",\"password_confirmation\":\"Test1234\",\"faculty\":\"School of Engineering and Technology\",\"student_id\":\"CUT2023/999\",\"device_name\":\"mobile\"}')"
+      "Bash(curl -sk \"https://reelscholarapi-main-l5f9h5.laravel.cloud/api/auth/register\" -X POST -H \"Content-Type: application/json\" -H \"Accept: application/json\" -d '{\"full_name\":\"Test\",\"email\":\"t999@cut.ac.zw\",\"password\":\"Test1234\",\"password_confirmation\":\"Test1234\",\"faculty\":\"School of Engineering and Technology\",\"student_id\":\"CUT2023/999\",\"device_name\":\"mobile\"}')",
+      "Bash(cmd /c \"ipconfig\")",
+      "Bash(cmd.exe /c ipconfig)",
+      "Bash(python3 -c \"import socket; s=socket.socket\\(socket.AF_INET,socket.SOCK_DGRAM\\); s.connect\\(\\('8.8.8.8',80\\)\\); print\\(s.getsockname\\(\\)[0]\\); s.close\\(\\)\")",
+      "Bash(python -c \"import socket; s=socket.socket\\(socket.AF_INET,socket.SOCK_DGRAM\\); s.connect\\(\\('8.8.8.8',80\\)\\); print\\(s.getsockname\\(\\)[0]\\); s.close\\(\\)\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\pc\\OneDrive\\Desktop\\messaging-api"
