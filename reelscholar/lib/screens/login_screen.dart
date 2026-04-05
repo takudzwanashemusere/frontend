@@ -82,17 +82,36 @@ class _LoginScreenState extends State<LoginScreen>
           );
           // Also authenticate with the messaging API
           try {
-            final msgRes = await http.post(
+            final email = _emailController.text.trim();
+            final password = _passwordController.text;
+            final msgLoginRes = await http.post(
               Uri.parse('$kBaseUrl/auth/login'),
               headers: {'Content-Type': 'application/json'},
-              body: json.encode({
-                'email': _emailController.text.trim(),
-                'password': _passwordController.text,
-              }),
+              body: json.encode({'email': email, 'password': password}),
             );
-            if (msgRes.statusCode == 200) {
-              final msgData = json.decode(msgRes.body);
+            if (msgLoginRes.statusCode == 200) {
+              final msgData = json.decode(msgLoginRes.body);
               await AuthService.saveMessagingToken(msgData['access_token'] ?? '');
+            } else {
+              // Account doesn't exist in messaging DB yet — register it
+              final name = user['name'] ?? user['full_name'] ?? '';
+              final username = (user['username'] ?? user['email'] ?? email)
+                  .toString()
+                  .replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '_');
+              final msgRegRes = await http.post(
+                Uri.parse('$kBaseUrl/auth/register'),
+                headers: {'Content-Type': 'application/json'},
+                body: json.encode({
+                  'email': email,
+                  'username': username,
+                  'name': name,
+                  'password': password,
+                }),
+              );
+              if (msgRegRes.statusCode == 201) {
+                final msgData = json.decode(msgRegRes.body);
+                await AuthService.saveMessagingToken(msgData['access_token'] ?? '');
+              }
             }
           } catch (_) {
             // Non-fatal — messaging will degrade gracefully
