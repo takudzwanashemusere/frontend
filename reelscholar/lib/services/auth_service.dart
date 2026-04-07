@@ -13,6 +13,7 @@ class AuthService {
   static const _keyUsername = 'user_username';
   static const _keyIsLoggedIn = 'is_logged_in';
   static const _keyDepartment = 'user_department';
+  static const _keyDegreeProgram = 'user_degree_program';
   static const _keySemester = 'user_semester';
 
   // Save session after login / register
@@ -53,6 +54,18 @@ class AuthService {
   static Future<String?> getDepartment() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_keyDepartment);
+  }
+
+  // Save degree programme
+  static Future<void> saveDegreeProgram(String program) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyDegreeProgram, program);
+  }
+
+  // Get saved degree programme
+  static Future<String?> getDegreeProgram() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyDegreeProgram);
   }
 
   // Check if department has been selected

@@ -8,6 +8,37 @@ import '../services/auth_service.dart';
 import '../services/api_constants.dart';
 import '../main.dart';
 
+// ─── API helpers ──────────────────────────────────────────────────────────────
+
+Future<List<String>> _apiFetchFaculties() async {
+  try {
+    final res = await http.get(
+      Uri.parse('$kLaravelUrl/api/meta/faculties'),
+      headers: {'Accept': 'application/json'},
+    );
+    if (res.statusCode == 200) {
+      final body = json.decode(res.body);
+      final raw = body['faculties'];
+      if (raw is List) return raw.map((e) => e.toString()).toList();
+    }
+  } catch (_) {}
+  return [];
+}
+
+Future<List<String>> _apiFetchDegreePrograms(String faculty) async {
+  try {
+    final uri = Uri.parse('$kLaravelUrl/api/meta/programmes')
+        .replace(queryParameters: {'faculty': faculty});
+    final res = await http.get(uri, headers: {'Accept': 'application/json'});
+    if (res.statusCode == 200) {
+      final body = json.decode(res.body);
+      final raw = body['data'];
+      if (raw is List) return raw.map((e) => e.toString()).toList();
+    }
+  } catch (_) {}
+  return [];
+}
+
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -28,21 +59,17 @@ class _RegisterScreenState extends State<RegisterScreen>
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
   String? _selectedFaculty;
+  String? _selectedDegreeProgram;
+
+  List<String> _faculties = [];
+  List<String> _degreePrograms = [];
+  bool _loadingFaculties = false;
+  bool _loadingDegrees = false;
+  bool _facultiesLoaded = false;
 
   late AnimationController _animController;
   late Animation<double> _fadeIn;
   late Animation<Offset> _slideUp;
-
-  static const List<String> _faculties = [
-    'School of Engineering Science and Technology',
-    'School of Agriculture Sciences and Technology',
-    'School of Entrepreneurship and Business Sciences',
-    'School of Health Sciences and Technology',
-    'School of Wildlife and Environmental Science',
-    'School of Hospitality and Tourism',
-    'School of Natural Sciences and Mathematics',
-    'School of Art and Design',
-  ];
 
   @override
   void initState() {
@@ -60,6 +87,44 @@ class _RegisterScreenState extends State<RegisterScreen>
     ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
 
     _animController.forward();
+    _schoolIdController.addListener(_onStudentIdChanged);
+  }
+
+  void _onStudentIdChanged() {
+    if (_facultiesLoaded) return;
+    if (_schoolIdController.text.trim().length >= 5) {
+      _loadFaculties();
+    }
+  }
+
+  Future<void> _loadFaculties() async {
+    if (_facultiesLoaded || _loadingFaculties) return;
+    setState(() => _loadingFaculties = true);
+    final list = await _apiFetchFaculties();
+    if (mounted) {
+      setState(() {
+        _faculties = list;
+        _loadingFaculties = false;
+        _facultiesLoaded = true;
+      });
+    }
+  }
+
+  Future<void> _onFacultySelected(String? faculty) async {
+    setState(() {
+      _selectedFaculty = faculty;
+      _selectedDegreeProgram = null;
+      _degreePrograms = [];
+    });
+    if (faculty == null) return;
+    setState(() => _loadingDegrees = true);
+    final programs = await _apiFetchDegreePrograms(faculty);
+    if (mounted) {
+      setState(() {
+        _degreePrograms = programs;
+        _loadingDegrees = false;
+      });
+    }
   }
 
   @override
@@ -87,6 +152,7 @@ class _RegisterScreenState extends State<RegisterScreen>
             'password': _passwordController.text,
             'password_confirmation': _confirmPasswordController.text,
             'faculty': _selectedFaculty,
+            'degree_programme': _selectedDegreeProgram,
             'device_name': 'mobile',
           }),
         );
@@ -105,6 +171,9 @@ class _RegisterScreenState extends State<RegisterScreen>
             username: username,
           );
           await AuthService.saveDepartment(_selectedFaculty!);
+          if (_selectedDegreeProgram != null) {
+            await AuthService.saveDegreeProgram(_selectedDegreeProgram!);
+          }
           // Also register/login with the messaging API
           try {
             // Try register first; if the account already exists, fall back to login
@@ -275,10 +344,28 @@ class _RegisterScreenState extends State<RegisterScreen>
                           _FacultyDropdown(
                             value: _selectedFaculty,
                             faculties: _faculties,
-                            onChanged: (val) =>
-                                setState(() => _selectedFaculty = val),
+                            isLoading: _loadingFaculties,
+                            onChanged: _onFacultySelected,
                             validator: (val) {
                               if (val == null) return 'Please select your faculty';
+                              return null;
+                            },
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // Degree programme dropdown
+                          _FieldLabel('Degree Programme'),
+                          const SizedBox(height: 8),
+                          _DegreeProgramDropdown(
+                            value: _selectedDegreeProgram,
+                            programs: _degreePrograms,
+                            isLoading: _loadingDegrees,
+                            facultySelected: _selectedFaculty != null,
+                            onChanged: (val) =>
+                                setState(() => _selectedDegreeProgram = val),
+                            validator: (val) {
+                              if (val == null) return 'Please select your degree programme';
                               return null;
                             },
                           ),
@@ -438,6 +525,7 @@ class _RegisterScreenState extends State<RegisterScreen>
 class _FacultyDropdown extends StatelessWidget {
   final String? value;
   final List<String> faculties;
+  final bool isLoading;
   final ValueChanged<String?> onChanged;
   final String? Function(String?)? validator;
 
@@ -445,21 +533,29 @@ class _FacultyDropdown extends StatelessWidget {
     required this.value,
     required this.faculties,
     required this.onChanged,
+    this.isLoading = false,
     this.validator,
   });
 
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<String>(
+      key: ValueKey(faculties.length),
       initialValue: value,
-      onChanged: onChanged,
+      onChanged: isLoading ? null : onChanged,
       validator: validator,
       isExpanded: true,
-      icon: Icon(
-        Icons.keyboard_arrow_down_rounded,
-        color: AppColors.textTertiary,
-        size: 20,
-      ),
+      icon: isLoading
+          ? const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: AppColors.textTertiary,
+              size: 20,
+            ),
       dropdownColor: AppColors.surface,
       style: TextStyle(
         color: AppColors.textPrimary,
@@ -470,7 +566,7 @@ class _FacultyDropdown extends StatelessWidget {
       hint: Padding(
         padding: const EdgeInsets.only(left: 0),
         child: Text(
-          'Select your faculty',
+          isLoading ? 'Loading faculties...' : 'Select your faculty',
           style: TextStyle(
             color: AppColors.textTertiary,
             fontFamily: 'Poppins',
@@ -501,6 +597,105 @@ class _FacultyDropdown extends StatelessWidget {
               value: faculty,
               child: Text(
                 faculty,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontFamily: 'Poppins',
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          )
+          .toList(),
+    );
+  }
+}
+
+// ─── Degree programme dropdown ────────────────────────────────────────────────
+
+class _DegreeProgramDropdown extends StatelessWidget {
+  final String? value;
+  final List<String> programs;
+  final bool isLoading;
+  final bool facultySelected;
+  final ValueChanged<String?> onChanged;
+  final String? Function(String?)? validator;
+
+  const _DegreeProgramDropdown({
+    required this.value,
+    required this.programs,
+    required this.onChanged,
+    this.isLoading = false,
+    this.facultySelected = false,
+    this.validator,
+  });
+
+  String get _hint {
+    if (!facultySelected) return 'Select faculty first';
+    if (isLoading) return 'Loading programmes...';
+    return 'Select your programme';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButtonFormField<String>(
+      key: ValueKey('${programs.length}_$value'),
+      initialValue: value,
+      onChanged: (isLoading || !facultySelected || programs.isEmpty) ? null : onChanged,
+      validator: validator,
+      isExpanded: true,
+      icon: isLoading
+          ? const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: AppColors.textTertiary,
+              size: 20,
+            ),
+      dropdownColor: AppColors.surface,
+      style: TextStyle(
+        color: AppColors.textPrimary,
+        fontFamily: 'Poppins',
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+      ),
+      hint: Padding(
+        padding: const EdgeInsets.only(left: 0),
+        child: Text(
+          _hint,
+          style: TextStyle(
+            color: AppColors.textTertiary,
+            fontFamily: 'Poppins',
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+      ),
+      decoration: InputDecoration(
+        prefixIcon: Padding(
+          padding: const EdgeInsets.only(left: 14, right: 10),
+          child: Icon(
+            Icons.menu_book_outlined,
+            color: AppColors.textTertiary,
+            size: 18,
+          ),
+        ),
+        prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+        errorStyle: TextStyle(
+          fontFamily: 'Poppins',
+          fontSize: 11,
+          color: AppColors.error,
+        ),
+      ),
+      items: programs
+          .map(
+            (prog) => DropdownMenuItem(
+              value: prog,
+              child: Text(
+                prog,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: AppColors.textPrimary,
