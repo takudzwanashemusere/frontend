@@ -60,7 +60,8 @@
       "Bash(curl -s 'http://localhost:8001/users/search?q=musere' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwiZXhwIjoxNzc1NDAwODYzfQ.cNl7nBs2wSeGZKIot6ThyhAxK81ZCpKHGr3VXfTFt0A')",
       "Bash(taskkill /PID 17660 /F)",
       "Bash(curl -s 'http://localhost:8001/users/search?q=musere' -H 'Authorization: Bearer __TRACKED_VAR__')",
-      "WebFetch(domain:reelscholarapi-main-l5f9h5.laravel.cloud)"
+      "WebFetch(domain:reelscholarapi-main-l5f9h5.laravel.cloud)",
+      "Bash(dart analyze:*)"
     ],
     "additionalDirectories": [
       "C:\\Users\\pc\\OneDrive\\Desktop\\messaging-api"
