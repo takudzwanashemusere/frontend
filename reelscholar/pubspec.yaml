@@ -35,6 +35,9 @@ dependencies:
   # Image Loading & Caching
   cached_network_image: ^3.4.1
 
+  # Fonts
+  google_fonts: ^6.2.1
+
   # UI & Animations
   shimmer: ^3.0.0
   lottie: ^3.1.3

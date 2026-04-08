@@ -61,7 +61,8 @@
       "Bash(taskkill /PID 17660 /F)",
       "Bash(curl -s 'http://localhost:8001/users/search?q=musere' -H 'Authorization: Bearer __TRACKED_VAR__')",
       "WebFetch(domain:reelscholarapi-main-l5f9h5.laravel.cloud)",
-      "Bash(dart analyze:*)"
+      "Bash(dart analyze:*)",
+      "Read(//mnt/c/Users/pc/OneDrive/Desktop/**)"
     ],
     "additionalDirectories": [
       "C:\\Users\\pc\\OneDrive\\Desktop\\messaging-api"
