@@ -31,3 +31,5 @@ samples, guidance on mobile development, and a full API reference.
 
 
 the leader bboard should show participative  you are 
+
+ the api  for messaging is on git hub check new repository 
