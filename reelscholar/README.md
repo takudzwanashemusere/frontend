@@ -29,3 +29,5 @@ samples, guidance on mobile development, and a full API reference.
 
   -login auth is from the laravel , learn how it is connected 
 
+
+the leader bboard should show participative  you are 
