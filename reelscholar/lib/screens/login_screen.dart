@@ -5,7 +5,6 @@ import 'package:flutter/gestures.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'home_screen.dart';
-import 'department_selection_screen.dart';
 import 'register_screen.dart';
 import '../services/auth_service.dart';
 import '../services/api_constants.dart';
@@ -131,13 +130,10 @@ class _LoginScreenState extends State<LoginScreen>
             // Non-fatal — messaging will degrade gracefully
           }
           if (!mounted) return;
-          final hasDept = await AuthService.hasDepartment();
-          if (!mounted) return;
           Navigator.pushReplacement(
             context,
             PageRouteBuilder(
-              pageBuilder: (_, _, _) =>
-                  hasDept ? const HomeScreen() : const DepartmentSelectionScreen(),
+              pageBuilder: (_, _, _) => const HomeScreen(),
               transitionsBuilder: (_, animation, _, child) =>
                   FadeTransition(opacity: animation, child: child),
               transitionDuration: const Duration(milliseconds: 400),

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'login_screen.dart';
 import 'home_screen.dart';
-import 'department_selection_screen.dart';
 import '../services/auth_service.dart';
 import '../main.dart';
 
@@ -84,10 +83,7 @@ class _SplashScreenState extends State<SplashScreen>
         if (!loggedIn) {
           destination = const LoginScreen();
         } else {
-          final hasDept = await AuthService.hasDepartment();
-          destination = hasDept
-              ? const HomeScreen()
-              : const DepartmentSelectionScreen();
+          destination = const HomeScreen();
         }
         if (!mounted) return;
         Navigator.of(context).pushReplacement(
