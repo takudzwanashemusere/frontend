@@ -34,4 +34,4 @@ the leader bboard should show participative  you are
 
  the api  for messaging is on git hub check new repository 
 
- 
+ does the dashboard have to show stats show from frontend 
