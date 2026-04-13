@@ -104,26 +104,37 @@ class _LoginScreenState extends State<LoginScreen>
               headers: {'Content-Type': 'application/json'},
               body: json.encode({'email': email, 'password': password}),
             );
-            if (msgLoginRes.statusCode == 200) {
+            debugPrint('MSG LOGIN STATUS: ${msgLoginRes.statusCode}');
+            debugPrint('MSG LOGIN BODY: ${msgLoginRes.body}');
+            if (msgLoginRes.statusCode == 200 || msgLoginRes.statusCode == 201) {
               final msgData = json.decode(msgLoginRes.body);
               await AuthService.saveMessagingToken(msgData['access_token'] ?? '');
+              debugPrint('MSG TOKEN SAVED: ${msgData['access_token']}');
             } else {
-              final safeUsername = savedUsername.isEmpty
-                  ? email.split('@').first.replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '_')
-                  : savedUsername.replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '_');
-              final msgRegRes = await http.post(
-                Uri.parse('$kBaseUrl/auth/register'),
-                headers: {'Content-Type': 'application/json'},
-                body: json.encode({
-                  'email': email,
-                  'username': safeUsername,
-                  'name': savedName.isNotEmpty ? savedName : email.split('@').first,
-                  'password': password,
-                }),
-              );
-              if (msgRegRes.statusCode == 201) {
-                final msgData = json.decode(msgRegRes.body);
-                await AuthService.saveMessagingToken(msgData['access_token'] ?? '');
+              try {
+                final safeUsername = savedUsername.isEmpty
+                    ? email.split('@').first.replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '_')
+                    : savedUsername.replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '_');
+                debugPrint('MSG REGISTER ATTEMPT: email=$email username=$safeUsername');
+                final msgRegRes = await http.post(
+                  Uri.parse('$kBaseUrl/auth/register'),
+                  headers: {'Content-Type': 'application/json'},
+                  body: json.encode({
+                    'email': email,
+                    'username': safeUsername,
+                    'name': savedName.isNotEmpty ? savedName : email.split('@').first,
+                    'password': password,
+                  }),
+                );
+                debugPrint('MSG REGISTER STATUS: ${msgRegRes.statusCode}');
+                debugPrint('MSG REGISTER BODY: ${msgRegRes.body}');
+                if (msgRegRes.statusCode == 200 || msgRegRes.statusCode == 201) {
+                  final msgData = json.decode(msgRegRes.body);
+                  await AuthService.saveMessagingToken(msgData['access_token'] ?? '');
+                  debugPrint('MSG TOKEN SAVED (reg): ${msgData['access_token']}');
+                }
+              } catch (regErr) {
+                debugPrint('MSG REGISTER ERROR: $regErr');
               }
             }
           } catch (_) {

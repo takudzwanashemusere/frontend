@@ -77,7 +77,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
     try {
       // Ensure WebSocket is connected using the messaging API token
       final token = await AuthService.getMessagingToken();
-      if (token != null) WebSocketService().connect(token);
+      debugPrint('MSG TOKEN: $token');
+      if (token != null && token.isNotEmpty) WebSocketService().connect(token);
 
       final convs = await MessagingService.getConversations();
       if (mounted) setState(() => _conversations = convs);
