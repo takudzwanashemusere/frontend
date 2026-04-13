@@ -5,7 +5,7 @@
 //   const String kBaseUrl = 'http://192.168.1.5:8001';
 // iOS simulator → use localhost
 
-// Physical Android device on same Wi-Fi as your PC
-const String kBaseUrl    = 'http://192.168.0.127:8001';
-const String kWsUrl      = 'ws://192.168.0.127:8001/ws';
+// Render-hosted messaging API
+const String kBaseUrl    = 'https://messaging-api-pj0t.onrender.com';
+const String kWsUrl      = 'wss://messaging-api-pj0t.onrender.com/ws';
 const String kLaravelUrl = 'https://reelscholarapi-main-l5f9h5.laravel.cloud';
