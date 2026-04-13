@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import '../main.dart';
+import '../services/video_service.dart';
+import '../services/auth_service.dart';
 
 class CommentsSheet extends StatefulWidget {
   final String videoTitle;
-  const CommentsSheet({super.key, required this.videoTitle});
+  final dynamic videoId;
+  const CommentsSheet({super.key, required this.videoTitle, this.videoId});
 
   @override
   State<CommentsSheet> createState() => _CommentsSheetState();
@@ -13,62 +16,45 @@ class _CommentsSheetState extends State<CommentsSheet> {
   final TextEditingController _commentController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  final List<Map<String, dynamic>> _comments = [
-    {
-      'name': 'Rudo Chikwanda',
-      'username': '@rudo_bio',
-      'comment':
-          'This actually helped me so much for my test tomorrow! Thank you',
-      'time': '2m ago',
-      'likes': 24,
-      'isLiked': false,
-    },
-    {
-      'name': 'Panashe Dzingira',
-      'username': '@panashe_chem',
-      'comment':
-          'Can you do one on integration by parts next? That one confuses me',
-      'time': '5m ago',
-      'likes': 12,
-      'isLiked': false,
-    },
-    {
-      'name': 'Farai Mutasa',
-      'username': '@farai_m',
-      'comment':
-          'Best explanation I have seen anywhere. CUT students are blessed to have this app!',
-      'time': '12m ago',
-      'likes': 47,
-      'isLiked': true,
-    },
-    {
-      'name': 'Tatenda Moyo',
-      'username': '@tatenda_math',
-      'comment': 'Glad it helped! Integration by parts coming next week',
-      'time': '10m ago',
-      'likes': 31,
-      'isLiked': false,
-      'isAuthor': true,
-    },
-    {
-      'name': 'Simba Kowo',
-      'username': '@simba_ict',
-      'comment':
-          'Shared this with my whole study group. We needed this before exams',
-      'time': '18m ago',
-      'likes': 8,
-      'isLiked': false,
-    },
-    {
-      'name': 'Chiedza Mupfumi',
-      'username': '@chiedza_m',
-      'comment':
-          'Please do more on calculus! The lecturer moves too fast in class',
-      'time': '25m ago',
-      'likes': 19,
-      'isLiked': false,
-    },
-  ];
+  List<Map<String, dynamic>> _comments = [];
+  bool _isLoading = false;
+  bool _isPosting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadComments();
+  }
+
+  Future<void> _loadComments() async {
+    if (widget.videoId == null) return;
+    setState(() => _isLoading = true);
+    try {
+      final list = await VideoService.getComments(widget.videoId);
+      if (mounted) {
+        setState(() {
+          _comments = list.map(_normalizeComment).toList();
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Map<String, dynamic> _normalizeComment(Map<String, dynamic> c) {
+    final user = (c['user'] is Map) ? c['user'] as Map<String, dynamic> : <String, dynamic>{};
+    return {
+      'id': c['id'],
+      'name': user['name'] ?? c['author_name'] ?? 'Unknown',
+      'username': '@${user['username'] ?? c['username'] ?? 'user'}',
+      'comment': c['body'] ?? c['comment'] ?? c['content'] ?? '',
+      'time': c['created_at']?.toString() ?? '',
+      'likes': (c['likes_count'] ?? c['likes'] ?? 0) as int? ?? 0,
+      'isLiked': c['is_liked'] == true,
+      'isAuthor': c['is_author'] == true,
+    };
+  }
 
   @override
   void dispose() {
@@ -77,24 +63,38 @@ class _CommentsSheetState extends State<CommentsSheet> {
     super.dispose();
   }
 
-  void _addComment() {
-    if (_commentController.text.trim().isEmpty) return;
-    setState(() {
-      _comments.insert(0, {
-        'name': 'You',
-        'username': '@me',
-        'comment': _commentController.text.trim(),
-        'time': 'Just now',
-        'likes': 0,
-        'isLiked': false,
-      });
-    });
+  Future<void> _addComment() async {
+    final text = _commentController.text.trim();
+    if (text.isEmpty) return;
+    if (widget.videoId == null) return;
+
+    setState(() => _isPosting = true);
     _commentController.clear();
-    _scrollController.animateTo(
-      0,
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.easeOut,
-    );
+
+    try {
+      final raw = await VideoService.postComment(widget.videoId, text);
+      final comment = raw.isNotEmpty
+          ? _normalizeComment(raw)
+          : {
+              'id': null,
+              'name': await AuthService.getUserName() ?? 'You',
+              'username': '@${await AuthService.getUsername() ?? 'me'}',
+              'comment': text,
+              'time': 'Just now',
+              'likes': 0,
+              'isLiked': false,
+            };
+      if (mounted) {
+        setState(() {
+          _comments.insert(0, comment);
+          _isPosting = false;
+        });
+        _scrollController.animateTo(0,
+            duration: const Duration(milliseconds: 250), curve: Curves.easeOut);
+      }
+    } catch (_) {
+      if (mounted) setState(() => _isPosting = false);
+    }
   }
 
   @override
@@ -157,7 +157,20 @@ class _CommentsSheetState extends State<CommentsSheet> {
 
           // Comments list
           Expanded(
-            child: ListView.builder(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _comments.isEmpty
+                    ? Center(
+                        child: Text(
+                          'No comments yet. Be the first!',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            color: AppColors.textMuted,
+                            fontSize: 13,
+                          ),
+                        ),
+                      )
+                    : ListView.builder(
               controller: _scrollController,
               padding: const EdgeInsets.symmetric(horizontal: 20),
               itemCount: _comments.length,
@@ -306,7 +319,7 @@ class _CommentsSheetState extends State<CommentsSheet> {
                 );
               },
             ),
-          ),
+          ),  // end Expanded
 
           // Comment input
           Container(
@@ -378,7 +391,7 @@ class _CommentsSheetState extends State<CommentsSheet> {
                 ),
                 const SizedBox(width: 8),
                 GestureDetector(
-                  onTap: _addComment,
+                  onTap: _isPosting ? null : _addComment,
                   child: Container(
                     width: 36,
                     height: 36,
@@ -386,11 +399,19 @@ class _CommentsSheetState extends State<CommentsSheet> {
                       color: AppColors.accent,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
-                      Icons.send_rounded,
-                      color: Colors.white,
-                      size: 16,
-                    ),
+                    child: _isPosting
+                        ? const Padding(
+                            padding: EdgeInsets.all(10),
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Icon(
+                            Icons.send_rounded,
+                            color: Colors.white,
+                            size: 16,
+                          ),
                   ),
                 ),
               ],
@@ -402,11 +423,11 @@ class _CommentsSheetState extends State<CommentsSheet> {
   }
 }
 
-void showComments(BuildContext context, String videoTitle) {
+void showComments(BuildContext context, String videoTitle, {dynamic videoId}) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (_) => CommentsSheet(videoTitle: videoTitle),
+    builder: (_) => CommentsSheet(videoTitle: videoTitle, videoId: videoId),
   );
 }

@@ -13,6 +13,7 @@ import '../widgets/video_player_widget.dart';
 import '../widgets/quiz_popup.dart';
 import '../services/theme_service.dart';
 import '../services/auth_service.dart';
+import '../services/video_service.dart';
 import '../main.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -27,6 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   List<Map<String, dynamic>> _videos = [];
   int _selectedFeedTab = 0; // 0=For You, 1=Following, 2=My School
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -35,30 +37,28 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _loadVideos() async {
-    final dept = await AuthService.getDepartment();
-    final all = VideoStore.videos.map((v) => {
-      ...v,
-      'color': Color(v['color'] as int),
-      'accent': Color(v['accent'] as int),
-    }).toList();
-
-    setState(() {
-      switch (_selectedFeedTab) {
-        case 2: // My School
-          if (dept != null && dept.isNotEmpty) {
-            final filtered = all.where((v) => v['school'] == dept).toList();
-            _videos = filtered.isNotEmpty ? filtered : all;
-          } else {
-            _videos = all;
-          }
-          break;
-        case 1: // Following — demo: reversed list for variety
-          _videos = all.reversed.toList();
-          break;
-        default: // For You
-          _videos = all;
-      }
-    });
+    setState(() => _isLoading = true);
+    try {
+      final dept = await AuthService.getDepartment();
+      final filter = switch (_selectedFeedTab) {
+        1 => 'following',
+        2 => 'my_school',
+        _ => 'for_you',
+      };
+      final apiVideos = await VideoService.getFeed(
+        filter: filter,
+        school: _selectedFeedTab == 2 ? dept : null,
+      );
+      // Prepend any locally-uploaded videos that haven't synced yet
+      final local = VideoStore.videos.map((v) => {
+        ...v,
+        'color': v['color'] is Color ? v['color'] : Color(v['color'] as int),
+        'accent': v['accent'] is Color ? v['accent'] : Color(v['accent'] as int),
+      }).toList();
+      if (mounted) setState(() { _videos = [...local, ...apiVideos]; _isLoading = false; });
+    } catch (_) {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -76,15 +76,25 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Stack(
         children: [
           // Video feed
-          PageView.builder(
-            controller: _pageController,
-            scrollDirection: Axis.vertical,
-            onPageChanged: (_) {},
-            itemCount: _videos.length,
-            itemBuilder: (context, index) {
-              return _VideoCard(video: _videos[index]);
-            },
-          ),
+          if (_isLoading && _videos.isEmpty)
+            const Center(child: CircularProgressIndicator())
+          else if (_videos.isEmpty)
+            const Center(
+              child: Text(
+                'No videos yet',
+                style: TextStyle(color: Colors.white54, fontFamily: 'Poppins'),
+              ),
+            )
+          else
+            PageView.builder(
+              controller: _pageController,
+              scrollDirection: Axis.vertical,
+              onPageChanged: (_) {},
+              itemCount: _videos.length,
+              itemBuilder: (context, index) {
+                return _VideoCard(video: _videos[index]);
+              },
+            ),
 
           // Top bar + feed tabs
           SafeArea(
@@ -226,13 +236,14 @@ class _VideoCard extends StatefulWidget {
 
 class _VideoCardState extends State<_VideoCard>
     with SingleTickerProviderStateMixin {
-  bool _isLiked = false;
+  late bool _isLiked;
   late AnimationController _heartController;
   late Animation<double> _heartScale;
 
   @override
   void initState() {
     super.initState();
+    _isLiked = widget.video['isLiked'] == true;
     _heartController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
@@ -251,6 +262,12 @@ class _VideoCardState extends State<_VideoCard>
   void _handleLike() {
     setState(() => _isLiked = !_isLiked);
     _heartController.forward().then((_) => _heartController.reverse());
+    final videoId = widget.video['id'];
+    if (videoId != null) {
+      VideoService.toggleLike(videoId).catchError((_) {
+        if (mounted) setState(() => _isLiked = !_isLiked); // revert on error
+      });
+    }
   }
 
   Widget _buildDemoPlaceholder(Color accent, Map<String, dynamic> video) {
@@ -453,7 +470,7 @@ class _VideoCardState extends State<_VideoCard>
 
                 // Comment
                 _ActionButton(
-                  onTap: () => showComments(context, video['title']),
+                  onTap: () => showComments(context, video['title'], videoId: video['id']),
                   label: video['comments'],
                   child: const Icon(
                     Icons.chat_bubble_outline_rounded,

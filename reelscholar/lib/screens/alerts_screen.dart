@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../main.dart';
+import '../services/video_service.dart';
 
 class AlertsScreen extends StatefulWidget {
   const AlertsScreen({super.key});
@@ -11,89 +12,63 @@ class AlertsScreen extends StatefulWidget {
 class _AlertsScreenState extends State<AlertsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  List<Map<String, dynamic>> _allNotifications = [];
+  bool _isLoading = false;
 
-  final List<Map<String, dynamic>> _allNotifications = [
-    {
-      'type': 'like',
-      'name': 'Tatenda Moyo',
-      'action': 'liked your video',
-      'target': 'Solving Quadratic Equations in 60 seconds',
-      'time': '2m ago',
-      'isRead': false,
-      'icon': Icons.favorite_rounded,
-      'iconColor': AppColors.error,
-    },
-    {
-      'type': 'comment',
-      'name': 'Rudo Chikwanda',
-      'action': 'commented on your video',
-      'target': '"This helped me so much for my test!"',
-      'time': '8m ago',
-      'isRead': false,
-      'icon': Icons.chat_bubble_rounded,
-      'iconColor': AppColors.accent,
-    },
-    {
-      'type': 'follow',
-      'name': 'Simba Kowo',
-      'action': 'started following you',
-      'target': '',
-      'time': '15m ago',
-      'isRead': false,
-      'icon': Icons.person_add_rounded,
-      'iconColor': AppColors.accentLight,
-    },
-    {
-      'type': 'like',
-      'name': 'Panashe Dzingira',
-      'action': 'liked your video',
-      'target': "Newton's 3 Laws explained",
-      'time': '32m ago',
-      'isRead': true,
-      'icon': Icons.favorite_rounded,
-      'iconColor': AppColors.error,
-    },
-    {
-      'type': 'comment',
-      'name': 'Farai Mutasa',
-      'action': 'replied to your comment',
-      'target': '"Agreed! This app is amazing for studying"',
-      'time': '1h ago',
-      'isRead': true,
-      'icon': Icons.chat_bubble_rounded,
-      'iconColor': AppColors.accent,
-    },
-    {
-      'type': 'system',
-      'name': 'ReelScholar',
-      'action': 'Your video was approved and is now live!',
-      'target': 'Databases Introduction for ICT Students',
-      'time': '2h ago',
-      'isRead': true,
-      'icon': Icons.check_circle_rounded,
-      'iconColor': AppColors.success,
-    },
-    {
-      'type': 'follow',
-      'name': 'Chiedza Mupfumi',
-      'action': 'started following you',
-      'target': '',
-      'time': '3h ago',
-      'isRead': true,
-      'icon': Icons.person_add_rounded,
-      'iconColor': AppColors.accentLight,
-    },
-    {
-      'type': 'system',
-      'name': 'ReelScholar',
-      'action': 'Welcome! Start by uploading your first video.',
-      'target': 'Tap the + button to get started',
-      'time': '1d ago',
-      'isRead': true,
-      'icon': Icons.school_rounded,
-      'iconColor': AppColors.accent,
-    },
-  ];
+  // Map a raw API notification to the format expected by the UI
+  Map<String, dynamic> _normalizeNotification(Map<String, dynamic> n) {
+    final type = n['type']?.toString() ?? 'system';
+    IconData icon;
+    Color iconColor;
+    switch (type) {
+      case 'like':
+        icon = Icons.favorite_rounded;
+        iconColor = AppColors.error;
+        break;
+      case 'comment':
+        icon = Icons.chat_bubble_rounded;
+        iconColor = AppColors.accent;
+        break;
+      case 'follow':
+        icon = Icons.person_add_rounded;
+        iconColor = AppColors.accentLight;
+        break;
+      default:
+        icon = Icons.check_circle_rounded;
+        iconColor = AppColors.success;
+    }
+    final notifier = (n['notifier'] is Map)
+        ? n['notifier'] as Map<String, dynamic>
+        : (n['from_user'] is Map)
+            ? n['from_user'] as Map<String, dynamic>
+            : <String, dynamic>{};
+    return {
+      'id': n['id'],
+      'type': type,
+      'name': notifier['name'] ?? n['name'] ?? 'ReelScholar',
+      'action': n['message'] ?? n['action'] ?? '',
+      'target': n['target'] ?? n['video_title'] ?? '',
+      'time': n['created_at']?.toString() ?? '',
+      'isRead': n['read_at'] != null || n['is_read'] == true,
+      'icon': icon,
+      'iconColor': iconColor,
+    };
+  }
+
+  Future<void> _loadNotifications() async {
+    setState(() => _isLoading = true);
+    try {
+      final raw = await VideoService.getNotifications();
+      if (mounted) {
+        setState(() {
+          _allNotifications = raw.map(_normalizeNotification).toList();
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   int get _unreadCount =>
       _allNotifications.where((n) => n['isRead'] == false).length;
@@ -104,16 +79,22 @@ class _AlertsScreenState extends State<AlertsScreen>
         n['isRead'] = true;
       }
     });
+    VideoService.markAllNotificationsRead().catchError((_) {});
   }
 
   void _markRead(int index) {
-    setState(() => _allNotifications[index]['isRead'] = true);
+    final notif = _allNotifications[index];
+    setState(() => notif['isRead'] = true);
+    if (notif['id'] != null) {
+      VideoService.markNotificationRead(notif['id']).catchError((_) {});
+    }
   }
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _loadNotifications();
   }
 
   @override
@@ -220,21 +201,23 @@ class _AlertsScreenState extends State<AlertsScreen>
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildNotificationList(_filterByType('all')),
-          _buildNotificationList(
-            _allNotifications
-                .where((n) =>
-                    n['type'] == 'like' ||
-                    n['type'] == 'comment' ||
-                    n['type'] == 'follow')
-                .toList(),
-          ),
-          _buildNotificationList(_filterByType('system')),
-        ],
-      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : TabBarView(
+              controller: _tabController,
+              children: [
+                _buildNotificationList(_filterByType('all')),
+                _buildNotificationList(
+                  _allNotifications
+                      .where((n) =>
+                          n['type'] == 'like' ||
+                          n['type'] == 'comment' ||
+                          n['type'] == 'follow')
+                      .toList(),
+                ),
+                _buildNotificationList(_filterByType('system')),
+              ],
+            ),
     );
   }
 
