@@ -82,7 +82,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
       final convs = await MessagingService.getConversations();
       if (mounted) setState(() => _conversations = convs);
     } catch (e) {
-      if (mounted) setState(() => _error = 'Could not load messages');
+      if (mounted) setState(() => _error = 'Could not load messages: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
