@@ -283,17 +283,11 @@ class _ProfileScreenState extends State<ProfileScreen>
                             File(_profileImagePath!),
                             fit: BoxFit.cover,
                           )
-                        : Center(
-                            child: Text(
-                              _userName.isNotEmpty
-                                  ? _userName[0].toUpperCase()
-                                  : 'S',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontFamily: 'Poppins',
-                                fontSize: 30,
-                                fontWeight: FontWeight.w700,
-                              ),
+                        : const Center(
+                            child: Icon(
+                              Icons.person_rounded,
+                              color: Colors.white,
+                              size: 42,
                             ),
                           ),
                   ),
@@ -1030,17 +1024,11 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
                                       File(_selectedImagePath!),
                                       fit: BoxFit.cover,
                                     )
-                                  : Center(
-                                      child: Text(
-                                        _nameController.text.isNotEmpty
-                                            ? _nameController.text[0].toUpperCase()
-                                            : 'S',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontFamily: 'Poppins',
-                                          fontSize: 32,
-                                          fontWeight: FontWeight.w700,
-                                        ),
+                                  : const Center(
+                                      child: Icon(
+                                        Icons.person_rounded,
+                                        color: Colors.white,
+                                        size: 46,
                                       ),
                                     ),
                             ),
