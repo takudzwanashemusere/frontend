@@ -203,6 +203,16 @@ class VideoService {
     await _dio.post('/api/users/$userId/follow', options: opts);
   }
 
+  /// Fetch the current user's achievements
+  static Future<List<Map<String, dynamic>>> getAchievements() async {
+    final opts = await _authOptions();
+    final response = await _dio.get('/api/user/achievements', options: opts);
+    final raw = response.data;
+    final List list =
+        (raw is Map ? (raw['data'] ?? raw['achievements'] ?? []) : raw) as List? ?? [];
+    return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
   /// Fetch the current user's full profile (stats included)
   static Future<Map<String, dynamic>> getUserProfile() async {
     final opts = await _authOptions();
@@ -210,6 +220,7 @@ class VideoService {
     final raw = response.data;
     return Map<String, dynamic>.from(raw is Map ? (raw['data'] ?? raw) : {});
   }
+
 
   /// Update the current user's profile (name, bio, avatar)
   static Future<Map<String, dynamic>> updateProfile({

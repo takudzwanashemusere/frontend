@@ -29,11 +29,15 @@ class _ProfileScreenState extends State<ProfileScreen>
   int _followingCount = 0;
   int _likesCount = 0;
 
+  List<Map<String, dynamic>> _achievements = [];
+  bool _achievementsLoading = true;
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _loadUserData();
+    _loadAchievements();
   }
 
   Future<void> _loadUserData() async {
@@ -73,6 +77,15 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   int _parseCount(dynamic v) =>
       v is int ? v : int.tryParse(v?.toString() ?? '') ?? 0;
+
+  Future<void> _loadAchievements() async {
+    try {
+      final list = await VideoService.getAchievements();
+      if (mounted) setState(() { _achievements = list; _achievementsLoading = false; });
+    } catch (_) {
+      if (mounted) setState(() => _achievementsLoading = false);
+    }
+  }
 
   void _openEditProfile() {
     showModalBottomSheet(
@@ -583,74 +596,71 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Widget _buildAchievementsTab() {
-    const achievements = [
-      {
-        'icon': Icons.star_rounded,
-        'label': 'First Video',
-        'desc': 'Uploaded your first educational video',
-        'color': 0xFFF59E0B,
-        'unlocked': true,
-      },
-      {
-        'icon': Icons.local_fire_department_rounded,
-        'label': '5-Day Streak',
-        'desc': 'Completed quizzes 5 days in a row',
-        'color': 0xFFEF4444,
-        'unlocked': true,
-      },
-      {
-        'icon': Icons.school_rounded,
-        'label': 'Top Scorer',
-        'desc': 'Scored 90%+ on any quiz',
-        'color': 0xFF2563EB,
-        'unlocked': true,
-      },
-      {
-        'icon': Icons.people_rounded,
-        'label': '100 Followers',
-        'desc': 'Reached 100 followers',
-        'color': 0xFF8B5CF6,
-        'unlocked': false,
-      },
-      {
-        'icon': Icons.emoji_events_rounded,
-        'label': 'Hackathon',
-        'desc': 'Submitted a hackathon project',
-        'color': 0xFFF5A623,
-        'unlocked': false,
-      },
-      {
-        'icon': Icons.video_library_rounded,
-        'label': '10 Videos',
-        'desc': 'Uploaded 10 educational videos',
-        'color': 0xFF22C55E,
-        'unlocked': false,
-      },
-      {
-        'icon': Icons.chat_rounded,
-        'label': 'Commentator',
-        'desc': 'Left 25 comments on videos',
-        'color': 0xFF0EA5E9,
-        'unlocked': false,
-      },
-      {
-        'icon': Icons.share_rounded,
-        'label': 'Networker',
-        'desc': 'Shared 10 videos with peers',
-        'color': 0xFFEC4899,
-        'unlocked': false,
-      },
-    ];
+  /// Map an icon name string from the API to a Flutter IconData.
+  static IconData _resolveIcon(String? name) {
+    switch (name?.toLowerCase()) {
+      case 'star':          return Icons.star_rounded;
+      case 'fire':          return Icons.local_fire_department_rounded;
+      case 'school':        return Icons.school_rounded;
+      case 'people':        return Icons.people_rounded;
+      case 'trophy':
+      case 'hackathon':     return Icons.emoji_events_rounded;
+      case 'video':         return Icons.video_library_rounded;
+      case 'chat':
+      case 'comment':       return Icons.chat_rounded;
+      case 'share':         return Icons.share_rounded;
+      case 'medal':         return Icons.military_tech_rounded;
+      case 'quiz':          return Icons.quiz_rounded;
+      case 'like':          return Icons.favorite_rounded;
+      default:              return Icons.emoji_events_rounded;
+    }
+  }
 
-    final unlocked = achievements.where((a) => a['unlocked'] == true).toList();
-    final locked = achievements.where((a) => a['unlocked'] == false).toList();
+  /// Parse a color from the API (hex string like "#F59E0B" or int).
+  static Color _resolveColor(dynamic raw) {
+    if (raw == null) return const Color(0xFFF59E0B);
+    if (raw is int) return Color(raw);
+    final hex = raw.toString().replaceAll('#', '');
+    if (hex.length == 6) return Color(int.tryParse('FF$hex', radix: 16) ?? 0xFFF59E0B);
+    if (hex.length == 8) return Color(int.tryParse(hex, radix: 16) ?? 0xFFF59E0B);
+    return const Color(0xFFF59E0B);
+  }
+
+  Widget _buildAchievementsTab() {
+    if (_achievementsLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_achievements.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.emoji_events_outlined, size: 52, color: AppColors.textMuted),
+            const SizedBox(height: 16),
+            Text('No achievements yet', style: AppTextStyles.headingMedium),
+            const SizedBox(height: 6),
+            Text(
+              'Upload videos, complete quizzes\nand engage with the community',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bodyMedium,
+            ),
+          ],
+        ),
+      );
+    }
+
+    final unlocked = _achievements.where((a) => a['unlocked'] == true || a['is_unlocked'] == true).toList();
+    final locked = _achievements.where((a) => a['unlocked'] != true && a['is_unlocked'] != true).toList();
+    final total = _achievements.length;
+    final pct = total > 0 ? ((unlocked.length / total) * 100).round() : 0;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Summary banner
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -689,7 +699,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                       ),
                     ),
                     Text(
-                      '${unlocked.length} of ${achievements.length} unlocked',
+                      '${unlocked.length} of $total unlocked',
                       style: const TextStyle(
                           fontFamily: 'Poppins', fontSize: 12, color: Colors.white60),
                     ),
@@ -697,7 +707,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                 ),
                 const Spacer(),
                 Text(
-                  '${((unlocked.length / achievements.length) * 100).round()}%',
+                  '$pct%',
                   style: const TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 22,
@@ -708,46 +718,49 @@ class _ProfileScreenState extends State<ProfileScreen>
               ],
             ),
           ),
-          const SizedBox(height: 20),
-          _sectionHeader('UNLOCKED'),
-          const SizedBox(height: 10),
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-            childAspectRatio: 1.6,
-            children: unlocked
-                .map((a) => _AchievementCard(
-                      icon: a['icon'] as IconData,
-                      label: a['label'] as String,
-                      desc: a['desc'] as String,
-                      color: Color(a['color'] as int),
-                      unlocked: true,
-                    ))
-                .toList(),
-          ),
-          const SizedBox(height: 20),
-          _sectionHeader('LOCKED'),
-          const SizedBox(height: 10),
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-            childAspectRatio: 1.6,
-            children: locked
-                .map((a) => _AchievementCard(
-                      icon: a['icon'] as IconData,
-                      label: a['label'] as String,
-                      desc: a['desc'] as String,
-                      color: Color(a['color'] as int),
-                      unlocked: false,
-                    ))
-                .toList(),
-          ),
+
+          if (unlocked.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            _sectionHeader('UNLOCKED'),
+            const SizedBox(height: 10),
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              childAspectRatio: 1.6,
+              children: unlocked.map((a) => _AchievementCard(
+                icon: _resolveIcon(a['icon']?.toString()),
+                label: a['name']?.toString() ?? a['label']?.toString() ?? '',
+                desc: a['description']?.toString() ?? a['desc']?.toString() ?? '',
+                color: _resolveColor(a['color']),
+                unlocked: true,
+              )).toList(),
+            ),
+          ],
+
+          if (locked.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            _sectionHeader('LOCKED'),
+            const SizedBox(height: 10),
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              childAspectRatio: 1.6,
+              children: locked.map((a) => _AchievementCard(
+                icon: _resolveIcon(a['icon']?.toString()),
+                label: a['name']?.toString() ?? a['label']?.toString() ?? '',
+                desc: a['description']?.toString() ?? a['desc']?.toString() ?? '',
+                color: _resolveColor(a['color']),
+                unlocked: false,
+              )).toList(),
+            ),
+          ],
+
           const SizedBox(height: 24),
         ],
       ),
