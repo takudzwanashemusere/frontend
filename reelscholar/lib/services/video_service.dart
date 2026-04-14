@@ -167,4 +167,38 @@ class VideoService {
     final List list = (raw is Map ? (raw['data'] ?? raw['videos'] ?? []) : raw) as List? ?? [];
     return list.map((e) => normalizeVideo(Map<String, dynamic>.from(e as Map))).toList();
   }
+
+  /// Fetch the current user's dashboard statistics
+  static Future<Map<String, dynamic>> getUserStats() async {
+    final opts = await _authOptions();
+    final response = await _dio.get('/api/user/stats', options: opts);
+    final raw = response.data;
+    return Map<String, dynamic>.from(raw is Map ? (raw['data'] ?? raw) : {});
+  }
+
+  /// Fetch suggested users to follow
+  static Future<List<Map<String, dynamic>>> getSuggestedUsers() async {
+    final opts = await _authOptions();
+    final response = await _dio.get('/api/users/suggested', options: opts);
+    final raw = response.data;
+    final List list =
+        (raw is Map ? (raw['data'] ?? raw['users'] ?? []) : raw) as List? ?? [];
+    return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
+  /// Fetch trending topics
+  static Future<List<Map<String, dynamic>>> getTrendingTopics() async {
+    final opts = await _authOptions();
+    final response = await _dio.get('/api/topics/trending', options: opts);
+    final raw = response.data;
+    final List list =
+        (raw is Map ? (raw['data'] ?? raw['topics'] ?? []) : raw) as List? ?? [];
+    return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
+  /// Follow or unfollow a user
+  static Future<void> toggleFollow(dynamic userId) async {
+    final opts = await _authOptions();
+    await _dio.post('/api/users/$userId/follow', options: opts);
+  }
 }
