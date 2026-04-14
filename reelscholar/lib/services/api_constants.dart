@@ -9,3 +9,6 @@
 const String kBaseUrl    = 'https://messaging-api-pj0t.onrender.com';
 const String kWsUrl      = 'wss://messaging-api-pj0t.onrender.com/ws';
 const String kLaravelUrl = 'https://reelscholarapi-main-l5f9h5.laravel.cloud';
+
+// Educational content detection API
+const String kContentDetectionUrl = 'https://educational-content-detection.onrender.com';

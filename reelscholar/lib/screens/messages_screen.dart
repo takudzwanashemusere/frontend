@@ -667,12 +667,13 @@ class _MessagesScreenState extends State<MessagesScreen> {
                           ),
                           onTap: () async {
                             Navigator.pop(ctx);
+                            final nav = Navigator.of(context);
+                            final messenger = ScaffoldMessenger.of(context);
                             try {
                               final convId = await MessagingService
                                   .startConversation(user['id'] as int);
                               if (!mounted) return;
-                              Navigator.push(
-                                context,
+                              nav.push(
                                 MaterialPageRoute(
                                   builder: (_) => ChatScreen(
                                     conversationId: convId,
@@ -686,7 +687,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                               ).then((_) => _loadConversations());
                             } catch (_) {
                               if (!mounted) return;
-                              ScaffoldMessenger.of(context).showSnackBar(
+                              messenger.showSnackBar(
                                 const SnackBar(
                                   content: Text('Could not start conversation'),
                                 ),

@@ -1,7 +1,9 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import '../models/video_store.dart';
 import '../main.dart';
+import '../services/content_detection_service.dart';
 
 class UploadScreen extends StatefulWidget {
   const UploadScreen({super.key});
@@ -23,8 +25,9 @@ class _UploadScreenState extends State<UploadScreen>
   bool _hasVideo = false;
   String _selectedFileName = '';
   String? _filePath;
-  List<int>? _fileBytes;
+  Uint8List? _fileBytes;
   bool _isUploading = false;
+  bool _isValidating = false;
   double _uploadProgress = 0.0;
 
   final Map<String, List<String>> _schoolModules = {
@@ -107,8 +110,8 @@ class _UploadScreenState extends State<UploadScreen>
           _hasVideo = true;
           _selectedFileName = file.name;
           _filePath = file.path;
-          _fileBytes =
-              file.bytes != null ? List<int>.from(file.bytes!) : null;
+          _fileBytes = file.bytes;
+          // reset validation on new file pick
         });
       }
     } catch (e) {
@@ -139,6 +142,37 @@ class _UploadScreenState extends State<UploadScreen>
       return;
     }
 
+    // ── Step 1: Content validation ────────────────────────────────────────
+    setState(() => _isValidating = true);
+
+    ValidationResult result;
+    try {
+      result = await ContentDetectionService.validateVideo(
+        filePath: _filePath,
+        fileBytes: _fileBytes,
+        fileName: _selectedFileName.isNotEmpty ? _selectedFileName : 'video.mp4',
+        title: _titleController.text.trim(),
+        description: _descController.text.trim(),
+      );
+    } catch (e) {
+      setState(() => _isValidating = false);
+      _showSnack('Content check failed. Please try again.');
+      return;
+    }
+
+    setState(() => _isValidating = false);
+
+    if (result.status == ContentStatus.rejected) {
+      _showContentRejectedDialog(result.message);
+      return;
+    }
+
+    if (result.status == ContentStatus.underReview) {
+      _showUnderReviewDialog(result.message);
+      return;
+    }
+
+    // ── Step 2: Approved — proceed with upload ────────────────────────────
     setState(() => _isUploading = true);
 
     for (int i = 0; i <= 100; i += 5) {
@@ -178,6 +212,107 @@ class _UploadScreenState extends State<UploadScreen>
       if (!mounted) return;
       Navigator.pop(context);
     }
+  }
+
+  void _showContentRejectedDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.block_rounded, color: Colors.redAccent, size: 22),
+            const SizedBox(width: 10),
+            Text(
+              'Content Rejected',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          message.isNotEmpty
+              ? message
+              : 'This video does not meet our educational content guidelines and cannot be uploaded.',
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 13,
+            color: AppColors.textSecondary,
+            height: 1.5,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'OK',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w600,
+                color: AppColors.accent,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showUnderReviewDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.hourglass_top_rounded, color: Colors.orangeAccent, size: 22),
+            const SizedBox(width: 10),
+            Text(
+              'Under Review',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          message.isNotEmpty
+              ? message
+              : 'Your video has been flagged for admin review. It will be published once approved.',
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 13,
+            color: AppColors.textSecondary,
+            height: 1.5,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // close dialog
+              Navigator.pop(context); // go back from upload screen
+            },
+            child: Text(
+              'OK',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w600,
+                color: Colors.orangeAccent,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showSnack(String msg) {
@@ -254,7 +389,9 @@ class _UploadScreenState extends State<UploadScreen>
             ),
         ],
       ),
-      body: _isUploading
+      body: _isValidating
+          ? _buildValidatingView()
+          : _isUploading
           ? _buildUploadingView()
           : FadeTransition(
               opacity: _fadeIn,
@@ -503,6 +640,53 @@ class _UploadScreenState extends State<UploadScreen>
                 ),
               ),
             ),
+    );
+  }
+
+  Widget _buildValidatingView() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Icon(
+                Icons.shield_outlined,
+                color: AppColors.accent,
+                size: 36,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Checking content',
+              style: AppTextStyles.headingLarge,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Verifying your video meets educational guidelines',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bodyMedium,
+            ),
+            const SizedBox(height: 32),
+            SizedBox(
+              width: 32,
+              height: 32,
+              child: CircularProgressIndicator(
+                strokeWidth: 3,
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.accent),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

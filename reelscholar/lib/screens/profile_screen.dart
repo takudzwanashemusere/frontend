@@ -1102,7 +1102,7 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
                       _fieldLabel('Biography'),
                       ValueListenableBuilder(
                         valueListenable: _bioController,
-                        builder: (_, val, __) => Text(
+                        builder: (_, val, _) => Text(
                           '${val.text.length}/200',
                           style: TextStyle(
                             fontFamily: 'Poppins',
