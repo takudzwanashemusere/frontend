@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../main.dart';
+import '../services/video_service.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -12,7 +14,16 @@ class _SearchScreenState extends State<SearchScreen>
     with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   late TabController _tabController;
+
   String _query = '';
+  bool _isLoadingTrending = true;
+  bool _isSearching = false;
+
+  List<Map<String, dynamic>> _trendingVideos = [];
+  List<Map<String, dynamic>> _searchResults = [];
+  List<String> _recentSearches = [];
+
+  static const _prefsKey = 'recent_searches';
 
   final List<String> _tabs = [
     'All',
@@ -23,112 +34,55 @@ class _SearchScreenState extends State<SearchScreen>
     'Natural Sci',
   ];
 
-  final List<Map<String, dynamic>> _trending = [
-    {
-      'subject': 'Software Engineering',
-      'school': 'Engineering Science and Technology',
-      'title': 'Introduction to Flutter — Building mobile apps at CUT',
-      'author': '@tatenda_m',
-      'views': '12.4K',
-      'color': AppColors.accent,
-    },
-    {
-      'subject': 'Business Management',
-      'school': 'Entrepreneurship and Business Sciences',
-      'title': 'How to write a Business Plan that actually works',
-      'author': '@simba_biz',
-      'views': '9.1K',
-      'color': const Color(0xFFFF6B35),
-    },
-    {
-      'subject': 'Crop Science',
-      'school': 'Agriculture Sciences and Technology',
-      'title': 'Soil Fertility Management for Zimbabwean Farmers',
-      'author': '@rudo_agri',
-      'views': '7.8K',
-      'color': const Color(0xFF2ECC71),
-    },
-    {
-      'subject': 'Wildlife Management',
-      'school': 'Wildlife and Environmental Science',
-      'title': "Conservation strategies for Zimbabwe's wildlife reserves",
-      'author': '@taku_wildlife',
-      'views': '6.3K',
-      'color': const Color(0xFF00BCD4),
-    },
-    {
-      'subject': 'Public Health',
-      'school': 'Health Sciences and Technology',
-      'title': 'Understanding the Human Immune System',
-      'author': '@panashe_health',
-      'views': '4.9K',
-      'color': const Color(0xFFE040FB),
-    },
-    {
-      'subject': 'Hotel Management',
-      'school': 'Hospitality and Tourism',
-      'title': 'Front Office Operations in Modern Hotels',
-      'author': '@chiedza_hosp',
-      'views': '3.7K',
-      'color': AppColors.accent,
-    },
-  ];
-
-  final List<String> _recentSearches = [
-    'software engineering',
-    'crop science',
-    'business plan',
-    'wildlife conservation',
-  ];
-
-  final List<Map<String, dynamic>> _schools = [
+  // Schools are fixed (CUT faculties) — names and icons are static
+  static const _schools = [
     {
       'name': 'Engineering Science\n& Technology',
       'icon': Icons.engineering_outlined,
       'color': AppColors.accent,
-      'count': '312 videos',
+      'school': 'Engineering',
     },
     {
       'name': 'Entrepreneurship\n& Business Sciences',
       'icon': Icons.business_center_outlined,
-      'color': const Color(0xFFFF6B35),
-      'count': '248 videos',
+      'color': Color(0xFFFF6B35),
+      'school': 'Business',
     },
     {
       'name': 'Agriculture Sciences\n& Technology',
       'icon': Icons.agriculture_outlined,
-      'color': const Color(0xFF2ECC71),
-      'count': '183 videos',
+      'color': Color(0xFF2ECC71),
+      'school': 'Agriculture',
     },
     {
       'name': 'Natural Sciences\n& Mathematics',
       'icon': Icons.science_outlined,
-      'color': const Color(0xFF00BCD4),
-      'count': '201 videos',
+      'color': Color(0xFF00BCD4),
+      'school': 'Natural Sciences',
     },
     {
       'name': 'Health Sciences\n& Technology',
       'icon': Icons.local_hospital_outlined,
-      'color': const Color(0xFFE040FB),
-      'count': '156 videos',
+      'color': Color(0xFFE040FB),
+      'school': 'Health',
     },
     {
       'name': 'Wildlife &\nEnvironmental Science',
       'icon': Icons.park_outlined,
-      'color': const Color(0xFF4CAF50),
-      'count': '94 videos',
+      'color': Color(0xFF4CAF50),
+      'school': 'Wildlife',
     },
     {
       'name': 'Hospitality\n& Tourism',
       'icon': Icons.hotel_outlined,
-      'color': AppColors.accentLight,
-      'count': '127 videos',
+      'color': Color(0xFFFFAB40),
+      'school': 'Hospitality',
     },
     {
       'name': 'Art\n& Design',
       'icon': Icons.palette_outlined,
-      'color': const Color(0xFFFF4081),
-      'count': '89 videos',
+      'color': Color(0xFFFF4081),
+      'school': 'Art',
     },
   ];
 
@@ -136,6 +90,8 @@ class _SearchScreenState extends State<SearchScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: _tabs.length, vsync: this);
+    _loadTrending();
+    _loadRecentSearches();
   }
 
   @override
@@ -143,6 +99,50 @@ class _SearchScreenState extends State<SearchScreen>
     _searchController.dispose();
     _tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadTrending() async {
+    try {
+      final videos = await VideoService.getTrending();
+      if (mounted) setState(() { _trendingVideos = videos; _isLoadingTrending = false; });
+    } catch (_) {
+      if (mounted) setState(() => _isLoadingTrending = false);
+    }
+  }
+
+  Future<void> _loadRecentSearches() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getStringList(_prefsKey) ?? [];
+    if (mounted) setState(() => _recentSearches = saved);
+  }
+
+  Future<void> _saveSearch(String query) async {
+    if (query.trim().isEmpty) return;
+    final updated = [
+      query.trim(),
+      ..._recentSearches.where((s) => s != query.trim()),
+    ].take(8).toList();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_prefsKey, updated);
+    if (mounted) setState(() => _recentSearches = updated);
+  }
+
+  Future<void> _clearRecentSearches() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_prefsKey);
+    if (mounted) setState(() => _recentSearches = []);
+  }
+
+  Future<void> _runSearch(String query) async {
+    if (query.trim().isEmpty) return;
+    _saveSearch(query);
+    setState(() => _isSearching = true);
+    try {
+      final results = await VideoService.searchVideos(query.trim());
+      if (mounted) setState(() { _searchResults = results; _isSearching = false; });
+    } catch (_) {
+      if (mounted) setState(() { _searchResults = []; _isSearching = false; });
+    }
   }
 
   @override
@@ -179,7 +179,11 @@ class _SearchScreenState extends State<SearchScreen>
                     ),
                     child: TextField(
                       controller: _searchController,
-                      onChanged: (val) => setState(() => _query = val),
+                      onChanged: (val) {
+                        setState(() { _query = val; _searchResults = []; });
+                      },
+                      onSubmitted: _runSearch,
+                      textInputAction: TextInputAction.search,
                       style: TextStyle(
                         color: AppColors.textPrimary,
                         fontFamily: 'Poppins',
@@ -206,7 +210,7 @@ class _SearchScreenState extends State<SearchScreen>
                                 ),
                                 onPressed: () {
                                   _searchController.clear();
-                                  setState(() => _query = '');
+                                  setState(() { _query = ''; _searchResults = []; });
                                 },
                               )
                             : null,
@@ -270,7 +274,7 @@ class _SearchScreenState extends State<SearchScreen>
               children: [
                 Text('Recent', style: AppTextStyles.headingMedium),
                 GestureDetector(
-                  onTap: () {},
+                  onTap: _clearRecentSearches,
                   child: Text(
                     'Clear all',
                     style: TextStyle(
@@ -292,10 +296,10 @@ class _SearchScreenState extends State<SearchScreen>
                   onTap: () {
                     _searchController.text = s;
                     setState(() => _query = s);
+                    _runSearch(s);
                   },
                   child: Container(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 7),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                     decoration: BoxDecoration(
                       color: AppColors.surface,
                       borderRadius: BorderRadius.circular(8),
@@ -344,7 +348,12 @@ class _SearchScreenState extends State<SearchScreen>
               final school = _schools[index];
               final Color color = school['color'] as Color;
               return GestureDetector(
-                onTap: () {},
+                onTap: () {
+                  final schoolName = school['school'] as String;
+                  _searchController.text = schoolName;
+                  setState(() => _query = schoolName);
+                  _runSearch(schoolName);
+                },
                 child: Container(
                   decoration: BoxDecoration(
                     color: AppColors.surface,
@@ -369,30 +378,16 @@ class _SearchScreenState extends State<SearchScreen>
                           size: 20,
                         ),
                       ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            school['name'],
-                            style: TextStyle(
-                              color: AppColors.textPrimary,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
-                              height: 1.3,
-                            ),
-                            maxLines: 2,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            school['count'],
-                            style: TextStyle(
-                              color: AppColors.textMuted,
-                              fontFamily: 'Poppins',
-                              fontSize: 10,
-                            ),
-                          ),
-                        ],
+                      Text(
+                        school['name'] as String,
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                          height: 1.3,
+                        ),
+                        maxLines: 2,
                       ),
                     ],
                   ),
@@ -403,13 +398,13 @@ class _SearchScreenState extends State<SearchScreen>
 
           const SizedBox(height: 28),
 
-          // Trending
+          // Trending Now
           Row(
             children: [
               Text('Trending Now', style: AppTextStyles.headingMedium),
-              SizedBox(width: 6),
+              const SizedBox(width: 6),
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: AppColors.accent.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(4),
@@ -428,7 +423,29 @@ class _SearchScreenState extends State<SearchScreen>
             ],
           ),
           const SizedBox(height: 12),
-          ..._trending.map((video) => _TrendingCard(video: video)),
+
+          if (_isLoadingTrending)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 32),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (_trendingVideos.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 32),
+              child: Center(
+                child: Text(
+                  'No trending content right now',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    color: AppColors.textMuted,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            )
+          else
+            ..._trendingVideos.map((video) => _TrendingCard(video: video)),
+
           const SizedBox(height: 80),
         ],
       ),
@@ -436,32 +453,16 @@ class _SearchScreenState extends State<SearchScreen>
   }
 
   Widget _buildSearchResults() {
-    final results = _trending
-        .where((v) =>
-            v['title']
-                .toString()
-                .toLowerCase()
-                .contains(_query.toLowerCase()) ||
-            v['subject']
-                .toString()
-                .toLowerCase()
-                .contains(_query.toLowerCase()) ||
-            v['school']
-                .toString()
-                .toLowerCase()
-                .contains(_query.toLowerCase()))
-        .toList();
+    if (_isSearching) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-    if (results.isEmpty) {
+    if (_searchResults.isEmpty && _query.isNotEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.search_off_rounded,
-              size: 52,
-              color: AppColors.textMuted,
-            ),
+            Icon(Icons.search_off_rounded, size: 52, color: AppColors.textMuted),
             const SizedBox(height: 16),
             Text(
               'No results for "$_query"',
@@ -471,6 +472,15 @@ class _SearchScreenState extends State<SearchScreen>
                 fontSize: 14,
               ),
             ),
+            const SizedBox(height: 8),
+            Text(
+              'Press Enter / Search to look it up',
+              style: TextStyle(
+                color: AppColors.textMuted,
+                fontFamily: 'Poppins',
+                fontSize: 12,
+              ),
+            ),
           ],
         ),
       );
@@ -478,8 +488,8 @@ class _SearchScreenState extends State<SearchScreen>
 
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      itemCount: results.length,
-      itemBuilder: (context, index) => _TrendingCard(video: results[index]),
+      itemCount: _searchResults.length,
+      itemBuilder: (context, index) => _TrendingCard(video: _searchResults[index]),
     );
   }
 }
@@ -490,10 +500,23 @@ class _TrendingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color color = video['color'] as Color;
+    final Color color = video['color'] is Color
+        ? video['color'] as Color
+        : AppColors.accent;
+    final String title = video['title']?.toString() ?? '';
+    final String subject = video['subject']?.toString() ?? '';
+    final String author = video['username']?.toString() ??
+        video['name']?.toString() ??
+        video['author']?.toString() ??
+        '';
+    final String stat = video['likes']?.toString() ??
+        video['views']?.toString() ??
+        '0';
+    final bool isViews = video['views'] != null && video['likes'] == null;
+
     return Container(
-      margin: EdgeInsets.only(bottom: 10),
-      padding: EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
@@ -508,11 +531,7 @@ class _TrendingCard extends StatelessWidget {
               color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(
-              Icons.play_arrow_rounded,
-              color: color,
-              size: 26,
-            ),
+            child: Icon(Icons.play_arrow_rounded, color: color, size: 26),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -520,7 +539,7 @@ class _TrendingCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  video['title'],
+                  title,
                   style: TextStyle(
                     color: AppColors.textPrimary,
                     fontFamily: 'Poppins',
@@ -534,27 +553,27 @@ class _TrendingCard extends StatelessWidget {
                 const SizedBox(height: 5),
                 Row(
                   children: [
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                          horizontal: 7, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        video['subject'],
-                        style: TextStyle(
-                          color: color,
-                          fontFamily: 'Poppins',
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
+                    if (subject.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          subject,
+                          style: TextStyle(
+                            color: color,
+                            fontFamily: 'Poppins',
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 6),
+                    if (subject.isNotEmpty) const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        video['author'],
+                        author,
                         style: TextStyle(
                           color: AppColors.textTertiary,
                           fontFamily: 'Poppins',
@@ -573,13 +592,13 @@ class _TrendingCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Icon(
-                Icons.visibility_outlined,
+                isViews ? Icons.visibility_outlined : Icons.favorite_border_rounded,
                 size: 13,
                 color: AppColors.textMuted,
               ),
               const SizedBox(height: 2),
               Text(
-                video['views'],
+                stat,
                 style: TextStyle(
                   color: AppColors.textMuted,
                   fontFamily: 'Poppins',
