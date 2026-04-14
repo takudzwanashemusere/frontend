@@ -1,5 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../services/auth_service.dart';
+import '../services/video_service.dart';
 import '../models/video_store.dart';
 import 'login_screen.dart';
 import '../main.dart';
@@ -14,14 +17,17 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+
   String _userName = 'Student';
   String _userEmail = '';
+  String _bio = '';
+  String? _profileImagePath;
   bool _isLoading = true;
 
   int _videosCount = 0;
-  final int _followersCount = 0;
-  final int _followingCount = 0;
-  final int _likesCount = 0;
+  int _followersCount = 0;
+  int _followingCount = 0;
+  int _likesCount = 0;
 
   @override
   void initState() {
@@ -33,15 +39,59 @@ class _ProfileScreenState extends State<ProfileScreen>
   Future<void> _loadUserData() async {
     final email = await AuthService.getUserEmail();
     final name = await AuthService.getUserName();
+    final bio = await AuthService.getBio();
+    final imgPath = await AuthService.getProfileImagePath();
+
+    // Try loading real stats from API
+    Map<String, dynamic> profile = {};
+    try {
+      profile = await VideoService.getUserProfile();
+    } catch (_) {}
+
     final myVideos =
         VideoStore.videos.where((v) => v['username'] == '@me').toList();
 
-    setState(() {
-      _userEmail = email ?? '';
-      _userName = name ?? 'Student';
-      _videosCount = myVideos.length;
-      _isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        _userEmail = email ?? '';
+        _userName = profile['name']?.toString() ?? name ?? 'Student';
+        _bio = profile['bio']?.toString() ?? bio ?? '';
+        _profileImagePath = imgPath;
+        _videosCount =
+            (profile['videos_count'] ?? profile['video_count'] ?? myVideos.length) is int
+                ? profile['videos_count'] ?? profile['video_count'] ?? myVideos.length
+                : int.tryParse(
+                        (profile['videos_count'] ?? profile['video_count'] ?? myVideos.length).toString()) ??
+                    myVideos.length;
+        _followersCount = _parseCount(profile['followers_count'] ?? profile['followers'] ?? 0);
+        _followingCount = _parseCount(profile['following_count'] ?? profile['following'] ?? 0);
+        _likesCount = _parseCount(profile['likes_count'] ?? profile['likes'] ?? 0);
+        _isLoading = false;
+      });
+    }
+  }
+
+  int _parseCount(dynamic v) =>
+      v is int ? v : int.tryParse(v?.toString() ?? '') ?? 0;
+
+  void _openEditProfile() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _EditProfileSheet(
+        currentName: _userName,
+        currentBio: _bio,
+        currentImagePath: _profileImagePath,
+        onSaved: (name, bio, imagePath) {
+          setState(() {
+            _userName = name;
+            _bio = bio;
+            _profileImagePath = imagePath;
+          });
+        },
+      ),
+    );
   }
 
   void _handleLogout() {
@@ -123,14 +173,12 @@ class _ProfileScreenState extends State<ProfileScreen>
     return Scaffold(
       backgroundColor: AppColors.bg,
       body: _isLoading
-          ? Center(
-              child: CircularProgressIndicator(color: AppColors.accent),
-            )
+          ? Center(child: CircularProgressIndicator(color: AppColors.accent))
           : NestedScrollView(
               headerSliverBuilder: (_, _) => [
                 SliverAppBar(
                   backgroundColor: AppColors.bg,
-                  expandedHeight: 420,
+                  expandedHeight: _bio.isNotEmpty ? 460 : 430,
                   pinned: true,
                   automaticallyImplyLeading: false,
                   surfaceTintColor: Colors.transparent,
@@ -188,6 +236,9 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   Widget _buildProfileHeader(List<Map<String, dynamic>> myVideos) {
+    final hasPhoto =
+        _profileImagePath != null && File(_profileImagePath!).existsSync();
+
     return Container(
       color: AppColors.bg,
       child: SafeArea(
@@ -200,46 +251,58 @@ class _ProfileScreenState extends State<ProfileScreen>
             Stack(
               children: [
                 Container(
-                  width: 80,
-                  height: 80,
+                  width: 84,
+                  height: 84,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: AppColors.accent,
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.accent.withValues(alpha: 0.2),
+                        color: AppColors.accent.withValues(alpha: 0.25),
                         blurRadius: 20,
                         offset: const Offset(0, 6),
                       ),
                     ],
                   ),
-                  child: Center(
-                    child: Text(
-                      _userName.isNotEmpty ? _userName[0].toUpperCase() : 'S',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontFamily: 'Poppins',
-                        fontSize: 30,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                  child: ClipOval(
+                    child: hasPhoto
+                        ? Image.file(
+                            File(_profileImagePath!),
+                            fit: BoxFit.cover,
+                          )
+                        : Center(
+                            child: Text(
+                              _userName.isNotEmpty
+                                  ? _userName[0].toUpperCase()
+                                  : 'S',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontFamily: 'Poppins',
+                                fontSize: 30,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
                   ),
                 ),
                 Positioned(
                   bottom: 0,
                   right: 0,
-                  child: Container(
-                    width: 22,
-                    height: 22,
-                    decoration: BoxDecoration(
-                      color: AppColors.success,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.bg, width: 2),
-                    ),
-                    child: const Icon(
-                      Icons.check_rounded,
-                      color: Colors.white,
-                      size: 12,
+                  child: GestureDetector(
+                    onTap: _openEditProfile,
+                    child: Container(
+                      width: 26,
+                      height: 26,
+                      decoration: BoxDecoration(
+                        color: AppColors.accent,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.bg, width: 2),
+                      ),
+                      child: const Icon(
+                        Icons.camera_alt_rounded,
+                        color: Colors.white,
+                        size: 13,
+                      ),
                     ),
                   ),
                 ),
@@ -248,10 +311,7 @@ class _ProfileScreenState extends State<ProfileScreen>
 
             const SizedBox(height: 12),
 
-            Text(
-              _userName,
-              style: AppTextStyles.headingLarge,
-            ),
+            Text(_userName, style: AppTextStyles.headingLarge),
             const SizedBox(height: 3),
             Text(
               _userEmail,
@@ -261,9 +321,30 @@ class _ProfileScreenState extends State<ProfileScreen>
                 fontSize: 12,
               ),
             ),
-            const SizedBox(height: 8),
+
+            // Bio
+            if (_bio.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Text(
+                  _bio,
+                  textAlign: TextAlign.center,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                    height: 1.5,
+                  ),
+                ),
+              ),
+            ],
+
+            const SizedBox(height: 10),
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(6),
@@ -281,12 +362,12 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
 
             // Stats row
             Container(
-              margin: EdgeInsets.symmetric(horizontal: 28),
-              padding: EdgeInsets.symmetric(vertical: 14),
+              margin: const EdgeInsets.symmetric(horizontal: 28),
+              padding: const EdgeInsets.symmetric(vertical: 14),
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(12),
@@ -309,19 +390,16 @@ class _ProfileScreenState extends State<ProfileScreen>
             const SizedBox(height: 14),
 
             OutlinedButton.icon(
-              onPressed: () {},
-              icon: Icon(Icons.edit_outlined, size: 14),
-              label: Text('Edit Profile'),
+              onPressed: _openEditProfile,
+              icon: const Icon(Icons.edit_outlined, size: 14),
+              label: const Text('Edit Profile'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.textSecondary,
                 side: BorderSide(color: AppColors.borderMid),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 18,
-                  vertical: 8,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
                 textStyle: const TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 12,
@@ -360,13 +438,8 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Widget _buildStatDivider() {
-    return Container(
-      width: 1,
-      height: 28,
-      color: AppColors.border,
-    );
-  }
+  Widget _buildStatDivider() =>
+      Container(width: 1, height: 28, color: AppColors.border);
 
   Widget _buildMyVideosTab(List<Map<String, dynamic>> myVideos) {
     if (myVideos.isEmpty) {
@@ -374,18 +447,11 @@ class _ProfileScreenState extends State<ProfileScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.video_library_outlined,
-              size: 52,
-              color: AppColors.textMuted,
-            ),
+            Icon(Icons.video_library_outlined, size: 52, color: AppColors.textMuted),
             const SizedBox(height: 16),
             Text('No videos yet', style: AppTextStyles.headingMedium),
             const SizedBox(height: 6),
-            Text(
-              'Upload your first educational video',
-              style: AppTextStyles.bodyMedium,
-            ),
+            Text('Upload your first educational video', style: AppTextStyles.bodyMedium),
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () => Navigator.pop(context),
@@ -430,8 +496,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                 child: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.vertical(
-                        bottom: Radius.circular(10)),
+                    borderRadius:
+                        const BorderRadius.vertical(bottom: Radius.circular(10)),
                     gradient: LinearGradient(
                       begin: Alignment.bottomCenter,
                       end: Alignment.topCenter,
@@ -459,19 +525,15 @@ class _ProfileScreenState extends State<ProfileScreen>
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          Icon(
-                            Icons.favorite_outline_rounded,
-                            size: 10,
-                            color: AppColors.textMuted,
-                          ),
+                          Icon(Icons.favorite_outline_rounded,
+                              size: 10, color: AppColors.textMuted),
                           const SizedBox(width: 3),
                           Text(
                             video['likes'] ?? '0',
                             style: TextStyle(
-                              fontFamily: 'Poppins',
-                              color: AppColors.textMuted,
-                              fontSize: 10,
-                            ),
+                                fontFamily: 'Poppins',
+                                color: AppColors.textMuted,
+                                fontSize: 10),
                           ),
                         ],
                       ),
@@ -483,10 +545,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                 top: 8,
                 left: 8,
                 child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 7,
-                    vertical: 3,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                   decoration: BoxDecoration(
                     color: AppColors.accent.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(4),
@@ -514,18 +573,11 @@ class _ProfileScreenState extends State<ProfileScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.favorite_outline_rounded,
-            size: 52,
-            color: AppColors.textMuted,
-          ),
+          Icon(Icons.favorite_outline_rounded, size: 52, color: AppColors.textMuted),
           const SizedBox(height: 16),
           Text('No liked videos yet', style: AppTextStyles.headingMedium),
           const SizedBox(height: 6),
-          Text(
-            'Videos you like will appear here',
-            style: AppTextStyles.bodyMedium,
-          ),
+          Text('Videos you like will appear here', style: AppTextStyles.bodyMedium),
         ],
       ),
     );
@@ -599,7 +651,6 @@ class _ProfileScreenState extends State<ProfileScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Summary banner
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -619,14 +670,10 @@ class _ProfileScreenState extends State<ProfileScreen>
                     color: const Color(0xFFF5A623).withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: const Color(0xFFF5A623).withValues(alpha: 0.4),
-                    ),
+                        color: const Color(0xFFF5A623).withValues(alpha: 0.4)),
                   ),
-                  child: const Icon(
-                    Icons.military_tech_rounded,
-                    color: Color(0xFFF5A623),
-                    size: 26,
-                  ),
+                  child: const Icon(Icons.military_tech_rounded,
+                      color: Color(0xFFF5A623), size: 26),
                 ),
                 const SizedBox(width: 14),
                 Column(
@@ -644,10 +691,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                     Text(
                       '${unlocked.length} of ${achievements.length} unlocked',
                       style: const TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 12,
-                        color: Colors.white60,
-                      ),
+                          fontFamily: 'Poppins', fontSize: 12, color: Colors.white60),
                     ),
                   ],
                 ),
@@ -664,20 +708,8 @@ class _ProfileScreenState extends State<ProfileScreen>
               ],
             ),
           ),
-
           const SizedBox(height: 20),
-
-          // Unlocked
-          Text(
-            'UNLOCKED',
-            style: TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textTertiary,
-              letterSpacing: 1.2,
-            ),
-          ),
+          _sectionHeader('UNLOCKED'),
           const SizedBox(height: 10),
           GridView.count(
             crossAxisCount: 2,
@@ -696,20 +728,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                     ))
                 .toList(),
           ),
-
           const SizedBox(height: 20),
-
-          // Locked
-          Text(
-            'LOCKED',
-            style: TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textTertiary,
-              letterSpacing: 1.2,
-            ),
-          ),
+          _sectionHeader('LOCKED'),
           const SizedBox(height: 10),
           GridView.count(
             crossAxisCount: 2,
@@ -728,13 +748,435 @@ class _ProfileScreenState extends State<ProfileScreen>
                     ))
                 .toList(),
           ),
-
           const SizedBox(height: 24),
         ],
       ),
     );
   }
+
+  Widget _sectionHeader(String text) => Text(
+        text,
+        style: TextStyle(
+          fontFamily: 'Poppins',
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          color: AppColors.textTertiary,
+          letterSpacing: 1.2,
+        ),
+      );
 }
+
+// ─── Edit Profile Bottom Sheet ────────────────────────────────────────────────
+
+class _EditProfileSheet extends StatefulWidget {
+  final String currentName;
+  final String currentBio;
+  final String? currentImagePath;
+  final void Function(String name, String bio, String? imagePath) onSaved;
+
+  const _EditProfileSheet({
+    required this.currentName,
+    required this.currentBio,
+    required this.currentImagePath,
+    required this.onSaved,
+  });
+
+  @override
+  State<_EditProfileSheet> createState() => _EditProfileSheetState();
+}
+
+class _EditProfileSheetState extends State<_EditProfileSheet> {
+  late TextEditingController _nameController;
+  late TextEditingController _bioController;
+  String? _selectedImagePath;
+  bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.currentName);
+    _bioController = TextEditingController(text: widget.currentBio);
+    _selectedImagePath = widget.currentImagePath;
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _bioController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: source,
+      imageQuality: 85,
+      maxWidth: 800,
+    );
+    if (picked != null && mounted) {
+      setState(() => _selectedImagePath = picked.path);
+    }
+  }
+
+  void _showImageSourceSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 36,
+                height: 3,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: AppColors.borderMid,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              ListTile(
+                leading: Icon(Icons.photo_library_outlined, color: AppColors.accent),
+                title: Text(
+                  'Choose from Gallery',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    color: AppColors.textPrimary,
+                    fontSize: 14,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.camera_alt_outlined, color: AppColors.accent),
+                title: Text(
+                  'Take a Photo',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    color: AppColors.textPrimary,
+                    fontSize: 14,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+              if (_selectedImagePath != null)
+                ListTile(
+                  leading: Icon(Icons.delete_outline_rounded, color: AppColors.error),
+                  title: Text(
+                    'Remove Photo',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      color: AppColors.error,
+                      fontSize: 14,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    setState(() => _selectedImagePath = null);
+                  },
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _save() async {
+    final name = _nameController.text.trim();
+    if (name.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Name cannot be empty'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isSaving = true);
+
+    final bio = _bioController.text.trim();
+
+    // Save locally first (works offline)
+    await AuthService.saveBio(bio);
+    if (_selectedImagePath != null) {
+      await AuthService.saveProfileImagePath(_selectedImagePath!);
+    } else {
+      await AuthService.clearProfileImagePath();
+    }
+
+    // Try to sync with API (non-blocking — fail silently)
+    try {
+      await VideoService.updateProfile(
+        name: name,
+        bio: bio,
+        avatar: _selectedImagePath != null ? File(_selectedImagePath!) : null,
+      );
+    } catch (_) {}
+
+    if (mounted) {
+      setState(() => _isSaving = false);
+      widget.onSaved(name, bio, _selectedImagePath);
+      Navigator.pop(context);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hasPhoto =
+        _selectedImagePath != null && File(_selectedImagePath!).existsSync();
+
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.85,
+      decoration: BoxDecoration(
+        color: AppColors.bg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        children: [
+          // Handle
+          Container(
+            margin: const EdgeInsets.only(top: 12),
+            width: 36,
+            height: 3,
+            decoration: BoxDecoration(
+              color: AppColors.borderMid,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+
+          // Header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 8, 0),
+            child: Row(
+              children: [
+                Text(
+                  'Edit Profile',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const Spacer(),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: Icon(Icons.close_rounded,
+                      color: AppColors.textTertiary, size: 20),
+                ),
+              ],
+            ),
+          ),
+
+          Divider(color: AppColors.border, height: 20),
+
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(
+                20,
+                0,
+                20,
+                MediaQuery.of(context).viewInsets.bottom + 20,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Avatar picker
+                  Center(
+                    child: GestureDetector(
+                      onTap: _showImageSourceSheet,
+                      child: Stack(
+                        children: [
+                          Container(
+                            width: 90,
+                            height: 90,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppColors.accent,
+                              border: Border.all(
+                                  color: AppColors.accent.withValues(alpha: 0.3),
+                                  width: 3),
+                            ),
+                            child: ClipOval(
+                              child: hasPhoto
+                                  ? Image.file(
+                                      File(_selectedImagePath!),
+                                      fit: BoxFit.cover,
+                                    )
+                                  : Center(
+                                      child: Text(
+                                        _nameController.text.isNotEmpty
+                                            ? _nameController.text[0].toUpperCase()
+                                            : 'S',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontFamily: 'Poppins',
+                                          fontSize: 32,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                            ),
+                          ),
+                          Positioned(
+                            bottom: 2,
+                            right: 2,
+                            child: Container(
+                              width: 28,
+                              height: 28,
+                              decoration: BoxDecoration(
+                                color: AppColors.accent,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                    color: AppColors.bg, width: 2),
+                              ),
+                              child: const Icon(
+                                Icons.camera_alt_rounded,
+                                color: Colors.white,
+                                size: 14,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 6),
+                  Center(
+                    child: Text(
+                      'Tap to change photo',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 11,
+                        color: AppColors.textTertiary,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 28),
+
+                  // Name
+                  _fieldLabel('Full Name'),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: _nameController,
+                    onChanged: (_) => setState(() {}),
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Your full name',
+                      hintStyle: TextStyle(
+                          color: AppColors.textMuted,
+                          fontFamily: 'Poppins',
+                          fontSize: 14),
+                      prefixIcon: Icon(Icons.person_outline_rounded,
+                          color: AppColors.textTertiary, size: 18),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Bio
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _fieldLabel('Biography'),
+                      ValueListenableBuilder(
+                        valueListenable: _bioController,
+                        builder: (_, val, __) => Text(
+                          '${val.text.length}/200',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 11,
+                            color: val.text.length > 180
+                                ? AppColors.warning
+                                : AppColors.textMuted,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: _bioController,
+                    maxLines: 4,
+                    maxLength: 200,
+                    buildCounter: (_, {required currentLength, required isFocused, maxLength}) =>
+                        null,
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                      height: 1.5,
+                    ),
+                    decoration: InputDecoration(
+                      hintText:
+                          'Tell others about yourself — your school, interests, research...',
+                      hintStyle: TextStyle(
+                          color: AppColors.textMuted,
+                          fontFamily: 'Poppins',
+                          fontSize: 13,
+                          height: 1.5),
+                      alignLabelWithHint: true,
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // Save button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _isSaving ? null : _save,
+                      child: _isSaving
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                  color: Colors.white, strokeWidth: 2),
+                            )
+                          : const Text('Save Changes'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _fieldLabel(String text) => Text(
+        text,
+        style: TextStyle(
+          fontFamily: 'Poppins',
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textSecondary,
+        ),
+      );
+}
+
+// ─── Achievement Card ─────────────────────────────────────────────────────────
 
 class _AchievementCard extends StatelessWidget {
   final IconData icon;
@@ -791,7 +1233,9 @@ class _AchievementCard extends StatelessWidget {
                     fontFamily: 'Poppins',
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: unlocked ? AppColors.textPrimary : AppColors.textTertiary,
+                    color: unlocked
+                        ? AppColors.textPrimary
+                        : AppColors.textTertiary,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -814,4 +1258,3 @@ class _AchievementCard extends StatelessWidget {
     );
   }
 }
-

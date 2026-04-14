@@ -122,6 +122,36 @@ class AuthService {
     return await _storage.read(key: _keyUsername);
   }
 
+  // ── Profile extras ────────────────────────────────────────────
+
+  static const _keyBio = 'user_bio';
+  static const _keyProfileImagePath = 'profile_image_path';
+
+  static Future<void> saveBio(String bio) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyBio, bio);
+  }
+
+  static Future<String?> getBio() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyBio);
+  }
+
+  static Future<void> saveProfileImagePath(String path) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyProfileImagePath, path);
+  }
+
+  static Future<String?> getProfileImagePath() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyProfileImagePath);
+  }
+
+  static Future<void> clearProfileImagePath() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_keyProfileImagePath);
+  }
+
   // Clear session on logout
   static Future<void> logout() async {
     await _storage.deleteAll();

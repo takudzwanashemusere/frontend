@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'auth_service.dart';
@@ -200,5 +201,43 @@ class VideoService {
   static Future<void> toggleFollow(dynamic userId) async {
     final opts = await _authOptions();
     await _dio.post('/api/users/$userId/follow', options: opts);
+  }
+
+  /// Fetch the current user's full profile (stats included)
+  static Future<Map<String, dynamic>> getUserProfile() async {
+    final opts = await _authOptions();
+    final response = await _dio.get('/api/user/profile', options: opts);
+    final raw = response.data;
+    return Map<String, dynamic>.from(raw is Map ? (raw['data'] ?? raw) : {});
+  }
+
+  /// Update the current user's profile (name, bio, avatar)
+  static Future<Map<String, dynamic>> updateProfile({
+    String? name,
+    String? bio,
+    File? avatar,
+  }) async {
+    final token = await AuthService.getToken();
+    final formData = FormData();
+    if (name != null && name.isNotEmpty) formData.fields.add(MapEntry('name', name));
+    if (bio != null) formData.fields.add(MapEntry('bio', bio));
+    if (avatar != null) {
+      formData.files.add(MapEntry(
+        'avatar',
+        await MultipartFile.fromFile(avatar.path,
+            filename: avatar.path.split('/').last),
+      ));
+    }
+    final response = await _dio.post(
+      '/api/user/profile',
+      data: formData,
+      options: Options(headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+        'Content-Type': 'multipart/form-data',
+      }),
+    );
+    final raw = response.data;
+    return Map<String, dynamic>.from(raw is Map ? (raw['data'] ?? raw) : {});
   }
 }
