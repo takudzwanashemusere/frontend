@@ -26,9 +26,21 @@ class _UploadScreenState extends State<UploadScreen>
   String _selectedFileName = '';
   String? _filePath;
   Uint8List? _fileBytes;
+  int _fileSizeBytes = 0;
   bool _isUploading = false;
   bool _isValidating = false;
   double _uploadProgress = 0.0;
+
+  static const int _hardLimitBytes = 100 * 1024 * 1024; // 100 MB
+  static const int _warnLimitBytes = 50 * 1024 * 1024;  // 50 MB
+
+  String get _fileSizeLabel {
+    if (_fileSizeBytes <= 0) return '';
+    if (_fileSizeBytes >= 1024 * 1024) {
+      return '${(_fileSizeBytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    }
+    return '${(_fileSizeBytes / 1024).toStringAsFixed(0)} KB';
+  }
 
   final Map<String, List<String>> _schoolModules = {
     'School of Natural Sciences and Mathematics': [
@@ -106,13 +118,28 @@ class _UploadScreenState extends State<UploadScreen>
       );
       if (result != null && result.files.isNotEmpty) {
         final file = result.files.first;
+
+        // Hard block — file is too large to process on the server
+        if (file.size > _hardLimitBytes) {
+          _showSnack(
+            'Video is too large (${(file.size / (1024 * 1024)).toStringAsFixed(1)} MB). '
+            'Please use a video under 100 MB.',
+          );
+          return;
+        }
+
         setState(() {
           _hasVideo = true;
           _selectedFileName = file.name;
           _filePath = file.path;
           _fileBytes = file.bytes;
-          // reset validation on new file pick
+          _fileSizeBytes = file.size;
         });
+
+        // Soft warning — large files may fail on the server
+        if (file.size > _warnLimitBytes) {
+          _showLargeFileWarning(file.size);
+        }
       }
     } catch (e) {
       setState(() {
@@ -120,8 +147,72 @@ class _UploadScreenState extends State<UploadScreen>
         _selectedFileName = 'selected_video.mp4';
         _filePath = null;
         _fileBytes = null;
+        _fileSizeBytes = 0;
       });
     }
+  }
+
+  void _showLargeFileWarning(int sizeBytes) {
+    final sizeMb = (sizeBytes / (1024 * 1024)).toStringAsFixed(1);
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.orangeAccent, size: 22),
+            const SizedBox(width: 10),
+            Text(
+              'Large File Warning',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Your video is $sizeMb MB. Large files may fail content review on the server.\n\n'
+          'For best results, use a video under 50 MB.',
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 13,
+            color: AppColors.textSecondary,
+            height: 1.5,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _pickVideo(); // let them pick a different one
+            },
+            child: Text(
+              'Choose another',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w500,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Continue anyway',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w600,
+                color: Colors.orangeAccent,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _handleUpload() async {
@@ -448,6 +539,37 @@ class _UploadScreenState extends State<UploadScreen>
                                       fontSize: 12,
                                     ),
                                   ),
+                                  if (_fileSizeBytes > 0) ...[
+                                    const SizedBox(height: 2),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          _fileSizeBytes > _warnLimitBytes
+                                              ? Icons.warning_amber_rounded
+                                              : Icons.storage_rounded,
+                                          size: 11,
+                                          color: _fileSizeBytes > _warnLimitBytes
+                                              ? Colors.orangeAccent
+                                              : AppColors.textMuted,
+                                        ),
+                                        const SizedBox(width: 3),
+                                        Text(
+                                          _fileSizeLabel,
+                                          style: TextStyle(
+                                            color: _fileSizeBytes > _warnLimitBytes
+                                                ? Colors.orangeAccent
+                                                : AppColors.textMuted,
+                                            fontFamily: 'Poppins',
+                                            fontSize: 11,
+                                            fontWeight: _fileSizeBytes > _warnLimitBytes
+                                                ? FontWeight.w600
+                                                : FontWeight.normal,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                   const SizedBox(height: 8),
                                   GestureDetector(
                                     onTap: _pickVideo,
