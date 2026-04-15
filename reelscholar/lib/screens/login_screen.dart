@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -18,10 +17,9 @@ const _kFocusBorder  = Color(0xFF3B82F6);
 const _kAccent       = Color(0xFF3B82F6);
 const _kAccentDeep   = Color(0xFF2563EB);
 const _kLabel        = Color(0xFF9CA3AF);
-const _kDivLine      = Color(0xFF1F2330);
-const _kDivText      = Color(0xFF374151);
 const _kMuted        = Color(0xFF6B7280);
 const _kError        = Color(0xFFEF4444);
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -342,36 +340,6 @@ class _LoginScreenState extends State<LoginScreen>
                                   ),
                           ),
 
-                          const SizedBox(height: 28),
-
-                          // Divider "or continue with"
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Container(height: 1, color: _kDivLine),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 14),
-                                child: Text(
-                                  'or continue with',
-                                  style: GoogleFonts.dmSans(
-                                    fontSize: 12,
-                                    color: _kDivText,
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: Container(height: 1, color: _kDivLine),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 20),
-
-                          // Google button
-                          _GoogleButton(onTap: () {}),
-
                           const Spacer(),
 
                           // Register link
@@ -634,125 +602,3 @@ class _GradientButton extends StatelessWidget {
   }
 }
 
-// ─── Google sign-in button ────────────────────────────────────────────────────
-
-class _GoogleButton extends StatelessWidget {
-  final VoidCallback onTap;
-  const _GoogleButton({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 15),
-        decoration: BoxDecoration(
-          color: Colors.transparent,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: _kFieldBorder, width: 1),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const _GoogleLogoIcon(size: 20),
-            const SizedBox(width: 10),
-            Text(
-              'Continue with Google',
-              style: GoogleFonts.dmSans(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ─── Google G logo (CustomPainter) ───────────────────────────────────────────
-
-class _GoogleLogoIcon extends StatelessWidget {
-  final double size;
-  const _GoogleLogoIcon({this.size = 20});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: size,
-      height: size,
-      child: CustomPaint(painter: _GooglePainter()),
-    );
-  }
-}
-
-class _GooglePainter extends CustomPainter {
-  static const _blue   = Color(0xFF4285F4);
-  static const _red    = Color(0xFFEA4335);
-  static const _yellow = Color(0xFFFBBC05);
-  static const _green  = Color(0xFF34A853);
-  static const _d      = math.pi / 180;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final s  = size.width;
-    final c  = Offset(s / 2, s / 2);
-    final sw = s * 0.22;
-    final r  = s / 2 - sw / 2;
-    final rect = Rect.fromCircle(center: c, radius: r);
-
-    final p = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = sw
-      ..strokeCap = StrokeCap.butt
-      ..isAntiAlias = true;
-
-    // Ring: 340° total coverage, 20° gap centered at 0° (right / 3-o'clock)
-    // Gap spans from -10° to 10° — the G opening where the bar exits
-
-    // Red — top section: 350° → 190° going CW (200°)
-    // i.e. from just after top-right gap, sweeping CCW through top and down left
-    p.color = _red;
-    canvas.drawArc(rect, 10 * _d, 200 * _d, false, p);   // 10° → 210°
-
-    // Yellow — bottom-left: 210° → 270° (60°)
-    p.color = _yellow;
-    canvas.drawArc(rect, 210 * _d, 60 * _d, false, p);   // 210° → 270°
-
-    // Green — bottom-right: 270° → 350° (80°)
-    p.color = _green;
-    canvas.drawArc(rect, 270 * _d, 80 * _d, false, p);   // 270° → 350°
-
-    // Blue — below gap: 350° → 360°+10° only via bar visual connection
-    // Small arc below center: skipped (covered by bar)
-    // Blue arc above gap: 350° → 360°(-0°), drawn as tiny arc then bar
-    // Keep it simple: just draw the G bar in blue
-    // (the ring terminates at 350°, so there's a natural blue-free gap)
-
-    // G bar — blue, horizontal at center height
-    final fp = Paint()
-      ..color = _blue
-      ..style = PaintingStyle.fill
-      ..isAntiAlias = true;
-
-    // Bar: from inner circle right edge to outer circle right edge, at cy
-    final barW = r + sw / 2; // from center to outer edge
-    final barH = sw * 0.88;
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(c.dx, c.dy - barH / 2, barW, barH),
-        const Radius.circular(1.5),
-      ),
-      fp,
-    );
-
-    // Small blue arc at bottom-right to connect the G bar to the ring
-    p.color = _blue;
-    canvas.drawArc(rect, 350 * _d, 20 * _d, false, p);   // 350° → 370°(=10°)
-  }
-
-  @override
-  bool shouldRepaint(_) => false;
-}
