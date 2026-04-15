@@ -346,12 +346,12 @@ class _VideoCardState extends State<_VideoCard>
 
           // Video player — real if file exists, placeholder if not
           Positioned.fill(
-            child: (video['fileBytes'] != null)
-                ? VideoPlayerWidget(fileBytes: video['fileBytes'] as List<int>)
-                : (video['filePath'] != null)
-                    ? VideoPlayerWidget(filePath: video['filePath'] as String)
-                    : (video['networkUrl'] != null)
-                        ? VideoPlayerWidget(networkUrl: video['networkUrl'] as String)
+            child: (video['filePath'] != null)
+                ? VideoPlayerWidget(filePath: video['filePath'] as String)
+                : (video['networkUrl'] != null)
+                    ? VideoPlayerWidget(networkUrl: video['networkUrl'] as String)
+                    : (video['fileBytes'] != null)
+                        ? VideoPlayerWidget(fileBytes: video['fileBytes'] as List<int>)
                         : _buildDemoPlaceholder(accent, video),
           ),
 

@@ -7,7 +7,8 @@
       "Bash(wc:*)",
       "Bash(git:*)",
       "Bash(cmd:*)",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(xargs grep *)"
     ]
   }
 }
