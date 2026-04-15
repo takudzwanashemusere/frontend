@@ -5,7 +5,9 @@
       "Bash(tee /tmp/flutter_analyze.txt)",
       "Read(//tmp/**)",
       "Bash(wc:*)",
-      "Bash(git:*)"
+      "Bash(git:*)",
+      "Bash(cmd:*)",
+      "Bash(powershell:*)"
     ]
   }
 }

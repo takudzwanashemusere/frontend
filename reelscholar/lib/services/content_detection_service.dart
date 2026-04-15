@@ -22,13 +22,14 @@ class ContentDetectionService {
   static final Dio _dio = Dio(
     BaseOptions(
       baseUrl: kContentDetectionUrl,
-      connectTimeout: const Duration(seconds: 60),
-      receiveTimeout: const Duration(seconds: 120),
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 60),
     ),
   );
 
   /// Sends the video to the detection API and returns a [ValidationResult].
   /// Accepts either a file path (mobile) or raw bytes (web).
+  /// If the detection service is unreachable, falls back to [ContentStatus.underReview].
   static Future<ValidationResult> validateVideo({
     String? filePath,
     Uint8List? fileBytes,
@@ -36,29 +37,55 @@ class ContentDetectionService {
     String title = '',
     String description = '',
   }) async {
-    final formData = FormData();
-
-    if (fileBytes != null) {
-      formData.files.add(MapEntry(
-        'video',
-        MultipartFile.fromBytes(fileBytes, filename: fileName),
-      ));
-    } else if (filePath != null) {
-      formData.files.add(MapEntry(
-        'video',
-        await MultipartFile.fromFile(filePath, filename: fileName),
-      ));
-    } else {
-      throw ArgumentError('Either filePath or fileBytes must be provided');
+    if (filePath == null && fileBytes == null) {
+      // No file data — let it pass and be reviewed manually
+      return const ValidationResult(
+        status: ContentStatus.underReview,
+        isEducational: false,
+        message: 'Video will be reviewed before publishing.',
+        confidence: 0.0,
+      );
     }
 
-    if (title.isNotEmpty) formData.fields.add(MapEntry('title', title));
-    if (description.isNotEmpty) formData.fields.add(MapEntry('description', description));
+    try {
+      final formData = FormData();
 
-    final response = await _dio.post('/api/validate-video', data: formData);
-    final raw = response.data as Map<String, dynamic>? ?? {};
+      if (fileBytes != null) {
+        formData.files.add(MapEntry(
+          'video',
+          MultipartFile.fromBytes(fileBytes, filename: fileName),
+        ));
+      } else {
+        formData.files.add(MapEntry(
+          'video',
+          await MultipartFile.fromFile(filePath!, filename: fileName),
+        ));
+      }
 
-    return _parseResult(raw);
+      if (title.isNotEmpty) formData.fields.add(MapEntry('title', title));
+      if (description.isNotEmpty) formData.fields.add(MapEntry('description', description));
+
+      final response = await _dio.post('/api/validate-video', data: formData);
+      final raw = response.data as Map<String, dynamic>? ?? {};
+
+      return _parseResult(raw);
+    } on DioException catch (e) {
+      // Service is down, sleeping (Render free tier), or network is unavailable.
+      // Fall back to underReview so the upload is not blocked.
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.connectionError ||
+          e.type == DioExceptionType.sendTimeout) {
+        return const ValidationResult(
+          status: ContentStatus.underReview,
+          isEducational: false,
+          message: 'Content review service is currently unavailable. Your video will be reviewed manually before publishing.',
+          confidence: 0.0,
+        );
+      }
+      // Server returned a non-2xx response — re-throw so the caller can handle it
+      rethrow;
+    }
   }
 
   static ValidationResult _parseResult(Map<String, dynamic> raw) {

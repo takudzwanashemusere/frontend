@@ -156,7 +156,8 @@ class _UploadScreenState extends State<UploadScreen>
       );
     } catch (e) {
       setState(() => _isValidating = false);
-      _showSnack('Content check failed. Please try again.');
+      debugPrint('Content validation error: $e');
+      _showSnack('Content check failed: ${e.toString().split('\n').first}');
       return;
     }
 
