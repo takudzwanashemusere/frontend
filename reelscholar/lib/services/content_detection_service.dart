@@ -70,12 +70,19 @@ class ContentDetectionService {
 
       return _parseResult(raw);
     } on DioException catch (e) {
-      // Service is down, sleeping (Render free tier), or network is unavailable.
-      // Fall back to underReview so the upload is not blocked.
-      if (e.type == DioExceptionType.connectionTimeout ||
+      // Service is down, sleeping (Render free tier cold-start = 503),
+      // or network is unavailable — fall back to underReview.
+      final isServiceUnavailable =
+          e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.receiveTimeout ||
           e.type == DioExceptionType.connectionError ||
-          e.type == DioExceptionType.sendTimeout) {
+          e.type == DioExceptionType.sendTimeout ||
+          (e.type == DioExceptionType.badResponse &&
+              (e.response?.statusCode == 503 ||
+               e.response?.statusCode == 502 ||
+               e.response?.statusCode == 504));
+
+      if (isServiceUnavailable) {
         return const ValidationResult(
           status: ContentStatus.underReview,
           isEducational: false,
@@ -83,7 +90,7 @@ class ContentDetectionService {
           confidence: 0.0,
         );
       }
-      // Server returned a non-2xx response — re-throw so the caller can handle it
+      // Other server error — re-throw so the caller can handle it
       rethrow;
     }
   }
