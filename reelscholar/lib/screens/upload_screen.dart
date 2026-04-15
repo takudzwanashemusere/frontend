@@ -30,6 +30,7 @@ class _UploadScreenState extends State<UploadScreen>
   bool _isUploading = false;
   bool _isValidating = false;
   double _uploadProgress = 0.0;
+  String _validatingStatus = 'Checking content...';
 
   static const int _hardLimitBytes = 100 * 1024 * 1024; // 100 MB
   static const int _warnLimitBytes = 50 * 1024 * 1024;  // 50 MB
@@ -234,7 +235,10 @@ class _UploadScreenState extends State<UploadScreen>
     }
 
     // ── Step 1: Content validation ────────────────────────────────────────
-    setState(() => _isValidating = true);
+    setState(() {
+      _isValidating = true;
+      _validatingStatus = 'Checking content...';
+    });
 
     ValidationResult result;
     try {
@@ -244,6 +248,11 @@ class _UploadScreenState extends State<UploadScreen>
         fileName: _selectedFileName.isNotEmpty ? _selectedFileName : 'video.mp4',
         title: _titleController.text.trim(),
         description: _descController.text.trim(),
+        onRetry: (attempt, total) {
+          if (mounted) {
+            setState(() => _validatingStatus = 'Server warming up — retrying ($attempt/$total)...');
+          }
+        },
       );
     } catch (e) {
       setState(() => _isValidating = false);
@@ -767,6 +776,7 @@ class _UploadScreenState extends State<UploadScreen>
   }
 
   Widget _buildValidatingView() {
+    final isRetrying = _validatingStatus.contains('retrying');
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(40),
@@ -779,24 +789,31 @@ class _UploadScreenState extends State<UploadScreen>
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(
+                  color: isRetrying ? Colors.orangeAccent : AppColors.border,
+                ),
               ),
               child: Icon(
-                Icons.shield_outlined,
-                color: AppColors.accent,
+                isRetrying ? Icons.hourglass_top_rounded : Icons.shield_outlined,
+                color: isRetrying ? Colors.orangeAccent : AppColors.accent,
                 size: 36,
               ),
             ),
             const SizedBox(height: 24),
             Text(
-              'Checking content',
+              isRetrying ? 'Please wait' : 'Checking content',
               style: AppTextStyles.headingLarge,
             ),
             const SizedBox(height: 6),
             Text(
-              'Verifying your video meets educational guidelines',
+              _validatingStatus,
               textAlign: TextAlign.center,
-              style: AppTextStyles.bodyMedium,
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 13,
+                color: isRetrying ? Colors.orangeAccent : AppColors.textSecondary,
+                height: 1.5,
+              ),
             ),
             const SizedBox(height: 32),
             SizedBox(
@@ -804,7 +821,9 @@ class _UploadScreenState extends State<UploadScreen>
               height: 32,
               child: CircularProgressIndicator(
                 strokeWidth: 3,
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.accent),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  isRetrying ? Colors.orangeAccent : AppColors.accent,
+                ),
               ),
             ),
           ],

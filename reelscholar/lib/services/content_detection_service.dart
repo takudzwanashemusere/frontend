@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'api_constants.dart';
@@ -19,26 +20,29 @@ class ValidationResult {
 }
 
 class ContentDetectionService {
+  static const int _maxRetries = 3;
+  static const Duration _retryDelay = Duration(seconds: 10);
+
   static final Dio _dio = Dio(
     BaseOptions(
       baseUrl: kContentDetectionUrl,
       connectTimeout: const Duration(seconds: 30),
-      receiveTimeout: const Duration(seconds: 60),
+      receiveTimeout: const Duration(seconds: 90),
     ),
   );
 
   /// Sends the video to the detection API and returns a [ValidationResult].
-  /// Accepts either a file path (mobile) or raw bytes (web).
-  /// If the detection service is unreachable, falls back to [ContentStatus.underReview].
+  /// Retries up to 3 times (10 s apart) when the server is warming up (502/503/504).
+  /// Falls back to [ContentStatus.underReview] if all retries are exhausted.
   static Future<ValidationResult> validateVideo({
     String? filePath,
     Uint8List? fileBytes,
     String fileName = 'video.mp4',
     String title = '',
     String description = '',
+    void Function(int attempt, int total)? onRetry,
   }) async {
     if (filePath == null && fileBytes == null) {
-      // No file data — let it pass and be reviewed manually
       return const ValidationResult(
         status: ContentStatus.underReview,
         isEducational: false,
@@ -47,52 +51,57 @@ class ContentDetectionService {
       );
     }
 
-    try {
-      final formData = FormData();
+    for (int attempt = 1; attempt <= _maxRetries; attempt++) {
+      try {
+        final formData = FormData();
 
-      if (fileBytes != null) {
-        formData.files.add(MapEntry(
-          'video',
-          MultipartFile.fromBytes(fileBytes, filename: fileName),
-        ));
-      } else {
-        formData.files.add(MapEntry(
-          'video',
-          await MultipartFile.fromFile(filePath!, filename: fileName),
-        ));
+        if (fileBytes != null) {
+          formData.files.add(MapEntry(
+            'video',
+            MultipartFile.fromBytes(fileBytes, filename: fileName),
+          ));
+        } else {
+          formData.files.add(MapEntry(
+            'video',
+            await MultipartFile.fromFile(filePath!, filename: fileName),
+          ));
+        }
+
+        if (title.isNotEmpty) formData.fields.add(MapEntry('title', title));
+        if (description.isNotEmpty) formData.fields.add(MapEntry('description', description));
+
+        final response = await _dio.post('/api/validate-video', data: formData);
+        final raw = response.data as Map<String, dynamic>? ?? {};
+        return _parseResult(raw);
+
+      } on DioException catch (e) {
+        final isServiceUnavailable =
+            e.type == DioExceptionType.connectionTimeout ||
+            e.type == DioExceptionType.receiveTimeout ||
+            e.type == DioExceptionType.connectionError ||
+            e.type == DioExceptionType.sendTimeout ||
+            (e.type == DioExceptionType.badResponse &&
+                (e.response?.statusCode == 503 ||
+                 e.response?.statusCode == 502 ||
+                 e.response?.statusCode == 504));
+
+        if (!isServiceUnavailable) rethrow;
+
+        if (attempt < _maxRetries) {
+          // Notify caller so it can update UI ("Retrying 2/3...")
+          onRetry?.call(attempt + 1, _maxRetries);
+          await Future.delayed(_retryDelay);
+        }
       }
-
-      if (title.isNotEmpty) formData.fields.add(MapEntry('title', title));
-      if (description.isNotEmpty) formData.fields.add(MapEntry('description', description));
-
-      final response = await _dio.post('/api/validate-video', data: formData);
-      final raw = response.data as Map<String, dynamic>? ?? {};
-
-      return _parseResult(raw);
-    } on DioException catch (e) {
-      // Service is down, sleeping (Render free tier cold-start = 503),
-      // or network is unavailable — fall back to underReview.
-      final isServiceUnavailable =
-          e.type == DioExceptionType.connectionTimeout ||
-          e.type == DioExceptionType.receiveTimeout ||
-          e.type == DioExceptionType.connectionError ||
-          e.type == DioExceptionType.sendTimeout ||
-          (e.type == DioExceptionType.badResponse &&
-              (e.response?.statusCode == 503 ||
-               e.response?.statusCode == 502 ||
-               e.response?.statusCode == 504));
-
-      if (isServiceUnavailable) {
-        return const ValidationResult(
-          status: ContentStatus.underReview,
-          isEducational: false,
-          message: 'Content review service is currently unavailable. Your video will be reviewed manually before publishing.',
-          confidence: 0.0,
-        );
-      }
-      // Other server error — re-throw so the caller can handle it
-      rethrow;
     }
+
+    // All retries exhausted — fall back gracefully
+    return const ValidationResult(
+      status: ContentStatus.underReview,
+      isEducational: false,
+      message: 'Content review service is warming up. Your video will be reviewed manually before publishing.',
+      confidence: 0.0,
+    );
   }
 
   static ValidationResult _parseResult(Map<String, dynamic> raw) {
