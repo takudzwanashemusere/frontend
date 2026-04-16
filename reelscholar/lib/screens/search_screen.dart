@@ -212,7 +212,7 @@ class _SearchScreenState extends State<SearchScreen>
 
             TabBar(
               controller: _tabController,
-              onTap: _onTabChanged,
+              onTap: (index) => _onTabChanged(index),
               indicatorColor: AppColors.accent,
               indicatorWeight: 2,
               dividerColor: AppColors.border,
