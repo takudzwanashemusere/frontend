@@ -49,6 +49,7 @@ class VideoService {
     final user = (v['user'] is Map) ? v['user'] as Map<String, dynamic> : <String, dynamic>{};
     return {
       'id': v['id'],
+      'userId': user['id'] ?? v['user_id'] ?? v['author_id'],
       'username': '@${user['username'] ?? v['username'] ?? 'user'}',
       'name': user['name'] ?? v['author_name'] ?? 'Unknown',
       'school': school,
@@ -59,6 +60,7 @@ class VideoService {
       'shares': formatCount(v['shares_count'] ?? v['shares'] ?? 0),
       'likesCount': (v['likes_count'] ?? v['likes'] ?? 0),
       'isLiked': v['is_liked'] == true,
+      'isFollowing': v['is_following'] == true || user['is_following'] == true,
       'color': Color(colors.$1),
       'accent': Color(colors.$2),
       'networkUrl': v['video_url']?.toString() ?? v['url']?.toString(),
@@ -66,6 +68,23 @@ class VideoService {
       'fileBytes': null,
     };
   }
+
+  /// Map a school name to a Flutter icon
+  static IconData schoolIcon(String school) {
+    final s = school.toLowerCase();
+    if (s.contains('engineering')) return Icons.engineering_outlined;
+    if (s.contains('business') || s.contains('entrepreneurship')) return Icons.business_center_outlined;
+    if (s.contains('agriculture')) return Icons.agriculture_outlined;
+    if (s.contains('natural') || s.contains('mathematics')) return Icons.science_outlined;
+    if (s.contains('health')) return Icons.local_hospital_outlined;
+    if (s.contains('wildlife') || s.contains('environmental')) return Icons.park_outlined;
+    if (s.contains('hospitality') || s.contains('tourism')) return Icons.hotel_outlined;
+    if (s.contains('art') || s.contains('design')) return Icons.palette_outlined;
+    return Icons.school_outlined;
+  }
+
+  /// Map a school name to an accent Color (public wrapper around _schoolColors)
+  static Color schoolAccentColor(String school) => Color(_schoolColors(school).$2);
 
   /// Fetch the video feed
   static Future<List<Map<String, dynamic>>> getFeed({
@@ -221,6 +240,45 @@ class VideoService {
     return Map<String, dynamic>.from(raw is Map ? (raw['data'] ?? raw) : {});
   }
 
+
+  /// Search users by name or username
+  static Future<List<Map<String, dynamic>>> searchUsers(String query) async {
+    final opts = await _authOptions();
+    final response = await _dio.get(
+      '/api/users/search',
+      queryParameters: {'q': query},
+      options: opts,
+    );
+    final raw = response.data;
+    final List list = (raw is Map ? (raw['data'] ?? raw['users'] ?? []) : raw) as List? ?? [];
+    return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
+  /// Fetch a public user profile by ID
+  static Future<Map<String, dynamic>> getUserPublicProfile(dynamic userId) async {
+    final opts = await _authOptions();
+    final response = await _dio.get('/api/users/$userId', options: opts);
+    final raw = response.data;
+    return Map<String, dynamic>.from(raw is Map ? (raw['data'] ?? raw['user'] ?? raw) : {});
+  }
+
+  /// Fetch videos uploaded by a specific user
+  static Future<List<Map<String, dynamic>>> getUserVideos(dynamic userId) async {
+    final opts = await _authOptions();
+    final response = await _dio.get('/api/users/$userId/videos', options: opts);
+    final raw = response.data;
+    final List list = (raw is Map ? (raw['data'] ?? raw['videos'] ?? []) : raw) as List? ?? [];
+    return list.map((e) => normalizeVideo(Map<String, dynamic>.from(e as Map))).toList();
+  }
+
+  /// Fetch schools from the API
+  static Future<List<Map<String, dynamic>>> getSchools() async {
+    final opts = await _authOptions();
+    final response = await _dio.get('/api/schools', options: opts);
+    final raw = response.data;
+    final List list = (raw is Map ? (raw['data'] ?? raw['schools'] ?? []) : raw) as List? ?? [];
+    return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
 
   /// Update the current user's profile (name, bio, avatar)
   static Future<Map<String, dynamic>> updateProfile({

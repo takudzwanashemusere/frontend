@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../main.dart';
 import '../services/video_service.dart';
+import 'user_profile_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -15,82 +16,31 @@ class _SearchScreenState extends State<SearchScreen>
   final TextEditingController _searchController = TextEditingController();
   late TabController _tabController;
 
+  static const _tabs = ['Videos', 'People'];
+
   String _query = '';
   bool _isLoadingTrending = true;
-  bool _isSearching = false;
+  bool _isLoadingSchools = true;
+  bool _isSearchingVideos = false;
+  bool _isSearchingPeople = false;
 
   List<Map<String, dynamic>> _trendingVideos = [];
-  List<Map<String, dynamic>> _searchResults = [];
+  List<Map<String, dynamic>> _schools = [];
+  List<Map<String, dynamic>> _videoResults = [];
+  List<Map<String, dynamic>> _peopleResults = [];
   List<String> _recentSearches = [];
 
+  // Follow state keyed by user id
+  final Map<dynamic, bool> _followState = {};
+
   static const _prefsKey = 'recent_searches';
-
-  final List<String> _tabs = [
-    'All',
-    'Engineering',
-    'Business',
-    'Agriculture',
-    'Health',
-    'Natural Sci',
-  ];
-
-  // Schools are fixed (CUT faculties) — names and icons are static
-  static const _schools = [
-    {
-      'name': 'Engineering Science\n& Technology',
-      'icon': Icons.engineering_outlined,
-      'color': AppColors.accent,
-      'school': 'Engineering',
-    },
-    {
-      'name': 'Entrepreneurship\n& Business Sciences',
-      'icon': Icons.business_center_outlined,
-      'color': Color(0xFFFF6B35),
-      'school': 'Business',
-    },
-    {
-      'name': 'Agriculture Sciences\n& Technology',
-      'icon': Icons.agriculture_outlined,
-      'color': Color(0xFF2ECC71),
-      'school': 'Agriculture',
-    },
-    {
-      'name': 'Natural Sciences\n& Mathematics',
-      'icon': Icons.science_outlined,
-      'color': Color(0xFF00BCD4),
-      'school': 'Natural Sciences',
-    },
-    {
-      'name': 'Health Sciences\n& Technology',
-      'icon': Icons.local_hospital_outlined,
-      'color': Color(0xFFE040FB),
-      'school': 'Health',
-    },
-    {
-      'name': 'Wildlife &\nEnvironmental Science',
-      'icon': Icons.park_outlined,
-      'color': Color(0xFF4CAF50),
-      'school': 'Wildlife',
-    },
-    {
-      'name': 'Hospitality\n& Tourism',
-      'icon': Icons.hotel_outlined,
-      'color': Color(0xFFFFAB40),
-      'school': 'Hospitality',
-    },
-    {
-      'name': 'Art\n& Design',
-      'icon': Icons.palette_outlined,
-      'color': Color(0xFFFF4081),
-      'school': 'Art',
-    },
-  ];
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: _tabs.length, vsync: this);
     _loadTrending();
+    _loadSchools();
     _loadRecentSearches();
   }
 
@@ -108,6 +58,18 @@ class _SearchScreenState extends State<SearchScreen>
     } catch (_) {
       if (mounted) setState(() => _isLoadingTrending = false);
     }
+  }
+
+  Future<void> _loadSchools() async {
+    try {
+      final list = await VideoService.getSchools();
+      if (mounted && list.isNotEmpty) {
+        setState(() { _schools = list; _isLoadingSchools = false; });
+        return;
+      }
+    } catch (_) {}
+    // Fallback: derive from trending videos' schools, or leave empty
+    if (mounted) setState(() => _isLoadingSchools = false);
   }
 
   Future<void> _loadRecentSearches() async {
@@ -133,15 +95,40 @@ class _SearchScreenState extends State<SearchScreen>
     if (mounted) setState(() => _recentSearches = []);
   }
 
-  Future<void> _runSearch(String query) async {
+  Future<void> _runSearch(String query, {int? tabIndex}) async {
     if (query.trim().isEmpty) return;
     _saveSearch(query);
-    setState(() => _isSearching = true);
+    final isVideos = (tabIndex ?? _tabController.index) == 0;
+    if (isVideos) {
+      setState(() => _isSearchingVideos = true);
+      try {
+        final results = await VideoService.searchVideos(query.trim());
+        if (mounted) setState(() { _videoResults = results; _isSearchingVideos = false; });
+      } catch (_) {
+        if (mounted) setState(() { _videoResults = []; _isSearchingVideos = false; });
+      }
+    } else {
+      setState(() => _isSearchingPeople = true);
+      try {
+        final results = await VideoService.searchUsers(query.trim());
+        if (mounted) setState(() { _peopleResults = results; _isSearchingPeople = false; });
+      } catch (_) {
+        if (mounted) setState(() { _peopleResults = []; _isSearchingPeople = false; });
+      }
+    }
+  }
+
+  void _onTabChanged(int index) {
+    // Re-run the current query for the newly selected tab
+    if (_query.isNotEmpty) _runSearch(_query, tabIndex: index);
+  }
+
+  Future<void> _toggleFollow(dynamic userId, bool current) async {
+    setState(() => _followState[userId] = !current);
     try {
-      final results = await VideoService.searchVideos(query.trim());
-      if (mounted) setState(() { _searchResults = results; _isSearching = false; });
+      await VideoService.toggleFollow(userId);
     } catch (_) {
-      if (mounted) setState(() { _searchResults = []; _isSearching = false; });
+      if (mounted) setState(() => _followState[userId] = current);
     }
   }
 
@@ -161,7 +148,7 @@ class _SearchScreenState extends State<SearchScreen>
                   Text('Discover', style: AppTextStyles.displayMedium),
                   const SizedBox(height: 4),
                   Text(
-                    'Find educational content across CUT schools',
+                    'Find videos and people across CUT',
                     style: AppTextStyles.bodyMedium,
                   ),
                   const SizedBox(height: 16),
@@ -172,15 +159,17 @@ class _SearchScreenState extends State<SearchScreen>
                       color: AppColors.surface,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: _query.isNotEmpty
-                            ? AppColors.accent
-                            : AppColors.border,
+                        color: _query.isNotEmpty ? AppColors.accent : AppColors.border,
                       ),
                     ),
                     child: TextField(
                       controller: _searchController,
                       onChanged: (val) {
-                        setState(() { _query = val; _searchResults = []; });
+                        setState(() {
+                          _query = val;
+                          _videoResults = [];
+                          _peopleResults = [];
+                        });
                       },
                       onSubmitted: _runSearch,
                       textInputAction: TextInputAction.search,
@@ -190,33 +179,28 @@ class _SearchScreenState extends State<SearchScreen>
                         fontSize: 14,
                       ),
                       decoration: InputDecoration(
-                        hintText: 'Search modules, schools, topics...',
+                        hintText: 'Search videos, people, topics...',
                         hintStyle: TextStyle(
                           color: AppColors.textMuted,
                           fontFamily: 'Poppins',
                           fontSize: 14,
                         ),
-                        prefixIcon: Icon(
-                          Icons.search_rounded,
-                          color: AppColors.accent,
-                          size: 20,
-                        ),
+                        prefixIcon: Icon(Icons.search_rounded, color: AppColors.accent, size: 20),
                         suffixIcon: _query.isNotEmpty
                             ? IconButton(
-                                icon: Icon(
-                                  Icons.close_rounded,
-                                  color: AppColors.textTertiary,
-                                  size: 18,
-                                ),
+                                icon: Icon(Icons.close_rounded, color: AppColors.textTertiary, size: 18),
                                 onPressed: () {
                                   _searchController.clear();
-                                  setState(() { _query = ''; _searchResults = []; });
+                                  setState(() {
+                                    _query = '';
+                                    _videoResults = [];
+                                    _peopleResults = [];
+                                  });
                                 },
                               )
                             : null,
                         border: InputBorder.none,
-                        contentPadding:
-                            const EdgeInsets.symmetric(vertical: 14),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 14),
                       ),
                     ),
                   ),
@@ -228,8 +212,7 @@ class _SearchScreenState extends State<SearchScreen>
 
             TabBar(
               controller: _tabController,
-              isScrollable: true,
-              tabAlignment: TabAlignment.start,
+              onTap: _onTabChanged,
               indicatorColor: AppColors.accent,
               indicatorWeight: 2,
               dividerColor: AppColors.border,
@@ -250,14 +233,25 @@ class _SearchScreenState extends State<SearchScreen>
             ),
 
             Expanded(
-              child: _query.isNotEmpty
-                  ? _buildSearchResults()
-                  : _buildDiscoverContent(),
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildVideosTab(),
+                  _buildPeopleTab(),
+                ],
+              ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  // ── Videos tab ─────────────────────────────────────────────────────────────
+
+  Widget _buildVideosTab() {
+    if (_query.isNotEmpty) return _buildVideoResults();
+    return _buildDiscoverContent();
   }
 
   Widget _buildDiscoverContent() {
@@ -308,11 +302,7 @@ class _SearchScreenState extends State<SearchScreen>
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          Icons.history_rounded,
-                          size: 13,
-                          color: AppColors.textTertiary,
-                        ),
+                        Icon(Icons.history_rounded, size: 13, color: AppColors.textTertiary),
                         const SizedBox(width: 6),
                         Text(
                           s,
@@ -334,67 +324,82 @@ class _SearchScreenState extends State<SearchScreen>
           // Browse by School
           Text('Browse by School', style: AppTextStyles.headingMedium),
           const SizedBox(height: 12),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 1.45,
+
+          if (_isLoadingSchools)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (_schools.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Text(
+                'Schools unavailable',
+                style: TextStyle(color: AppColors.textMuted, fontFamily: 'Poppins', fontSize: 13),
+              ),
+            )
+          else
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 1.45,
+              ),
+              itemCount: _schools.length,
+              itemBuilder: (context, index) {
+                final school = _schools[index];
+                final name = school['name']?.toString() ?? school['school']?.toString() ?? '';
+                final color = VideoService.schoolAccentColor(name);
+                return GestureDetector(
+                  onTap: () {
+                    _searchController.text = name;
+                    setState(() => _query = name);
+                    _runSearch(name);
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    padding: const EdgeInsets.all(14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: color.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            VideoService.schoolIcon(name),
+                            color: color,
+                            size: 20,
+                          ),
+                        ),
+                        Text(
+                          name,
+                          style: TextStyle(
+                            color: AppColors.textPrimary,
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                            height: 1.3,
+                          ),
+                          maxLines: 2,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
-            itemCount: _schools.length,
-            itemBuilder: (context, index) {
-              final school = _schools[index];
-              final Color color = school['color'] as Color;
-              return GestureDetector(
-                onTap: () {
-                  final schoolName = school['school'] as String;
-                  _searchController.text = schoolName;
-                  setState(() => _query = schoolName);
-                  _runSearch(schoolName);
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  padding: const EdgeInsets.all(14),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          color: color.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          school['icon'] as IconData,
-                          color: color,
-                          size: 20,
-                        ),
-                      ),
-                      Text(
-                        school['name'] as String,
-                        style: TextStyle(
-                          color: AppColors.textPrimary,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12,
-                          height: 1.3,
-                        ),
-                        maxLines: 2,
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
 
           const SizedBox(height: 28),
 
@@ -435,16 +440,12 @@ class _SearchScreenState extends State<SearchScreen>
               child: Center(
                 child: Text(
                   'No trending content right now',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    color: AppColors.textMuted,
-                    fontSize: 13,
-                  ),
+                  style: TextStyle(fontFamily: 'Poppins', color: AppColors.textMuted, fontSize: 13),
                 ),
               ),
             )
           else
-            ..._trendingVideos.map((video) => _TrendingCard(video: video)),
+            ..._trendingVideos.map((video) => _VideoCard(video: video)),
 
           const SizedBox(height: 80),
         ],
@@ -452,12 +453,11 @@ class _SearchScreenState extends State<SearchScreen>
     );
   }
 
-  Widget _buildSearchResults() {
-    if (_isSearching) {
+  Widget _buildVideoResults() {
+    if (_isSearchingVideos) {
       return const Center(child: CircularProgressIndicator());
     }
-
-    if (_searchResults.isEmpty && _query.isNotEmpty) {
+    if (_videoResults.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -465,53 +465,314 @@ class _SearchScreenState extends State<SearchScreen>
             Icon(Icons.search_off_rounded, size: 52, color: AppColors.textMuted),
             const SizedBox(height: 16),
             Text(
-              'No results for "$_query"',
-              style: TextStyle(
-                color: AppColors.textTertiary,
-                fontFamily: 'Poppins',
-                fontSize: 14,
-              ),
+              'No videos for "$_query"',
+              style: TextStyle(color: AppColors.textTertiary, fontFamily: 'Poppins', fontSize: 14),
             ),
             const SizedBox(height: 8),
             Text(
-              'Press Enter / Search to look it up',
-              style: TextStyle(
-                color: AppColors.textMuted,
-                fontFamily: 'Poppins',
-                fontSize: 12,
-              ),
+              'Press Enter to search',
+              style: TextStyle(color: AppColors.textMuted, fontFamily: 'Poppins', fontSize: 12),
             ),
           ],
         ),
       );
     }
-
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      itemCount: _searchResults.length,
-      itemBuilder: (context, index) => _TrendingCard(video: _searchResults[index]),
+      itemCount: _videoResults.length,
+      itemBuilder: (context, index) => _VideoCard(video: _videoResults[index]),
+    );
+  }
+
+  // ── People tab ─────────────────────────────────────────────────────────────
+
+  Widget _buildPeopleTab() {
+    if (_query.isEmpty) return _buildSuggestedPeople();
+    return _buildPeopleResults();
+  }
+
+  Widget _buildSuggestedPeople() {
+    return _SuggestedPeopleList(
+      followState: _followState,
+      onToggleFollow: _toggleFollow,
+    );
+  }
+
+  Widget _buildPeopleResults() {
+    if (_isSearchingPeople) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_peopleResults.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.person_search_rounded, size: 52, color: AppColors.textMuted),
+            const SizedBox(height: 16),
+            Text(
+              'No people found for "$_query"',
+              style: TextStyle(color: AppColors.textTertiary, fontFamily: 'Poppins', fontSize: 14),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Press Enter to search',
+              style: TextStyle(color: AppColors.textMuted, fontFamily: 'Poppins', fontSize: 12),
+            ),
+          ],
+        ),
+      );
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      itemCount: _peopleResults.length,
+      itemBuilder: (context, index) {
+        final user = _peopleResults[index];
+        return _UserCard(
+          user: user,
+          isFollowing: _followState[user['id']] ?? (user['is_following'] == true),
+          onToggleFollow: () => _toggleFollow(
+            user['id'],
+            _followState[user['id']] ?? (user['is_following'] == true),
+          ),
+        );
+      },
     );
   }
 }
 
-class _TrendingCard extends StatelessWidget {
-  final Map<String, dynamic> video;
-  const _TrendingCard({required this.video});
+// ── Suggested people (loads from API) ───────────────────────────────────────
+
+class _SuggestedPeopleList extends StatefulWidget {
+  final Map<dynamic, bool> followState;
+  final void Function(dynamic userId, bool current) onToggleFollow;
+
+  const _SuggestedPeopleList({
+    required this.followState,
+    required this.onToggleFollow,
+  });
+
+  @override
+  State<_SuggestedPeopleList> createState() => _SuggestedPeopleListState();
+}
+
+class _SuggestedPeopleListState extends State<_SuggestedPeopleList> {
+  List<Map<String, dynamic>> _users = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final users = await VideoService.getSuggestedUsers();
+      if (mounted) setState(() { _users = users; _isLoading = false; });
+    } catch (_) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final Color color = video['color'] is Color
-        ? video['color'] as Color
-        : AppColors.accent;
+    if (_isLoading) return const Center(child: CircularProgressIndicator());
+    if (_users.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.people_outline_rounded, size: 52, color: AppColors.textMuted),
+            const SizedBox(height: 16),
+            Text('No suggestions yet', style: AppTextStyles.headingMedium),
+            const SizedBox(height: 6),
+            Text('Search for people by name above', style: AppTextStyles.bodyMedium),
+          ],
+        ),
+      );
+    }
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 80),
+      children: [
+        Text('Suggested for you', style: AppTextStyles.headingMedium),
+        const SizedBox(height: 12),
+        ..._users.map((user) {
+          final id = user['id'];
+          final isFollowing = widget.followState[id] ?? (user['is_following'] == true);
+          return _UserCard(
+            user: user,
+            isFollowing: isFollowing,
+            onToggleFollow: () => widget.onToggleFollow(id, isFollowing),
+          );
+        }),
+      ],
+    );
+  }
+}
+
+// ── Reusable user card ───────────────────────────────────────────────────────
+
+class _UserCard extends StatelessWidget {
+  final Map<String, dynamic> user;
+  final bool isFollowing;
+  final VoidCallback onToggleFollow;
+
+  const _UserCard({
+    required this.user,
+    required this.isFollowing,
+    required this.onToggleFollow,
+  });
+
+  String _initials(String name) {
+    final parts = name.trim().split(' ');
+    if (parts.length >= 2) return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    return name.isNotEmpty ? name[0].toUpperCase() : '?';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final name = user['name']?.toString() ?? '';
+    final username = user['username'] != null ? '@${user['username']}' : '';
+    final school = user['school']?.toString() ?? user['department']?.toString() ?? '';
+    final videoCount = user['videos_count'] ?? user['video_count'] ?? 0;
+    final accent = VideoService.schoolAccentColor(school);
+
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => UserProfileScreen(
+            userId: user['id'],
+            displayName: name,
+            username: username,
+          ),
+        ),
+      ),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Row(
+          children: [
+            // Avatar
+            Container(
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: accent.withValues(alpha: 0.15),
+                border: Border.all(color: accent.withValues(alpha: 0.3)),
+              ),
+              child: Center(
+                child: Text(
+                  _initials(name),
+                  style: TextStyle(
+                    color: accent,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+
+            // Name + school
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (username.isNotEmpty)
+                    Text(
+                      username,
+                      style: TextStyle(
+                        color: AppColors.textTertiary,
+                        fontFamily: 'Poppins',
+                        fontSize: 12,
+                      ),
+                    ),
+                  if (school.isNotEmpty)
+                    Text(
+                      school,
+                      style: TextStyle(
+                        color: accent,
+                        fontFamily: 'Poppins',
+                        fontSize: 11,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  if (videoCount != 0)
+                    Text(
+                      '${VideoService.formatCount(videoCount)} videos',
+                      style: TextStyle(
+                        color: AppColors.textMuted,
+                        fontFamily: 'Poppins',
+                        fontSize: 11,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+
+            const SizedBox(width: 10),
+
+            // Follow button
+            GestureDetector(
+              onTap: onToggleFollow,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isFollowing ? AppColors.surface : AppColors.accent,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: isFollowing ? AppColors.border : AppColors.accent,
+                  ),
+                ),
+                child: Text(
+                  isFollowing ? 'Following' : 'Follow',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                    color: isFollowing ? AppColors.textPrimary : Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Reusable video card for search results ───────────────────────────────────
+
+class _VideoCard extends StatelessWidget {
+  final Map<String, dynamic> video;
+  const _VideoCard({required this.video});
+
+  @override
+  Widget build(BuildContext context) {
+    final Color color = video['accent'] is Color ? video['accent'] as Color : AppColors.accent;
     final String title = video['title']?.toString() ?? '';
     final String subject = video['subject']?.toString() ?? '';
-    final String author = video['username']?.toString() ??
-        video['name']?.toString() ??
-        video['author']?.toString() ??
-        '';
-    final String stat = video['likes']?.toString() ??
-        video['views']?.toString() ??
-        '0';
+    final String author = video['name']?.toString() ?? video['username']?.toString() ?? '';
+    final String stat = video['likes']?.toString() ?? video['views']?.toString() ?? '0';
     final bool isViews = video['views'] != null && video['likes'] == null;
 
     return Container(
@@ -574,11 +835,7 @@ class _TrendingCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         author,
-                        style: TextStyle(
-                          color: AppColors.textTertiary,
-                          fontFamily: 'Poppins',
-                          fontSize: 11,
-                        ),
+                        style: TextStyle(color: AppColors.textTertiary, fontFamily: 'Poppins', fontSize: 11),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -599,11 +856,7 @@ class _TrendingCard extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 stat,
-                style: TextStyle(
-                  color: AppColors.textMuted,
-                  fontFamily: 'Poppins',
-                  fontSize: 11,
-                ),
+                style: TextStyle(color: AppColors.textMuted, fontFamily: 'Poppins', fontSize: 11),
               ),
             ],
           ),

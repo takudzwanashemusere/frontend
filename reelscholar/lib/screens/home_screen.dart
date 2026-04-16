@@ -6,6 +6,7 @@ import 'alerts_screen.dart';
 import 'messages_screen.dart';
 import 'dashboard_screen.dart';
 import 'hackathon_screen.dart';
+import 'user_profile_screen.dart';
 import '../widgets/comments_sheet.dart';
 import '../widgets/share_sheet.dart';
 import '../models/video_store.dart';
@@ -237,6 +238,7 @@ class _VideoCard extends StatefulWidget {
 class _VideoCardState extends State<_VideoCard>
     with SingleTickerProviderStateMixin {
   late bool _isLiked;
+  late bool _isFollowing;
   late AnimationController _heartController;
   late Animation<double> _heartScale;
 
@@ -244,6 +246,7 @@ class _VideoCardState extends State<_VideoCard>
   void initState() {
     super.initState();
     _isLiked = widget.video['isLiked'] == true;
+    _isFollowing = widget.video['isFollowing'] == true;
     _heartController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
@@ -268,6 +271,31 @@ class _VideoCardState extends State<_VideoCard>
         if (mounted) setState(() => _isLiked = !_isLiked); // revert on error
       });
     }
+  }
+
+  void _handleFollow() {
+    final userId = widget.video['userId'];
+    if (userId == null) return;
+    setState(() => _isFollowing = !_isFollowing);
+    VideoService.toggleFollow(userId).catchError((_) {
+      if (mounted) setState(() => _isFollowing = !_isFollowing); // revert on error
+    });
+  }
+
+  void _openUserProfile() {
+    final userId = widget.video['userId'];
+    final name = widget.video['name']?.toString() ?? '';
+    final username = widget.video['username']?.toString() ?? '';
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => UserProfileScreen(
+          userId: userId,
+          displayName: name,
+          username: username,
+        ),
+      ),
+    );
   }
 
   Widget _buildDemoPlaceholder(Color accent, Map<String, dynamic> video) {
@@ -363,65 +391,77 @@ class _VideoCardState extends State<_VideoCard>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Username
+                // Username row
                 Row(
                   children: [
-                    CircleAvatar(
-                      radius: 18,
-                      backgroundColor: accent.withValues(alpha: 0.3),
-                      child: Text(
-                        video['name'].toString().substring(0, 1),
-                        style: TextStyle(
-                          color: accent,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14,
+                    GestureDetector(
+                      onTap: _openUserProfile,
+                      child: CircleAvatar(
+                        radius: 18,
+                        backgroundColor: accent.withValues(alpha: 0.3),
+                        child: Text(
+                          video['name'].toString().substring(0, 1),
+                          style: TextStyle(
+                            color: accent,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                          ),
                         ),
                       ),
                     ),
                     const SizedBox(width: 10),
                     Flexible(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            video['name'],
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 15,
+                      child: GestureDetector(
+                        onTap: _openUserProfile,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              video['name'],
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 15,
+                              ),
                             ),
-                          ),
-                          Text(
-                            video['username'],
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.6),
-                              fontSize: 12,
+                            Text(
+                              video['username'],
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.6),
+                                fontSize: 12,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.4),
+                    GestureDetector(
+                      onTap: _handleFollow,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 4,
                         ),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: const Text(
-                        'Follow',
-                        style: TextStyle(
-                          fontFamily: 'Poppins',
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
+                        decoration: BoxDecoration(
+                          color: _isFollowing
+                              ? Colors.white.withValues(alpha: 0.15)
+                              : Colors.transparent,
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.4),
+                          ),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          _isFollowing ? 'Following' : 'Follow',
+                          style: const TextStyle(
+                            fontFamily: 'Poppins',
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                     ),
