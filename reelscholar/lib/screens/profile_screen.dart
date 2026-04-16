@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import '../services/auth_service.dart';
 import '../services/video_service.dart';
 import '../models/video_store.dart';
+import '../widgets/video_player_widget.dart';
 import 'login_screen.dart';
 import '../main.dart';
 
@@ -481,7 +482,16 @@ class _ProfileScreenState extends State<ProfileScreen>
       itemCount: myVideos.length,
       itemBuilder: (context, index) {
         final video = myVideos[index];
-        return Container(
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => _VideoPlayerScreen(video: video),
+              ),
+            );
+          },
+          child: Container(
           decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.circular(10),
@@ -570,6 +580,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
             ],
           ),
+        ),
         );
       },
     );
@@ -1255,6 +1266,37 @@ class _AchievementCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _VideoPlayerScreen extends StatelessWidget {
+  final Map<String, dynamic> video;
+
+  const _VideoPlayerScreen({required this.video});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        title: Text(
+          video['title'] ?? '',
+          style: const TextStyle(fontFamily: 'Poppins', fontSize: 14),
+        ),
+      ),
+      body: Center(
+        child: video['filePath'] != null
+            ? VideoPlayerWidget(filePath: video['filePath'] as String)
+            : video['networkUrl'] != null
+                ? VideoPlayerWidget(networkUrl: video['networkUrl'] as String)
+                : const Text(
+                    'Video unavailable',
+                    style: TextStyle(color: Colors.white54),
+                  ),
       ),
     );
   }
