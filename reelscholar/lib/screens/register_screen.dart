@@ -156,7 +156,7 @@ class _RegisterScreenState extends State<RegisterScreen>
             'faculty': _selectedFaculty,
             'degree_programme': _selectedDegreeProgram,
             'year_level': _selectedYearLevel,
-            'part': _selectedPart,
+            'semester': _selectedPart,
             'device_name': 'mobile',
           }),
         );
@@ -446,14 +446,14 @@ class _RegisterScreenState extends State<RegisterScreen>
 
                           const SizedBox(height: 20),
 
-                          // Part (semester within year) dropdown
-                          _FieldLabel('Part'),
+                          // Semester dropdown
+                          _FieldLabel('Semester'),
                           const SizedBox(height: 8),
                           DropdownButtonFormField<int>(
                             value: _selectedPart,
                             onChanged: (val) => setState(() => _selectedPart = val),
                             validator: (val) {
-                              if (val == null) return 'Please select your part';
+                              if (val == null) return 'Please select your semester';
                               return null;
                             },
                             isExpanded: true,
@@ -470,7 +470,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                               fontWeight: FontWeight.w400,
                             ),
                             hint: Text(
-                              'Select part',
+                              'Select semester',
                               style: TextStyle(
                                 color: AppColors.textTertiary,
                                 fontFamily: 'Poppins',
@@ -497,7 +497,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                                 .map((p) => DropdownMenuItem(
                                       value: p,
                                       child: Text(
-                                        'Part $p',
+                                        'Semester $p',
                                         style: TextStyle(
                                           color: AppColors.textPrimary,
                                           fontFamily: 'Poppins',
