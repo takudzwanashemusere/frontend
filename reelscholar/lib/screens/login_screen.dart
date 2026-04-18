@@ -84,13 +84,15 @@ class _LoginScreenState extends State<LoginScreen>
         if (!mounted) return;
         final data = json.decode(res.body);
         if (res.statusCode == 200 && data['success'] == true) {
-          final user = data['user'] ?? {};
+          // New API wraps token+user inside data.data; fall back for old shape
+          final payload = (data['data'] is Map) ? data['data'] as Map : data;
+          final user = (payload['user'] is Map) ? payload['user'] as Map : {};
           await AuthService.saveSession(
             email: _emailController.text.trim(),
-            name: user['name'] ?? user['full_name'] ?? '',
-            token: data['token'] ?? '',
-            userId: user['id'],
-            username: user['username'] ?? user['email'],
+            name: user['name']?.toString() ?? user['full_name']?.toString() ?? '',
+            token: payload['token']?.toString() ?? '',
+            userId: user['id'] is int ? user['id'] as int : int.tryParse(user['id']?.toString() ?? ''),
+            username: user['username']?.toString() ?? user['email']?.toString(),
           );
           try {
             final email    = _emailController.text.trim();

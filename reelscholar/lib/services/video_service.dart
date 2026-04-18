@@ -42,9 +42,9 @@ class VideoService {
     return '$n';
   }
 
-  /// Normalise a raw API video object to the format expected by the app
+  /// Normalise a raw API reel/video object to the format expected by the app
   static Map<String, dynamic> normalizeVideo(Map<String, dynamic> v) {
-    final school = v['school']?.toString() ?? v['school_name']?.toString() ?? '';
+    final school = v['school']?.toString() ?? v['school_name']?.toString() ?? v['faculty']?.toString() ?? '';
     final colors = _schoolColors(school);
     final user = (v['user'] is Map) ? v['user'] as Map<String, dynamic> : <String, dynamic>{};
     return {
@@ -55,11 +55,13 @@ class VideoService {
       'school': school,
       'subject': v['subject']?.toString() ?? v['module']?.toString() ?? '',
       'title': v['title']?.toString() ?? '',
-      'likes': formatCount(v['likes_count'] ?? v['likes'] ?? 0),
-      'comments': formatCount(v['comments_count'] ?? v['comments'] ?? 0),
-      'shares': formatCount(v['shares_count'] ?? v['shares'] ?? 0),
-      'likesCount': (v['likes_count'] ?? v['likes'] ?? 0),
+      // New API uses singular like_count/comment_count/share_count; old used plural _count
+      'likes': formatCount(v['likes_count'] ?? v['like_count'] ?? v['likes'] ?? 0),
+      'comments': formatCount(v['comments_count'] ?? v['comment_count'] ?? v['comments'] ?? 0),
+      'shares': formatCount(v['shares_count'] ?? v['share_count'] ?? v['shares'] ?? 0),
+      'likesCount': (v['likes_count'] ?? v['like_count'] ?? v['likes'] ?? 0),
       'isLiked': v['is_liked'] == true,
+      'isBookmarked': v['is_bookmarked'] == true,
       'isFollowing': v['is_following'] == true || user['is_following'] == true,
       'color': Color(colors.$1),
       'accent': Color(colors.$2),
@@ -86,7 +88,7 @@ class VideoService {
   /// Map a school name to an accent Color (public wrapper around _schoolColors)
   static Color schoolAccentColor(String school) => Color(_schoolColors(school).$2);
 
-  /// Fetch the video feed
+  /// Fetch the reel feed
   static Future<List<Map<String, dynamic>>> getFeed({
     String filter = 'for_you',
     String? school,
@@ -94,9 +96,9 @@ class VideoService {
   }) async {
     final opts = await _authOptions();
     final response = await _dio.get(
-      '/api/videos',
+      '/api/reels',
       queryParameters: {
-        'filter': filter,
+        'feed': filter, // API renamed 'filter' → 'feed'
         if (school != null && school.isNotEmpty) 'school': school,
         'page': page,
       },
@@ -107,26 +109,26 @@ class VideoService {
     return list.map((e) => normalizeVideo(Map<String, dynamic>.from(e as Map))).toList();
   }
 
-  /// Toggle like/unlike on a video
+  /// Toggle like/unlike on a reel
   static Future<void> toggleLike(dynamic videoId) async {
     final opts = await _authOptions();
-    await _dio.post('/api/videos/$videoId/like', options: opts);
+    await _dio.post('/api/reels/$videoId/like', options: opts);
   }
 
-  /// Fetch comments for a video
+  /// Fetch comments for a reel
   static Future<List<Map<String, dynamic>>> getComments(dynamic videoId) async {
     final opts = await _authOptions();
-    final response = await _dio.get('/api/videos/$videoId/comments', options: opts);
+    final response = await _dio.get('/api/reels/$videoId/comments', options: opts);
     final raw = response.data;
     final List list = (raw is Map ? (raw['data'] ?? raw['comments'] ?? []) : raw) as List? ?? [];
     return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
   }
 
-  /// Post a comment on a video
+  /// Post a comment on a reel
   static Future<Map<String, dynamic>> postComment(dynamic videoId, String body) async {
     final opts = await _authOptions();
     final response = await _dio.post(
-      '/api/videos/$videoId/comments',
+      '/api/reels/$videoId/comments',
       data: {'body': body},
       options: opts,
     );
@@ -140,6 +142,37 @@ class VideoService {
   static Future<void> toggleCommentLike(dynamic commentId) async {
     final opts = await _authOptions();
     await _dio.post('/api/comments/$commentId/like', options: opts);
+  }
+
+  /// Bookmark or un-bookmark a reel
+  static Future<void> toggleBookmark(dynamic reelId) async {
+    final opts = await _authOptions();
+    await _dio.post('/api/reels/$reelId/bookmark', options: opts);
+  }
+
+  /// Record a reel view (call when user watches)
+  static Future<void> recordView(dynamic reelId, {int? watchSeconds}) async {
+    final opts = await _authOptions();
+    await _dio.post(
+      '/api/reels/$reelId/view',
+      data: {if (watchSeconds != null) 'watch_seconds': watchSeconds},
+      options: opts,
+    );
+  }
+
+  /// Record a reel share
+  static Future<void> recordShare(dynamic reelId) async {
+    final opts = await _authOptions();
+    await _dio.post('/api/reels/$reelId/share', options: opts);
+  }
+
+  /// Fetch bookmarked reels
+  static Future<List<Map<String, dynamic>>> getBookmarks() async {
+    final opts = await _authOptions();
+    final response = await _dio.get('/api/reels/bookmarks', options: opts);
+    final raw = response.data;
+    final List list = (raw is Map ? (raw['data'] ?? []) : raw) as List? ?? [];
+    return list.map((e) => normalizeVideo(Map<String, dynamic>.from(e as Map))).toList();
   }
 
   /// Fetch notifications
@@ -163,11 +196,11 @@ class VideoService {
     await _dio.patch('/api/notifications/read-all', options: opts);
   }
 
-  /// Search videos
+  /// Search reels
   static Future<List<Map<String, dynamic>>> searchVideos(String query, {String? school}) async {
     final opts = await _authOptions();
     final response = await _dio.get(
-      '/api/videos/search',
+      '/api/reels/search',
       queryParameters: {
         'q': query,
         if (school != null && school.isNotEmpty) 'school': school,
@@ -179,10 +212,14 @@ class VideoService {
     return list.map((e) => normalizeVideo(Map<String, dynamic>.from(e as Map))).toList();
   }
 
-  /// Fetch trending videos
+  /// Fetch trending reels (uses feed=trending filter)
   static Future<List<Map<String, dynamic>>> getTrending() async {
     final opts = await _authOptions();
-    final response = await _dio.get('/api/videos/trending', options: opts);
+    final response = await _dio.get(
+      '/api/reels',
+      queryParameters: {'feed': 'trending'},
+      options: opts,
+    );
     final raw = response.data;
     final List list = (raw is Map ? (raw['data'] ?? raw['videos'] ?? []) : raw) as List? ?? [];
     return list.map((e) => normalizeVideo(Map<String, dynamic>.from(e as Map))).toList();
@@ -206,10 +243,10 @@ class VideoService {
     return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
   }
 
-  /// Fetch trending topics
+  /// Fetch trending hashtag topics
   static Future<List<Map<String, dynamic>>> getTrendingTopics() async {
     final opts = await _authOptions();
-    final response = await _dio.get('/api/topics/trending', options: opts);
+    final response = await _dio.get('/api/reels/trending-tags', options: opts);
     final raw = response.data;
     final List list =
         (raw is Map ? (raw['data'] ?? raw['topics'] ?? []) : raw) as List? ?? [];
@@ -232,10 +269,10 @@ class VideoService {
     return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
   }
 
-  /// Fetch the current user's full profile (stats included)
+  /// Fetch the current user's profile (via /auth/me)
   static Future<Map<String, dynamic>> getUserProfile() async {
     final opts = await _authOptions();
-    final response = await _dio.get('/api/user/profile', options: opts);
+    final response = await _dio.get('/api/auth/me', options: opts);
     final raw = response.data;
     return Map<String, dynamic>.from(raw is Map ? (raw['data'] ?? raw) : {});
   }
@@ -262,10 +299,10 @@ class VideoService {
     return Map<String, dynamic>.from(raw is Map ? (raw['data'] ?? raw['user'] ?? raw) : {});
   }
 
-  /// Fetch videos uploaded by a specific user
+  /// Fetch reels uploaded by a specific user
   static Future<List<Map<String, dynamic>>> getUserVideos(dynamic userId) async {
     final opts = await _authOptions();
-    final response = await _dio.get('/api/users/$userId/videos', options: opts);
+    final response = await _dio.get('/api/reels/user/$userId', options: opts);
     final raw = response.data;
     final List list = (raw is Map ? (raw['data'] ?? raw['videos'] ?? []) : raw) as List? ?? [];
     return list.map((e) => normalizeVideo(Map<String, dynamic>.from(e as Map))).toList();
@@ -297,8 +334,9 @@ class VideoService {
             filename: avatar.path.split('/').last),
       ));
     }
-    final response = await _dio.post(
-      '/api/user/profile',
+    // API changed: PUT /api/profile (was POST /api/user/profile)
+    final response = await _dio.put(
+      '/api/profile',
       data: formData,
       options: Options(headers: {
         'Authorization': 'Bearer $token',

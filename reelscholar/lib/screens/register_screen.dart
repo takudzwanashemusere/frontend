@@ -159,15 +159,17 @@ class _RegisterScreenState extends State<RegisterScreen>
         if (!mounted) return;
         final data = json.decode(res.body);
         if ((res.statusCode == 200 || res.statusCode == 201) && data['success'] == true) {
-          final user = data['user'] ?? {};
+          // New API wraps token+user inside data.data; fall back for old shape
+          final payload = (data['data'] is Map) ? data['data'] as Map : data;
+          final user = (payload['user'] is Map) ? payload['user'] as Map : {};
           final email = _emailController.text.trim();
           final name = _nameController.text.trim();
-          final username = user['username'] ?? _schoolIdController.text.trim();
+          final username = user['username']?.toString() ?? _schoolIdController.text.trim();
           await AuthService.saveSession(
             email: email,
             name: name,
-            token: data['token'] ?? '',
-            userId: user['id'],
+            token: payload['token']?.toString() ?? '',
+            userId: user['id'] is int ? user['id'] as int : int.tryParse(user['id']?.toString() ?? ''),
             username: username,
           );
           await AuthService.saveDepartment(_selectedFaculty!);
