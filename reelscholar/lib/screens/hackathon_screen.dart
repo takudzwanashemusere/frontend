@@ -5,7 +5,8 @@ import '../services/auth_service.dart';
 import '../services/hackathon_service.dart';
 
 class HackathonScreen extends StatefulWidget {
-  const HackathonScreen({super.key});
+  final bool embedded;
+  const HackathonScreen({super.key, this.embedded = false});
 
   @override
   State<HackathonScreen> createState() => _HackathonScreenState();
