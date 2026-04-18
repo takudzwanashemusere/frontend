@@ -8,7 +8,12 @@
       "Bash(git:*)",
       "Bash(cmd:*)",
       "Bash(powershell:*)",
-      "Bash(xargs grep *)"
+      "Bash(xargs grep *)",
+      "Bash(dir \"C:\\\\Users\\\\pc\\\\OneDrive\\\\Desktop\\\\frontend\\\\reelscholar\" /b)",
+      "Bash(powershell.exe *)",
+      "Bash(/usr/bin/git *)",
+      "Bash(C:/Program Files/Git/cmd/git.exe *)",
+      "WebFetch(domain:reelscholarapi-main-l5f9h5.laravel.cloud)"
     ]
   }
 }
