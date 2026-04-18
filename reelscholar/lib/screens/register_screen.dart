@@ -60,6 +60,8 @@ class _RegisterScreenState extends State<RegisterScreen>
   bool _isLoading = false;
   String? _selectedFaculty;
   String? _selectedDegreeProgram;
+  int? _selectedYearLevel;
+  int? _selectedPart;
 
   List<String> _faculties = [];
   List<String> _degreePrograms = [];
@@ -153,6 +155,8 @@ class _RegisterScreenState extends State<RegisterScreen>
             'password_confirmation': _confirmPasswordController.text,
             'faculty': _selectedFaculty,
             'degree_programme': _selectedDegreeProgram,
+            'year_level': _selectedYearLevel,
+            'part': _selectedPart,
             'device_name': 'mobile',
           }),
         );
@@ -175,6 +179,10 @@ class _RegisterScreenState extends State<RegisterScreen>
           await AuthService.saveDepartment(_selectedFaculty!);
           if (_selectedDegreeProgram != null) {
             await AuthService.saveDegreeProgram(_selectedDegreeProgram!);
+          }
+          if (_selectedYearLevel != null && _selectedPart != null) {
+            // Map year+part to semester number (e.g. Year 1 Part 1 = 1, Year 1 Part 2 = 2, Year 2 Part 1 = 3 …)
+            await AuthService.saveSemester((_selectedYearLevel! - 1) * 2 + _selectedPart!);
           }
           // Also register/login with the messaging API
           try {
@@ -370,6 +378,134 @@ class _RegisterScreenState extends State<RegisterScreen>
                               if (val == null) return 'Please select your degree programme';
                               return null;
                             },
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // Year Level dropdown
+                          _FieldLabel('Year Level'),
+                          const SizedBox(height: 8),
+                          DropdownButtonFormField<int>(
+                            value: _selectedYearLevel,
+                            onChanged: (val) => setState(() => _selectedYearLevel = val),
+                            validator: (val) {
+                              if (val == null) return 'Please select your year level';
+                              return null;
+                            },
+                            isExpanded: true,
+                            icon: Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              color: AppColors.textTertiary,
+                              size: 20,
+                            ),
+                            dropdownColor: AppColors.surface,
+                            style: TextStyle(
+                              color: AppColors.textPrimary,
+                              fontFamily: 'Poppins',
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                            ),
+                            hint: Text(
+                              'Select your year',
+                              style: TextStyle(
+                                color: AppColors.textTertiary,
+                                fontFamily: 'Poppins',
+                                fontSize: 14,
+                              ),
+                            ),
+                            decoration: InputDecoration(
+                              prefixIcon: Padding(
+                                padding: const EdgeInsets.only(left: 14, right: 10),
+                                child: Icon(
+                                  Icons.calendar_today_outlined,
+                                  color: AppColors.textTertiary,
+                                  size: 18,
+                                ),
+                              ),
+                              prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+                              errorStyle: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 11,
+                                color: AppColors.error,
+                              ),
+                            ),
+                            items: List.generate(5, (i) => i + 1)
+                                .map((yr) => DropdownMenuItem(
+                                      value: yr,
+                                      child: Text(
+                                        'Year $yr',
+                                        style: TextStyle(
+                                          color: AppColors.textPrimary,
+                                          fontFamily: 'Poppins',
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ))
+                                .toList(),
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // Part (semester within year) dropdown
+                          _FieldLabel('Part'),
+                          const SizedBox(height: 8),
+                          DropdownButtonFormField<int>(
+                            value: _selectedPart,
+                            onChanged: (val) => setState(() => _selectedPart = val),
+                            validator: (val) {
+                              if (val == null) return 'Please select your part';
+                              return null;
+                            },
+                            isExpanded: true,
+                            icon: Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              color: AppColors.textTertiary,
+                              size: 20,
+                            ),
+                            dropdownColor: AppColors.surface,
+                            style: TextStyle(
+                              color: AppColors.textPrimary,
+                              fontFamily: 'Poppins',
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                            ),
+                            hint: Text(
+                              'Select part',
+                              style: TextStyle(
+                                color: AppColors.textTertiary,
+                                fontFamily: 'Poppins',
+                                fontSize: 14,
+                              ),
+                            ),
+                            decoration: InputDecoration(
+                              prefixIcon: Padding(
+                                padding: const EdgeInsets.only(left: 14, right: 10),
+                                child: Icon(
+                                  Icons.looks_one_outlined,
+                                  color: AppColors.textTertiary,
+                                  size: 18,
+                                ),
+                              ),
+                              prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+                              errorStyle: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 11,
+                                color: AppColors.error,
+                              ),
+                            ),
+                            items: [1, 2]
+                                .map((p) => DropdownMenuItem(
+                                      value: p,
+                                      child: Text(
+                                        'Part $p',
+                                        style: TextStyle(
+                                          color: AppColors.textPrimary,
+                                          fontFamily: 'Poppins',
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ))
+                                .toList(),
                           ),
 
                           const SizedBox(height: 20),
