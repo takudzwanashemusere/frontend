@@ -155,7 +155,7 @@ class VideoService {
     final opts = await _authOptions();
     await _dio.post(
       '/api/reels/$reelId/view',
-      data: {if (watchSeconds != null) 'watch_seconds': watchSeconds},
+      data: {'watch_seconds': ?watchSeconds},
       options: opts,
     );
   }

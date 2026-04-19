@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'search_screen.dart';
 import 'upload_screen.dart';
 import 'profile_screen.dart';
@@ -14,7 +16,9 @@ import '../widgets/video_player_widget.dart';
 import '../widgets/quiz_popup.dart';
 import '../services/auth_service.dart';
 import '../services/video_service.dart';
+import '../services/api_constants.dart';
 import '../main.dart';
+import 'login_screen.dart';
 
 // ─── Design tokens (matching the blue-theme image) ───────────────────────────
 
@@ -36,6 +40,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+
   int _tab = 0; // 0=Home, 1=Quiz, 2=Hackathon, 3=Messages, 4=Profile
   int _feedTab = 0; // 0=For You, 1=Following, 2=My Faculty
 
@@ -146,6 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
           onFeedTabChanged: _onFeedTabChanged,
           onTapFeatured: _openVideoFeed,
           onRefreshSuggested: _loadSuggested,
+          onMenuTap: () => _scaffoldKey.currentState?.openDrawer(),
           onUpload: () async {
             await Navigator.push(
               context,
@@ -170,7 +177,16 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: _kNavBg,
+      drawer: _AppDrawer(
+        userName: _userName,
+        userInitials: _userInitials,
+        onNavigate: (i) {
+          _scaffoldKey.currentState?.closeDrawer();
+          setState(() => _tab = i);
+        },
+      ),
       body: _buildBody(),
       bottomNavigationBar: _BottomNav(
         selectedIndex: _tab,
@@ -179,76 +195,141 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ─── Quiz subject picker (same as drawer version) ─────────────────────────
-
-  static const Map<String, Map<int, List<String>>> _semesterModules = {
-    'School of Engineering Science and Technology': {
-      1: ['Software Engineering Fundamentals', 'Introduction to Programming', 'Mathematics 1', 'ICT Fundamentals', 'Communication Skills'],
-      2: ['Data Structures & Algorithms', 'Database Systems', 'Web Development', 'Mathematics 2', 'Technical Writing'],
-      3: ['Software Design Patterns', 'Networking Fundamentals', 'Operating Systems', 'Statistics & Probability', 'Technical English'],
-      4: ['Mobile App Development', 'Cyber Security', 'Cloud Computing', 'Artificial Intelligence', 'Software Project Management'],
-      5: ['System Analysis & Design', 'Software Testing', 'Advanced Databases', 'Machine Learning', 'Research Methods'],
-      6: ['Final Year Project', 'Software Architecture', 'DevOps & CI/CD', 'Entrepreneurship', 'ICT Law & Ethics'],
-      7: ['Advanced Software Engineering', 'Distributed Systems', 'Blockchain Technology', 'Data Science', 'Technical Management'],
-      8: ['Dissertation', 'Enterprise Architecture', 'Advanced Networking', 'Innovation & Technology', 'Professional Ethics'],
-    },
-    'School of Agriculture Sciences and Technology': {
-      1: ['Introduction to Agriculture', 'Crop Science I', 'Soil Science I', 'Mathematics 1', 'Communication Skills'],
-      2: ['Crop Science II', 'Soil Science II', 'Plant Physiology', 'Agricultural Chemistry', 'Technical Writing'],
-      3: ['Animal Science I', 'Irrigation Systems', 'Agricultural Economics', 'Research Methods', 'Agronomy'],
-      4: ['Animal Science II', 'Crop Protection', 'Farm Management', 'Agricultural Extension', 'Environmental Science'],
-      5: ['Advanced Crop Production', 'Livestock Management', 'Environmental Impact Assessment', 'Agribusiness', 'Remote Sensing'],
-      6: ['Final Year Project', 'Agricultural Policy', 'Food Science', 'Entrepreneurship', 'Post-Harvest Technology'],
-      7: ['Advanced Animal Husbandry', 'Precision Agriculture', 'Agricultural Biotechnology', 'Watershed Management', 'Rural Development'],
-      8: ['Dissertation', 'Agricultural Finance', 'International Agri-Trade', 'Climate Smart Agriculture', 'Professional Practice'],
-    },
-    'School of Entrepreneurship and Business Sciences': {
-      1: ['Introduction to Business', 'Mathematics for Business', 'Communication Skills', 'Principles of Management', 'Economics I'],
-      2: ['Accounting I', 'Marketing Fundamentals', 'Business Law', 'Statistics for Business', 'Economics II'],
-      3: ['Financial Management', 'Entrepreneurship I', 'Human Resource Management', 'Business Research Methods', 'Microeconomics'],
-      4: ['Strategic Management', 'Entrepreneurship II', 'Operations Management', 'Business Ethics', 'Macroeconomics'],
-      5: ['Financial Modelling', 'Investment Analysis', 'Supply Chain Management', 'Digital Marketing', 'International Business'],
-      6: ['Final Year Project', 'Corporate Governance', 'Venture Capital', 'Entrepreneurship & Innovation', 'Business Strategy'],
-      7: ['Advanced Accounting', 'Mergers & Acquisitions', 'E-Commerce', 'Business Intelligence', 'Taxation'],
-      8: ['Dissertation', 'Advanced Financial Management', 'Global Business Strategy', 'Social Entrepreneurship', 'Professional Ethics'],
-    },
-    'School of Health Sciences and Technology': {
-      1: ['Anatomy & Physiology I', 'Introduction to Health Sciences', 'Mathematics', 'Communication Skills', 'Medical Terminology'],
-      2: ['Anatomy & Physiology II', 'Biochemistry', 'Microbiology', 'Pharmacology I', 'Nutrition Science'],
-      3: ['Pathology', 'Pharmacology II', 'Clinical Skills I', 'Public Health', 'Research Methods'],
-      4: ['Clinical Skills II', 'Community Health', 'Epidemiology', 'Medical Ethics', 'Health Policy'],
-      5: ['Advanced Clinical Practice', 'Mental Health', 'Maternal & Child Health', 'Disease Prevention', 'Health Informatics'],
-      6: ['Final Year Project', 'Healthcare Management', 'Geriatric Care', 'Emergency Medicine', 'Global Health'],
-      7: ['Advanced Pharmacology', 'Surgical Nursing', 'Critical Care', 'Health Systems Management', 'Medical Research'],
-      8: ['Dissertation', 'Health Economics', 'Advanced Public Health', 'Healthcare Leadership', 'Professional Ethics'],
-    },
-    'School of Wildlife and Environmental Science': {
-      1: ['Introduction to Wildlife', 'Ecology I', 'Environmental Science I', 'Mathematics', 'Communication Skills'],
-      2: ['Ecology II', 'Zoology', 'Botany', 'Conservation Biology', 'Environmental Science II'],
-      3: ['Wildlife Management I', 'Remote Sensing & GIS', 'Animal Behaviour', 'Research Methods', 'Environmental Policy'],
-      4: ['Wildlife Management II', 'Protected Area Management', 'Tourism & Conservation', 'Environmental Impact Assessment', 'Aquatic Science'],
-      5: ['Advanced Ecology', 'Human-Wildlife Conflict', 'Climate Change', 'Biodiversity Conservation', 'Conservation Finance'],
-      6: ['Final Year Project', 'Environmental Law', 'Wildlife Photography', 'Entrepreneurship', 'Global Conservation Issues'],
-      7: ['Advanced Wildlife Management', 'Landscape Ecology', 'Marine Biology', 'Conservation Genetics', 'Environmental Consultancy'],
-      8: ['Dissertation', 'Wildlife Policy', 'Advanced GIS', 'Environmental Economics', 'Professional Ethics'],
-    },
-    'School of Hospitality and Tourism': {
-      1: ['Introduction to Hospitality', 'Tourism Fundamentals', 'Communication Skills', 'Mathematics', 'Food & Beverage I'],
-      2: ['Hotel Operations', 'Tourism Marketing', 'Food & Beverage II', 'Front Office Management', 'Business Communication'],
-      3: ['Tourism Planning', 'Event Management', 'Revenue Management', 'Customer Service', 'Research Methods'],
-      4: ['Hotel Financial Management', 'Tourism Policy', 'Sustainable Tourism', 'Human Resources in Hospitality', 'Digital Tourism'],
-      5: ['Advanced Hotel Management', 'Tour Guiding', 'International Tourism', 'Strategic Management', 'Ecotourism'],
-      6: ['Final Year Project', 'Tourism Entrepreneurship', 'Convention & Meetings Management', 'Crisis Management', 'Heritage Tourism'],
-      7: ['Advanced Food Science', 'Destination Management', 'Tourism Economics', 'Hospitality Technology', 'Luxury Brand Management'],
-      8: ['Dissertation', 'Global Tourism Trends', 'Hospitality Leadership', 'Cultural Tourism', 'Professional Ethics'],
-    },
-  };
+  // ─── Quiz subject picker ──────────────────────────────────────────────────
 
   void _showSubjectPicker(BuildContext context) async {
     final faculty = await AuthService.getDepartment();
     final semester = await AuthService.getSemester();
     if (!context.mounted) return;
-    final modules = (_semesterModules[faculty ?? ''] ?? {})[semester] ?? ['General'];
+
+    // Show bottom sheet with a loading state while fetching modules from API
+    List<String> modules = [];
+    bool loadingModules = true;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetCtx) => StatefulBuilder(
+        builder: (ctx, setSheetState) {
+          // Fetch on first render
+          if (loadingModules) {
+            Future.microtask(() async {
+              try {
+                final uri = Uri.parse('$kLaravelUrl/api/meta/modules').replace(
+                  queryParameters: {
+                    'faculty': faculty ?? '',
+                    'semester': semester.toString(),
+                  },
+                );
+                final res = await http.get(uri, headers: {'Accept': 'application/json'});
+                if (res.statusCode == 200) {
+                  final body = json.decode(res.body);
+                  final raw = body['modules'] ?? body['data'];
+                  if (raw is List && raw.isNotEmpty) {
+                    modules = raw.map((e) => e.toString()).toList();
+                  }
+                }
+              } catch (_) {}
+              if (ctx.mounted) {
+                setSheetState(() => loadingModules = false);
+              }
+            });
+          }
+
+          return DraggableScrollableSheet(
+            initialChildSize: 0.6,
+            maxChildSize: 0.9,
+            minChildSize: 0.4,
+            builder: (_, sc) => Container(
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              child: Column(
+                children: [
+                  const SizedBox(height: 12),
+                  Container(
+                    width: 40, height: 4,
+                    decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(2)),
+                  ),
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Semester $semester Modules',
+                          style: TextStyle(fontFamily: 'Poppins', fontSize: 18,
+                            fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                        if (faculty != null && faculty.isNotEmpty)
+                          Text(faculty,
+                            style: TextStyle(fontFamily: 'Poppins', fontSize: 11,
+                              color: AppColors.textTertiary),
+                            maxLines: 1, overflow: TextOverflow.ellipsis),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: loadingModules
+                        ? const Center(child: CircularProgressIndicator())
+                        : modules.isEmpty
+                            ? Center(
+                                child: Text(
+                                  'No modules found',
+                                  style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                    color: AppColors.textTertiary,
+                                  ),
+                                ),
+                              )
+                            : ListView.builder(
+                                controller: sc,
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                itemCount: modules.length,
+                                itemBuilder: (c, i) {
+                                  final subject = modules[i];
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 8),
+                                    child: InkWell(
+                                      borderRadius: BorderRadius.circular(12),
+                                      onTap: () {
+                                        Navigator.pop(c);
+                                        showQuiz(context, subject, subject);
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.bg,
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(color: AppColors.border),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.menu_book_outlined, color: AppColors.accentLight, size: 20),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: Text(subject,
+                                                style: TextStyle(fontFamily: 'Poppins', fontSize: 14,
+                                                  fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
+                                            ),
+                                            const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white38, size: 14),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -341,6 +422,174 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
+// ─── App Drawer ───────────────────────────────────────────────────────────────
+
+class _AppDrawer extends StatelessWidget {
+  final String userName;
+  final String userInitials;
+  final ValueChanged<int> onNavigate;
+
+  const _AppDrawer({
+    required this.userName,
+    required this.userInitials,
+    required this.onNavigate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      backgroundColor: const Color(0xFF0A1628),
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Profile header
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+              color: const Color(0xFF1A3D7C),
+              child: Row(
+                children: [
+                  Container(
+                    width: 48, height: 48,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5A623),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      userInitials,
+                      style: const TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Text(
+                      userName,
+                      style: const TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Nav items
+            _DrawerItem(
+              icon: Icons.home_rounded,
+              label: 'Home',
+              onTap: () => onNavigate(0),
+            ),
+            _DrawerItem(
+              icon: Icons.quiz_rounded,
+              label: 'Quiz',
+              onTap: () => onNavigate(1),
+            ),
+            _DrawerItem(
+              icon: Icons.emoji_events_rounded,
+              label: 'Hackathon',
+              onTap: () => onNavigate(2),
+            ),
+            _DrawerItem(
+              icon: Icons.chat_bubble_rounded,
+              label: 'Messages',
+              onTap: () => onNavigate(3),
+            ),
+            _DrawerItem(
+              icon: Icons.person_rounded,
+              label: 'Profile',
+              onTap: () => onNavigate(4),
+            ),
+            _DrawerItem(
+              icon: Icons.search_rounded,
+              label: 'Search',
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const SearchScreen()));
+              },
+            ),
+            _DrawerItem(
+              icon: Icons.dashboard_outlined,
+              label: 'Dashboard',
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const DashboardScreen()));
+              },
+            ),
+
+            const Spacer(),
+
+            const Divider(color: Color(0xFF1E3A6E)),
+
+            // Logout
+            _DrawerItem(
+              icon: Icons.logout_rounded,
+              label: 'Logout',
+              color: Colors.redAccent,
+              onTap: () async {
+                Navigator.pop(context);
+                await AuthService.logout();
+                if (context.mounted) {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  );
+                }
+              },
+            ),
+            const SizedBox(height: 12),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DrawerItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final Color? color;
+
+  const _DrawerItem({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = color ?? Colors.white;
+    return ListTile(
+      leading: Icon(icon, color: c, size: 22),
+      title: Text(
+        label,
+        style: TextStyle(
+          fontFamily: 'Poppins',
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          color: c,
+        ),
+      ),
+      onTap: onTap,
+      horizontalTitleGap: 4,
+    );
+  }
+}
+
 // ─── Home tab body ────────────────────────────────────────────────────────────
 
 class _HomeTabBody extends StatelessWidget {
@@ -357,6 +606,7 @@ class _HomeTabBody extends StatelessWidget {
   final VoidCallback onUpload;
   final VoidCallback onSearch;
   final VoidCallback onAlerts;
+  final VoidCallback onMenuTap;
 
   const _HomeTabBody({
     required this.userName,
@@ -369,6 +619,7 @@ class _HomeTabBody extends StatelessWidget {
     required this.onFeedTabChanged,
     required this.onTapFeatured,
     required this.onRefreshSuggested,
+    required this.onMenuTap,
     required this.onUpload,
     required this.onSearch,
     required this.onAlerts,
@@ -390,8 +641,11 @@ class _HomeTabBody extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
                   child: Row(
                     children: [
-                      // Hamburger (no-op / drawer removed, kept for visual parity)
-                      const Icon(Icons.menu_rounded, color: Colors.white, size: 24),
+                      // Hamburger – opens drawer
+                      GestureDetector(
+                        onTap: onMenuTap,
+                        child: const Icon(Icons.menu_rounded, color: Colors.white, size: 24),
+                      ),
                       const SizedBox(width: 12),
                       // Logo
                       Expanded(
@@ -899,8 +1153,6 @@ class _SuggestedUserCardState extends State<_SuggestedUserCard> {
     final name = user['name']?.toString() ?? user['username']?.toString() ?? 'User';
     final followers = user['followers_count']?.toString() ??
         user['followers']?.toString() ?? '—';
-    final videos = user['videos_count']?.toString() ??
-        user['videos']?.toString() ?? '—';
     final avatarColor = _colors[widget.index % _colors.length];
 
     return Container(
@@ -1694,12 +1946,10 @@ class _ActionButton extends StatelessWidget {
 class _TopBarButton extends StatelessWidget {
   final VoidCallback onTap;
   final IconData icon;
-  final bool hasBadge;
 
   const _TopBarButton({
     required this.onTap,
     required this.icon,
-    this.hasBadge = false,
   });
 
   @override
@@ -1713,22 +1963,7 @@ class _TopBarButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
         ),
-        child: Stack(
-          children: [
-            Center(child: Icon(icon, color: Colors.white, size: 19)),
-            if (hasBadge)
-              Positioned(
-                top: 7, right: 7,
-                child: Container(
-                  width: 7, height: 7,
-                  decoration: BoxDecoration(
-                    color: AppColors.accentLight,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-          ],
-        ),
+        child: Center(child: Icon(icon, color: Colors.white, size: 19)),
       ),
     );
   }

@@ -386,7 +386,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                           _FieldLabel('Year Level'),
                           const SizedBox(height: 8),
                           DropdownButtonFormField<int>(
-                            value: _selectedYearLevel,
+                            initialValue: _selectedYearLevel,
                             onChanged: (val) => setState(() => _selectedYearLevel = val),
                             validator: (val) {
                               if (val == null) return 'Please select your year level';
@@ -450,7 +450,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                           _FieldLabel('Semester'),
                           const SizedBox(height: 8),
                           DropdownButtonFormField<int>(
-                            value: _selectedPart,
+                            initialValue: _selectedPart,
                             onChanged: (val) => setState(() => _selectedPart = val),
                             validator: (val) {
                               if (val == null) return 'Please select your semester';

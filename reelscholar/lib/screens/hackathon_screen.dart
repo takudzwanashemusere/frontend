@@ -947,7 +947,7 @@ class _SubmitProjectSheetState extends State<_SubmitProjectSheet> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-              value: _category,
+              initialValue: _category,
               style: TextStyle(
                   fontFamily: 'Poppins',
                   color: AppColors.textPrimary,
