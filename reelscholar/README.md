@@ -39,3 +39,5 @@ the leader bboard should show participative  you are
  does the dashboard have to show stats show from frontend 
 
 when Ai detetect the video for  unedcuational content it should flag to the Admin for review and it should also the the user that the video is under review from the Admin 
+
+APi for messaging should be hosted on railway and remove it from render >>>> 
