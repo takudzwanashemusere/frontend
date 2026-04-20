@@ -1099,7 +1099,7 @@ class _SuggestedSection extends StatelessWidget {
         : _demo.map((d) => Map<String, dynamic>.from(d)).toList();
 
     return SizedBox(
-      height: 136,
+      height: 150,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
