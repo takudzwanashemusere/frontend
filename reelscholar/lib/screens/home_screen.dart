@@ -1165,6 +1165,7 @@ class _SuggestedUserCardState extends State<_SuggestedUserCard> {
         border: Border.all(color: _kDivider),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Avatar
