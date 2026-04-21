@@ -13,7 +13,10 @@
       "Bash(powershell.exe *)",
       "Bash(/usr/bin/git *)",
       "Bash(C:/Program Files/Git/cmd/git.exe *)",
-      "WebFetch(domain:reelscholarapi-main-l5f9h5.laravel.cloud)"
+      "WebFetch(domain:reelscholarapi-main-l5f9h5.laravel.cloud)",
+      "Read(//c/Users/pc/Downloads/**)",
+      "Read(//c/Users/pc/Documents/**)",
+      "Bash(jobs -l)"
     ]
   }
 }
