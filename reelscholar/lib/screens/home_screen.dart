@@ -540,6 +540,7 @@ class _AppDrawer extends StatelessWidget {
               color: Colors.redAccent,
               onTap: () async {
                 Navigator.pop(context);
+                await VideoService.logoutFromServer();
                 await AuthService.logout();
                 if (context.mounted) {
                   Navigator.pushReplacement(
@@ -1457,27 +1458,50 @@ class _VideoFeedScreenState extends State<VideoFeedScreen> {
   final PageController _pageController = PageController();
   List<Map<String, dynamic>> _videos = [];
   late int _selectedFeedTab;
-  bool _isLoading = false;
+  bool _isLoading    = false;
+  bool _isLoadingMore = false;
+  bool _hasMore      = true;
+  int  _currentPage  = 1;
 
   @override
   void initState() {
     super.initState();
     _selectedFeedTab = widget.initialFeedTab;
     _loadVideos();
+    _pageController.addListener(_onPageChanged);
   }
 
+  @override
+  void dispose() {
+    _pageController.removeListener(_onPageChanged);
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _onPageChanged() {
+    if (!_pageController.hasClients) return;
+    final page    = _pageController.page?.round() ?? 0;
+    final total   = _videos.length;
+    // Start loading next page when user is 5 videos from the end
+    if (page >= total - 5 && !_isLoadingMore && _hasMore) {
+      _loadMoreVideos();
+    }
+  }
+
+  String get _currentFilter => switch (_selectedFeedTab) {
+    1 => 'following',
+    2 => 'my_school',
+    _ => 'for_you',
+  };
+
   void _loadVideos() async {
-    setState(() => _isLoading = true);
+    setState(() { _isLoading = true; _currentPage = 1; _hasMore = true; });
     try {
-      final dept = await AuthService.getDepartment();
-      final filter = switch (_selectedFeedTab) {
-        1 => 'following',
-        2 => 'my_school',
-        _ => 'for_you',
-      };
+      final dept   = await AuthService.getDepartment();
       final apiVideos = await VideoService.getFeed(
-        filter: filter,
+        filter: _currentFilter,
         school: _selectedFeedTab == 2 ? dept : null,
+        page: 1,
       );
       final local = VideoStore.videos.map((v) => {
         ...v,
@@ -1486,8 +1510,9 @@ class _VideoFeedScreenState extends State<VideoFeedScreen> {
       }).toList();
       if (mounted) {
         setState(() {
-          _videos = [...local, ...apiVideos];
+          _videos   = [...local, ...apiVideos];
           _isLoading = false;
+          _hasMore  = apiVideos.length >= 10;
         });
       }
     } catch (_) {
@@ -1495,10 +1520,28 @@ class _VideoFeedScreenState extends State<VideoFeedScreen> {
     }
   }
 
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
+  void _loadMoreVideos() async {
+    if (_isLoadingMore || !_hasMore) return;
+    setState(() => _isLoadingMore = true);
+    try {
+      final dept     = await AuthService.getDepartment();
+      final nextPage = _currentPage + 1;
+      final more     = await VideoService.getFeed(
+        filter: _currentFilter,
+        school: _selectedFeedTab == 2 ? dept : null,
+        page: nextPage,
+      );
+      if (mounted) {
+        setState(() {
+          _currentPage = nextPage;
+          _videos.addAll(more);
+          _hasMore      = more.length >= 10;
+          _isLoadingMore = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _isLoadingMore = false);
+    }
   }
 
   @override
@@ -1521,8 +1564,15 @@ class _VideoFeedScreenState extends State<VideoFeedScreen> {
             PageView.builder(
               controller: _pageController,
               scrollDirection: Axis.vertical,
-              itemCount: _videos.length,
-              itemBuilder: (context, index) => _VideoCard(video: _videos[index]),
+              itemCount: _videos.length + (_isLoadingMore ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (index == _videos.length) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: Colors.white54),
+                  );
+                }
+                return _VideoCard(video: _videos[index]);
+              },
             ),
 
           // Top bar

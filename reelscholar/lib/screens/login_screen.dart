@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'home_screen.dart';
 import 'register_screen.dart';
+import 'forgot_password_screen.dart';
 import '../services/auth_service.dart';
 import '../services/api_constants.dart';
 
@@ -305,7 +306,12 @@ class _LoginScreenState extends State<LoginScreen>
                                 ),
                               ),
                               GestureDetector(
-                                onTap: () {},
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const ForgotPasswordScreen(),
+                                  ),
+                                ),
                                 child: Text(
                                   'Forgot password?',
                                   style: GoogleFonts.dmSans(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../main.dart';
 import '../services/video_service.dart';
 import '../widgets/video_player_widget.dart';
+import 'user_list_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final dynamic userId;
@@ -189,9 +190,37 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                             children: [
                               _StatColumn(label: 'Videos', value: _count('videos')),
                               _Divider(),
-                              _StatColumn(label: 'Followers', value: _count('followers')),
+                              GestureDetector(
+                                onTap: widget.userId != null
+                                    ? () => Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => UserListScreen(
+                                              userId: widget.userId,
+                                              type: UserListType.followers,
+                                              ownerName: name,
+                                            ),
+                                          ),
+                                        )
+                                    : null,
+                                child: _StatColumn(label: 'Followers', value: _count('followers')),
+                              ),
                               _Divider(),
-                              _StatColumn(label: 'Following', value: _count('following')),
+                              GestureDetector(
+                                onTap: widget.userId != null
+                                    ? () => Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => UserListScreen(
+                                              userId: widget.userId,
+                                              type: UserListType.following,
+                                              ownerName: name,
+                                            ),
+                                          ),
+                                        )
+                                    : null,
+                                child: _StatColumn(label: 'Following', value: _count('following')),
+                              ),
                             ],
                           ),
 

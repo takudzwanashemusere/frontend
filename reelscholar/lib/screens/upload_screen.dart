@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import '../models/video_store.dart';
 import '../main.dart';
 import '../services/content_detection_service.dart';
+import '../services/video_service.dart';
 
 class UploadScreen extends StatefulWidget {
   const UploadScreen({super.key});
@@ -273,14 +274,29 @@ class _UploadScreenState extends State<UploadScreen>
       return;
     }
 
-    // ── Step 2: Approved — proceed with upload ────────────────────────────
-    setState(() => _isUploading = true);
+    // ── Step 2: Approved — upload to API ─────────────────────────────────
+    setState(() { _isUploading = true; _uploadProgress = 0.0; });
 
-    for (int i = 0; i <= 100; i += 5) {
-      await Future.delayed(const Duration(milliseconds: 80));
-      if (mounted) setState(() => _uploadProgress = i / 100);
+    try {
+      await VideoService.uploadReel(
+        title: _titleController.text.trim(),
+        description: _descController.text.trim(),
+        school: _selectedSchool!,
+        module: _selectedModule!,
+        filePath: _filePath,
+        fileBytes: _fileBytes,
+        fileName: _selectedFileName.isNotEmpty ? _selectedFileName : 'video.mp4',
+        onProgress: (p) {
+          if (mounted) setState(() => _uploadProgress = p);
+        },
+      );
+    } catch (e) {
+      setState(() => _isUploading = false);
+      _showSnack('Upload failed: ${e.toString().split('\n').first}');
+      return;
     }
 
+    // Optimistically add to local store for immediate feed display
     VideoStore.addVideo({
       'username': '@me',
       'name': 'You',

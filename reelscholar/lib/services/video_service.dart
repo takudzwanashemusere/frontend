@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'auth_service.dart';
@@ -315,6 +316,116 @@ class VideoService {
     final raw = response.data;
     final List list = (raw is Map ? (raw['data'] ?? raw['schools'] ?? []) : raw) as List? ?? [];
     return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
+  /// Upload a new reel to the API
+  static Future<Map<String, dynamic>> uploadReel({
+    required String title,
+    String? description,
+    required String school,
+    required String module,
+    String? filePath,
+    Uint8List? fileBytes,
+    required String fileName,
+    void Function(double progress)? onProgress,
+  }) async {
+    final token = await AuthService.getToken();
+    final formData = FormData();
+    formData.fields.add(MapEntry('title', title));
+    formData.fields.add(MapEntry('school', school));
+    formData.fields.add(MapEntry('subject', module));
+    if (description != null && description.isNotEmpty) {
+      formData.fields.add(MapEntry('description', description));
+    }
+    if (filePath != null) {
+      formData.files.add(MapEntry(
+        'video',
+        await MultipartFile.fromFile(filePath, filename: fileName),
+      ));
+    } else if (fileBytes != null) {
+      formData.files.add(MapEntry(
+        'video',
+        MultipartFile.fromBytes(fileBytes, filename: fileName),
+      ));
+    }
+    final response = await _dio.post(
+      '/api/reels',
+      data: formData,
+      onSendProgress: (sent, total) {
+        if (total > 0 && onProgress != null) {
+          onProgress(sent / total);
+        }
+      },
+      options: Options(
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+          'Content-Type': 'multipart/form-data',
+        },
+        sendTimeout: const Duration(minutes: 5),
+        receiveTimeout: const Duration(minutes: 2),
+      ),
+    );
+    final raw = response.data;
+    return Map<String, dynamic>.from(raw is Map ? (raw['data'] ?? raw['reel'] ?? raw) : {});
+  }
+
+  /// Fetch the current user's liked videos
+  static Future<List<Map<String, dynamic>>> getLikedVideos() async {
+    final opts = await _authOptions();
+    final response = await _dio.get('/api/reels/liked', options: opts);
+    final raw = response.data;
+    final List list = (raw is Map ? (raw['data'] ?? raw['videos'] ?? raw['reels'] ?? []) : raw) as List? ?? [];
+    return list.map((e) => normalizeVideo(Map<String, dynamic>.from(e as Map))).toList();
+  }
+
+  /// Fetch the current user's own uploaded reels
+  static Future<List<Map<String, dynamic>>> getMyVideos() async {
+    final userId = await AuthService.getUserId();
+    if (userId == null) return [];
+    return getUserVideos(userId);
+  }
+
+  /// Fetch followers of a user (paginated)
+  static Future<List<Map<String, dynamic>>> getFollowers(
+    dynamic userId, {
+    int page = 1,
+  }) async {
+    final opts = await _authOptions();
+    final response = await _dio.get(
+      '/api/users/$userId/followers',
+      queryParameters: {'page': page},
+      options: opts,
+    );
+    final raw = response.data;
+    final List list = (raw is Map ? (raw['data'] ?? raw['followers'] ?? raw['users'] ?? []) : raw) as List? ?? [];
+    return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
+  /// Fetch users that a given user is following (paginated)
+  static Future<List<Map<String, dynamic>>> getFollowing(
+    dynamic userId, {
+    int page = 1,
+  }) async {
+    final opts = await _authOptions();
+    final response = await _dio.get(
+      '/api/users/$userId/following',
+      queryParameters: {'page': page},
+      options: opts,
+    );
+    final raw = response.data;
+    final List list = (raw is Map ? (raw['data'] ?? raw['following'] ?? raw['users'] ?? []) : raw) as List? ?? [];
+    return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
+  /// Revoke the server-side auth token
+  static Future<void> logoutFromServer() async {
+    try {
+      final opts = await _authOptions();
+      await _dio.post('/api/auth/logout', options: opts);
+    } catch (_) {
+      // Non-fatal — always clear local storage regardless
+    }
   }
 
   /// Update the current user's profile (name, bio, avatar)

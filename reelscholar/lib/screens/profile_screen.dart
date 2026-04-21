@@ -30,6 +30,12 @@ class _ProfileScreenState extends State<ProfileScreen>
   int _followingCount = 0;
   int _likesCount = 0;
 
+  List<Map<String, dynamic>> _myApiVideos = [];
+  bool _myVideosLoading = true;
+
+  List<Map<String, dynamic>> _likedVideos = [];
+  bool _likedLoading = true;
+
   List<Map<String, dynamic>> _achievements = [];
   bool _achievementsLoading = true;
 
@@ -38,6 +44,8 @@ class _ProfileScreenState extends State<ProfileScreen>
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _loadUserData();
+    _loadMyVideos();
+    _loadLikedVideos();
     _loadAchievements();
   }
 
@@ -78,6 +86,24 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   int _parseCount(dynamic v) =>
       v is int ? v : int.tryParse(v?.toString() ?? '') ?? 0;
+
+  Future<void> _loadMyVideos() async {
+    try {
+      final list = await VideoService.getMyVideos();
+      if (mounted) setState(() { _myApiVideos = list; _myVideosLoading = false; });
+    } catch (_) {
+      if (mounted) setState(() => _myVideosLoading = false);
+    }
+  }
+
+  Future<void> _loadLikedVideos() async {
+    try {
+      final list = await VideoService.getLikedVideos();
+      if (mounted) setState(() { _likedVideos = list; _likedLoading = false; });
+    } catch (_) {
+      if (mounted) setState(() => _likedLoading = false);
+    }
+  }
 
   Future<void> _loadAchievements() async {
     try {
@@ -147,6 +173,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
           TextButton(
             onPressed: () async {
+              await VideoService.logoutFromServer();
               await AuthService.logout();
               if (mounted) {
                 Navigator.of(context).pushAndRemoveUntil(
@@ -181,8 +208,11 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   @override
   Widget build(BuildContext context) {
-    final myVideos =
-        VideoStore.videos.where((v) => v['username'] == '@me').toList();
+    // Merge local (just-uploaded) videos with API videos, deduplicated by title
+    final localVideos = VideoStore.videos.where((v) => v['username'] == '@me').toList();
+    final apiTitles   = _myApiVideos.map((v) => v['title']).toSet();
+    final localOnly   = localVideos.where((v) => !apiTitles.contains(v['title'])).toList();
+    final myVideos    = [...localOnly, ..._myApiVideos];
 
     return Scaffold(
       backgroundColor: AppColors.bg,
@@ -241,7 +271,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                 controller: _tabController,
                 children: [
                   _buildMyVideosTab(myVideos),
-                  _buildLikedTab(),
+                  _buildLikedTab(_likedVideos),
                   _buildAchievementsTab(),
                 ],
               ),
@@ -450,6 +480,9 @@ class _ProfileScreenState extends State<ProfileScreen>
       Container(width: 1, height: 28, color: AppColors.border);
 
   Widget _buildMyVideosTab(List<Map<String, dynamic>> myVideos) {
+    if (_myVideosLoading && myVideos.isEmpty) {
+      return Center(child: CircularProgressIndicator(color: AppColors.accent));
+    }
     if (myVideos.isEmpty) {
       return Center(
         child: Column(
@@ -586,18 +619,134 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Widget _buildLikedTab() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.favorite_outline_rounded, size: 52, color: AppColors.textMuted),
-          const SizedBox(height: 16),
-          Text('No liked videos yet', style: AppTextStyles.headingMedium),
-          const SizedBox(height: 6),
-          Text('Videos you like will appear here', style: AppTextStyles.bodyMedium),
-        ],
+  Widget _buildLikedTab(List<Map<String, dynamic>> likedVideos) {
+    if (_likedLoading) {
+      return Center(child: CircularProgressIndicator(color: AppColors.accent));
+    }
+    if (likedVideos.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.favorite_outline_rounded, size: 52, color: AppColors.textMuted),
+            const SizedBox(height: 16),
+            Text('No liked videos yet', style: AppTextStyles.headingMedium),
+            const SizedBox(height: 6),
+            Text('Videos you like will appear here', style: AppTextStyles.bodyMedium),
+          ],
+        ),
+      );
+    }
+
+    return GridView.builder(
+      padding: const EdgeInsets.all(12),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 0.78,
       ),
+      itemCount: likedVideos.length,
+      itemBuilder: (context, index) {
+        final video = likedVideos[index];
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => _VideoPlayerScreen(video: video),
+              ),
+            );
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Stack(
+              children: [
+                Center(
+                  child: Icon(
+                    Icons.play_circle_outline_rounded,
+                    color: AppColors.accent.withValues(alpha: 0.5),
+                    size: 40,
+                  ),
+                ),
+                Positioned(
+                  bottom: 0, left: 0, right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(10)),
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                        colors: [
+                          AppColors.bg.withValues(alpha: 0.95),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          video['title'] ?? '',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            color: AppColors.textPrimary,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            height: 1.3,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(Icons.favorite_rounded,
+                                size: 10, color: AppColors.error),
+                            const SizedBox(width: 3),
+                            Text(
+                              video['likes'] ?? '0',
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                color: AppColors.textMuted,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 8, left: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppColors.accent.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      video['subject'] ?? '',
+                      style: TextStyle(
+                        color: AppColors.accentLight,
+                        fontFamily: 'Poppins',
+                        fontSize: 9,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
