@@ -86,8 +86,9 @@ class _TutorModulesScreenState extends State<TutorModulesScreen> {
   String _friendlyError(Object e) {
     final msg = e.toString();
     if (msg.contains('401')) return 'Session expired. Please log in again.';
-    if (msg.contains('SocketException') || msg.contains('network'))
+    if (msg.contains('SocketException') || msg.contains('network')) {
       return 'No internet connection.';
+    }
     return 'Failed to load modules. Please try again.';
   }
 
@@ -162,7 +163,7 @@ class _TutorModulesScreenState extends State<TutorModulesScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.school_outlined, color: _kBlue.withOpacity(0.5), size: 64),
+            Icon(Icons.school_outlined, color: _kBlue.withValues(alpha:0.5), size: 64),
             const SizedBox(height: 16),
             const Text(
               'No modules found for your programme.\nMake sure your profile is complete.',
@@ -246,7 +247,7 @@ class _TutorBanner extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: _kBlue.withOpacity(0.15),
+              color: _kBlue.withValues(alpha:0.15),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.psychology_rounded, color: _kBlue, size: 28),
@@ -503,9 +504,9 @@ class _StatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: color.withValues(alpha:0.15),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withOpacity(0.4)),
+        border: Border.all(color: color.withValues(alpha:0.4)),
       ),
       child: Text(
         label,

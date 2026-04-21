@@ -37,7 +37,6 @@ class _TutorChatScreenState extends State<TutorChatScreen> {
   String? _error;
 
   Map<String, dynamic>? _progress;
-  String? _conversationId;
 
   @override
   void initState() {
@@ -61,8 +60,7 @@ class _TutorChatScreenState extends State<TutorChatScreen> {
     });
     try {
       final res = await TutorService.startSession(widget.moduleId);
-      _progress       = res['progress'] as Map<String, dynamic>?;
-      _conversationId = res['conversation_id']?.toString();
+      _progress = res['progress'] as Map<String, dynamic>?;
 
       // Load existing history
       await _loadHistory();
@@ -169,7 +167,6 @@ class _TutorChatScreenState extends State<TutorChatScreen> {
       setState(() {
         _messages.clear();
         _progress = null;
-        _conversationId = null;
       });
       await _startOrResume();
     } catch (e) {
@@ -233,8 +230,9 @@ class _TutorChatScreenState extends State<TutorChatScreen> {
       if (statusCode == 404) return 'Module not found.';
     }
     final msg = e.toString();
-    if (msg.contains('SocketException') || msg.contains('network'))
+    if (msg.contains('SocketException') || msg.contains('network')) {
       return 'No internet connection.';
+    }
     return 'Something went wrong. Please try again.';
   }
 
@@ -246,7 +244,7 @@ class _TutorChatScreenState extends State<TutorChatScreen> {
           'You\'re ready for a quiz!',
           style: TextStyle(fontFamily: 'Poppins'),
         ),
-        backgroundColor: _kGreen.withOpacity(0.9),
+        backgroundColor: _kGreen.withValues(alpha:0.9),
         action: SnackBarAction(
           label: 'Take Quiz',
           textColor: Colors.white,
@@ -464,7 +462,7 @@ class _TutorChatScreenState extends State<TutorChatScreen> {
                   onPressed: _sendMessage,
                   icon: const Icon(Icons.send_rounded, color: _kBlue),
                   style: IconButton.styleFrom(
-                    backgroundColor: _kBlue.withOpacity(0.15),
+                    backgroundColor: _kBlue.withValues(alpha:0.15),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
                   ),
@@ -552,7 +550,7 @@ class _ChatBubble extends StatelessWidget {
         ),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: isUser ? _kBlue.withOpacity(0.9) : _kCardBg,
+          color: isUser ? _kBlue.withValues(alpha:0.9) : _kCardBg,
           borderRadius: BorderRadius.only(
             topLeft:     const Radius.circular(16),
             topRight:    const Radius.circular(16),
@@ -577,7 +575,7 @@ class _ChatBubble extends StatelessWidget {
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 13,
-                  color: isUser ? Colors.white : Colors.white.withOpacity(0.9),
+                  color: isUser ? Colors.white : Colors.white.withValues(alpha:0.9),
                   height: 1.45,
                 ),
               ),
