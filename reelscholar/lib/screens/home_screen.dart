@@ -8,6 +8,7 @@ import 'alerts_screen.dart';
 import 'messages_screen.dart';
 import 'dashboard_screen.dart';
 import 'hackathon_screen.dart';
+import 'tutor/tutor_modules_screen.dart';
 import 'user_profile_screen.dart';
 import '../widgets/comments_sheet.dart';
 import '../widgets/share_sheet.dart';
@@ -42,7 +43,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  int _tab = 0; // 0=Home, 1=Quiz, 2=Hackathon, 3=Messages, 4=Profile
+  int _tab = 0; // 0=Home, 1=Quiz, 2=Tutor, 3=Hackathon, 4=Messages, 5=Profile
   int _feedTab = 0; // 0=For You, 1=Following, 2=My Faculty
 
   Map<String, dynamic>? _featuredVideo;
@@ -135,10 +136,12 @@ class _HomeScreenState extends State<HomeScreen> {
       case 1:
         return _QuizTabBody(onShowQuiz: _showSubjectPicker);
       case 2:
-        return const HackathonScreen(embedded: true);
+        return const TutorModulesScreen();
       case 3:
-        return const MessagesScreen();
+        return const HackathonScreen(embedded: true);
       case 4:
+        return const MessagesScreen();
+      case 5:
         return const ProfileScreen();
       default:
         return _HomeTabBody(
@@ -498,19 +501,24 @@ class _AppDrawer extends StatelessWidget {
               onTap: () => onNavigate(1),
             ),
             _DrawerItem(
+              icon: Icons.psychology_rounded,
+              label: 'AI Tutor',
+              onTap: () => onNavigate(2),
+            ),
+            _DrawerItem(
               icon: Icons.emoji_events_rounded,
               label: 'Hackathon',
-              onTap: () => onNavigate(2),
+              onTap: () => onNavigate(3),
             ),
             _DrawerItem(
               icon: Icons.chat_bubble_rounded,
               label: 'Messages',
-              onTap: () => onNavigate(3),
+              onTap: () => onNavigate(4),
             ),
             _DrawerItem(
               icon: Icons.person_rounded,
               label: 'Profile',
-              onTap: () => onNavigate(4),
+              onTap: () => onNavigate(5),
             ),
             _DrawerItem(
               icon: Icons.search_rounded,
@@ -1401,6 +1409,11 @@ class _BottomNav extends StatelessWidget {
         icon: Icon(Icons.quiz_outlined),
         activeIcon: Icon(Icons.quiz_rounded),
         label: 'Quiz',
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.psychology_outlined),
+        activeIcon: Icon(Icons.psychology_rounded),
+        label: 'Tutor',
       ),
       BottomNavigationBarItem(
         icon: Icon(Icons.emoji_events_outlined),
