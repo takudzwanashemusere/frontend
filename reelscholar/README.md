@@ -22,10 +22,7 @@ quizez should be generated with gemini flash
 
  -login auth is from the laravel , learn how it is connected 
 
-  
-
-
-the leader bboard should show participative  you are (this hsoulf be inmplemented )
+  -the leader bboard should show participative  you are (this hsoulf be inmplemented )
 
  the api  for messaging is on git hub check new repository// leave it  
 
