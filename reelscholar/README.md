@@ -19,8 +19,7 @@ samples, guidance on mobile development, and a full API reference.
 
 
 
-
-  quizez should be generated with gemini flash
+quizez should be generated with gemini flash
 
  -login auth is from the laravel , learn how it is connected 
 
