@@ -18,7 +18,6 @@ samples, guidance on mobile development, and a full API reference.
  
 
 
- the aaplication should be able to have a hackathon option too
 
 
   quizez should be generated with open ai 
