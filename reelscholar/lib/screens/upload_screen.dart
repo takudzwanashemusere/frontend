@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import '../models/video_store.dart';
 import '../main.dart';
-import '../services/content_detection_service.dart';
+//import '../services/content_detection_service.dart';
 import '../services/video_service.dart';
 
 class UploadScreen extends StatefulWidget {
@@ -235,44 +235,44 @@ class _UploadScreenState extends State<UploadScreen>
       return;
     }
 
-    // ── Step 1: Content validation ────────────────────────────────────────
-    setState(() {
-      _isValidating = true;
-      _validatingStatus = 'Checking content...';
-    });
+    // // ── Step 1: Content validation ────────────────────────────────────────
+    // setState(() {
+    //   _isValidating = true;
+    //   _validatingStatus = 'Checking content...';
+    // });
 
-    ValidationResult result;
-    try {
-      result = await ContentDetectionService.validateVideo(
-        filePath: _filePath,
-        fileBytes: _fileBytes,
-        fileName: _selectedFileName.isNotEmpty ? _selectedFileName : 'video.mp4',
-        title: _titleController.text.trim(),
-        description: _descController.text.trim(),
-        onRetry: (attempt, total) {
-          if (mounted) {
-            setState(() => _validatingStatus = 'Server warming up — retrying ($attempt/$total)...');
-          }
-        },
-      );
-    } catch (e) {
-      setState(() => _isValidating = false);
-      debugPrint('Content validation error: $e');
-      _showSnack('Content check failed: ${e.toString().split('\n').first}');
-      return;
-    }
+    // ValidationResult result;
+    // try {
+    //   result = await ContentDetectionService.validateVideo(
+    //     filePath: _filePath,
+    //     fileBytes: _fileBytes,
+    //     fileName: _selectedFileName.isNotEmpty ? _selectedFileName : 'video.mp4',
+    //     title: _titleController.text.trim(),
+    //     description: _descController.text.trim(),
+    //     onRetry: (attempt, total) {
+    //       if (mounted) {
+    //         setState(() => _validatingStatus = 'Server warming up — retrying ($attempt/$total)...');
+    //       }
+    //     },
+    //   );
+    // } catch (e) {
+    //   setState(() => _isValidating = false);
+    //   debugPrint('Content validation error: $e');
+    //   _showSnack('Content check failed: ${e.toString().split('\n').first}');
+    //   return;
+    // }
 
-    setState(() => _isValidating = false);
+    // setState(() => _isValidating = false);
 
-    if (result.status == ContentStatus.rejected) {
-      _showContentRejectedDialog(result.message);
-      return;
-    }
+    // if (result.status == ContentStatus.rejected) {
+    //   _showContentRejectedDialog(result.message);
+    //   return;
+    // }
 
-    if (result.status == ContentStatus.underReview) {
-      _showUnderReviewDialog(result.message);
-      return;
-    }
+    // if (result.status == ContentStatus.underReview) {
+    //   _showUnderReviewDialog(result.message);
+    //   return;
+    // }
 
     // ── Step 2: Approved — upload to API ─────────────────────────────────
     setState(() { _isUploading = true; _uploadProgress = 0.0; });

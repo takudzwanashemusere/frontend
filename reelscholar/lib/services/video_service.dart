@@ -333,7 +333,7 @@ class VideoService {
     final formData = FormData();
     formData.fields.add(MapEntry('title', title));
     formData.fields.add(MapEntry('school', school));
-    formData.fields.add(MapEntry('subject', module));
+    formData.fields.add(MapEntry('module', module));
     if (description != null && description.isNotEmpty) {
       formData.fields.add(MapEntry('description', description));
     }
