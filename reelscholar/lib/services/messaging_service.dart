@@ -1,77 +1,154 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 import 'auth_service.dart';
 import 'api_constants.dart';
 
 class MessagingService {
-  static Future<Map<String, String>> _headers() async {
-    final token = await AuthService.getMessagingToken();
-    return {
-      'Content-Type': 'application/json',
-      if (token != null) 'Authorization': 'Bearer $token',
-    };
+  static final Dio _dio = Dio(
+    BaseOptions(
+      baseUrl: kLaravelUrl,
+      connectTimeout: const Duration(seconds: 15),
+      receiveTimeout: const Duration(seconds: 15),
+    ),
+  );
+
+  static Future<Options> _authOptions() async {
+    final token = await AuthService.getToken();
+    return Options(headers: {
+      'Authorization': 'Bearer $token',
+      'Accept': 'application/json',
+    });
   }
 
   /// Returns all conversations for the logged-in user.
   static Future<List<Map<String, dynamic>>> getConversations() async {
-    final res = await http.get(
-      Uri.parse('$kBaseUrl/conversations'),
-      headers: await _headers(),
-    );
-    if (res.statusCode == 200) {
-      return List<Map<String, dynamic>>.from(json.decode(res.body));
-    }
-    throw Exception('Failed to load conversations: ${res.statusCode}');
+    final opts = await _authOptions();
+    final response = await _dio.get('/api/conversations', options: opts);
+    final raw = response.data;
+    final List list =
+        (raw is Map ? (raw['data'] ?? raw['conversations'] ?? []) : raw)
+            as List? ??
+        [];
+    return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
   }
 
-  /// Creates or fetches an existing DM conversation with [otherUserId].
-  /// Returns the conversation_id.
-  static Future<int> startConversation(int otherUserId) async {
-    final res = await http.post(
-      Uri.parse('$kBaseUrl/conversations'),
-      headers: await _headers(),
-      body: json.encode({'other_user_id': otherUserId}),
-    );
-    if (res.statusCode == 200 || res.statusCode == 201) {
-      return json.decode(res.body)['conversation_id'] as int;
+  /// Checks if a conversation with [receiverUid] already exists.
+  /// Returns the conversation ID (UUID string) or '' if none.
+  static Future<String> startConversation(String receiverUid) async {
+    final opts = await _authOptions();
+    try {
+      final response = await _dio.get(
+        '/api/message-requests/check/$receiverUid',
+        options: opts,
+      );
+      final raw = response.data;
+      final convId = (raw is Map
+              ? (raw['data']?['id'] ??
+                  raw['conversation_id'] ??
+                  raw['id'])
+              : null)
+          ?.toString() ??
+          '';
+      return convId;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return '';
+      rethrow;
     }
-    throw Exception('Failed to start conversation');
   }
 
-  /// Fetches message history for [convId].
-  static Future<List<Map<String, dynamic>>> getMessages(int convId) async {
-    final res = await http.get(
-      Uri.parse('$kBaseUrl/conversations/$convId/messages'),
-      headers: await _headers(),
+  /// Fetches messages for [convId], oldest-first.
+  static Future<List<Map<String, dynamic>>> getMessages(String convId) async {
+    if (convId.isEmpty) return [];
+    final opts = await _authOptions();
+    final response = await _dio.get(
+      '/api/conversations/$convId/messages',
+      options: opts,
     );
-    if (res.statusCode == 200) {
-      return List<Map<String, dynamic>>.from(json.decode(res.body));
-    }
-    throw Exception('Failed to load messages');
+    final raw = response.data;
+    final List list =
+        (raw is Map ? (raw['data'] ?? raw['messages'] ?? []) : raw)
+            as List? ??
+        [];
+    // API returns newest-first; reverse so oldest is first (natural chat order).
+    final msgs =
+        list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+    return msgs.reversed.toList();
   }
 
-  /// Sends a message via HTTP (fallback when WebSocket is unavailable).
-  static Future<Map<String, dynamic>> sendMessage(int convId, String text) async {
-    final res = await http.post(
-      Uri.parse('$kBaseUrl/conversations/$convId/messages'),
-      headers: await _headers(),
-      body: json.encode({'text': text}),
-    );
-    if (res.statusCode == 201) {
-      return Map<String, dynamic>.from(json.decode(res.body));
+  /// Sends a text message.
+  /// If [convId] is empty, creates a new message request using [receiverUid].
+  static Future<Map<String, dynamic>> sendMessage(
+    String convId,
+    String body, {
+    String? receiverUid,
+  }) async {
+    final opts = await _authOptions();
+    if (convId.isEmpty && receiverUid != null) {
+      final response = await _dio.post(
+        '/api/message-requests',
+        data: {'receiver_id': receiverUid, 'initial_message': body},
+        options: opts,
+      );
+      final raw = response.data;
+      return Map<String, dynamic>.from(
+        raw is Map ? (raw['data'] ?? raw['message'] ?? raw) : {},
+      );
     }
-    throw Exception('Failed to send message: ${res.statusCode}');
+    final response = await _dio.post(
+      '/api/conversations/$convId/messages/text',
+      data: {'body': body},
+      options: opts,
+    );
+    final raw = response.data;
+    return Map<String, dynamic>.from(
+      raw is Map ? (raw['data'] ?? raw['message'] ?? raw) : {},
+    );
   }
 
   /// Searches for users by name or username.
   static Future<List<Map<String, dynamic>>> searchUsers(String q) async {
-    final res = await http.get(
-      Uri.parse('$kBaseUrl/users/search?q=${Uri.encodeComponent(q)}'),
-      headers: await _headers(),
+    final opts = await _authOptions();
+    final response = await _dio.get(
+      '/api/users/search',
+      queryParameters: {'q': q},
+      options: opts,
     );
-    if (res.statusCode == 200) {
-      return List<Map<String, dynamic>>.from(json.decode(res.body));
+    final raw = response.data;
+    final List list =
+        (raw is Map ? (raw['data'] ?? raw['users'] ?? []) : raw) as List? ?? [];
+    return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
+  /// Fetch pending message requests.
+  static Future<List<Map<String, dynamic>>> getMessageRequests() async {
+    final opts = await _authOptions();
+    final response =
+        await _dio.get('/api/message-requests', options: opts);
+    final raw = response.data;
+    final List list =
+        (raw is Map ? (raw['data'] ?? []) : raw) as List? ?? [];
+    return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
+  /// Accept a pending message request.
+  static Future<void> acceptMessageRequest(dynamic requestId) async {
+    final opts = await _authOptions();
+    await _dio.post('/api/message-requests/$requestId/accept', options: opts);
+  }
+
+  /// Reject / delete a pending message request.
+  static Future<void> rejectMessageRequest(dynamic requestId) async {
+    final opts = await _authOptions();
+    await _dio.delete('/api/message-requests/$requestId', options: opts);
+  }
+
+  /// Mark all messages in a conversation as read.
+  static Future<void> markAsRead(String convId) async {
+    if (convId.isEmpty) return;
+    try {
+      final opts = await _authOptions();
+      await _dio.post('/api/conversations/$convId/read', options: opts);
+    } catch (_) {
+      // Non-fatal
     }
-    return [];
   }
 }

@@ -45,25 +45,37 @@ class VideoService {
 
   /// Normalise a raw API reel/video object to the format expected by the app
   static Map<String, dynamic> normalizeVideo(Map<String, dynamic> v) {
-    final school = v['school']?.toString() ?? v['school_name']?.toString() ?? v['faculty']?.toString() ?? '';
+    // New API uses `uploader` object; fall back to `user` for older responses
+    final uploader = (v['uploader'] is Map)
+        ? v['uploader'] as Map<String, dynamic>
+        : (v['user'] is Map)
+            ? v['user'] as Map<String, dynamic>
+            : <String, dynamic>{};
+    final school = uploader['faculty']?.toString() ??
+        v['school']?.toString() ??
+        v['school_name']?.toString() ??
+        v['faculty']?.toString() ??
+        '';
     final colors = _schoolColors(school);
-    final user = (v['user'] is Map) ? v['user'] as Map<String, dynamic> : <String, dynamic>{};
+    // Counts may be strings in the new API
+    bool _isTruthy(dynamic val) =>
+        val == true || val == 1 || val?.toString() == 'true' || val?.toString() == '1';
     return {
       'id': v['id'],
-      'userId': user['id'] ?? v['user_id'] ?? v['author_id'],
-      'username': '@${user['username'] ?? v['username'] ?? 'user'}',
-      'name': user['name'] ?? v['author_name'] ?? 'Unknown',
+      'userId': uploader['uid'] ?? uploader['id'] ?? v['user_id'] ?? v['author_id'],
+      'username': '@${uploader['username'] ?? v['username'] ?? 'user'}',
+      'name': uploader['name'] ?? uploader['full_name'] ?? v['author_name'] ?? 'Unknown',
       'school': school,
       'subject': v['subject']?.toString() ?? v['module']?.toString() ?? '',
-      'title': v['title']?.toString() ?? '',
-      // New API uses singular like_count/comment_count/share_count; old used plural _count
-      'likes': formatCount(v['likes_count'] ?? v['like_count'] ?? v['likes'] ?? 0),
-      'comments': formatCount(v['comments_count'] ?? v['comment_count'] ?? v['comments'] ?? 0),
-      'shares': formatCount(v['shares_count'] ?? v['share_count'] ?? v['shares'] ?? 0),
-      'likesCount': (v['likes_count'] ?? v['like_count'] ?? v['likes'] ?? 0),
-      'isLiked': v['is_liked'] == true,
-      'isBookmarked': v['is_bookmarked'] == true,
-      'isFollowing': v['is_following'] == true || user['is_following'] == true,
+      // New API uses `caption`; old used `title`
+      'title': v['caption']?.toString() ?? v['title']?.toString() ?? '',
+      'likes': formatCount(v['like_count'] ?? v['likes_count'] ?? v['likes'] ?? 0),
+      'comments': formatCount(v['comment_count'] ?? v['comments_count'] ?? v['comments'] ?? 0),
+      'shares': formatCount(v['share_count'] ?? v['shares_count'] ?? v['shares'] ?? 0),
+      'likesCount': int.tryParse((v['like_count'] ?? v['likes_count'] ?? v['likes'] ?? 0).toString()) ?? 0,
+      'isLiked': _isTruthy(v['is_liked']),
+      'isBookmarked': _isTruthy(v['is_bookmarked']),
+      'isFollowing': _isTruthy(v['is_following']) || _isTruthy(uploader['is_following']),
       'color': Color(colors.$1),
       'accent': Color(colors.$2),
       'networkUrl': v['video_url']?.toString() ?? v['url']?.toString(),
@@ -156,7 +168,7 @@ class VideoService {
     final opts = await _authOptions();
     await _dio.post(
       '/api/reels/$reelId/view',
-      data: {'watch_seconds': ?watchSeconds},
+      data: {if (watchSeconds != null) 'watch_seconds': watchSeconds},
       options: opts,
     );
   }
@@ -188,13 +200,17 @@ class VideoService {
   /// Mark a single notification as read
   static Future<void> markNotificationRead(dynamic id) async {
     final opts = await _authOptions();
-    await _dio.patch('/api/notifications/$id/read', options: opts);
+    await _dio.post(
+      '/api/notifications/read',
+      data: {'ids': [id]},
+      options: opts,
+    );
   }
 
   /// Mark all notifications as read
   static Future<void> markAllNotificationsRead() async {
     final opts = await _authOptions();
-    await _dio.patch('/api/notifications/read-all', options: opts);
+    await _dio.post('/api/notifications/read', options: opts);
   }
 
   /// Search reels
@@ -229,7 +245,7 @@ class VideoService {
   /// Fetch the current user's dashboard statistics
   static Future<Map<String, dynamic>> getUserStats() async {
     final opts = await _authOptions();
-    final response = await _dio.get('/api/user/stats', options: opts);
+    final response = await _dio.get('/api/progress/dashboard', options: opts);
     final raw = response.data;
     return Map<String, dynamic>.from(raw is Map ? (raw['data'] ?? raw) : {});
   }
@@ -237,7 +253,7 @@ class VideoService {
   /// Fetch suggested users to follow
   static Future<List<Map<String, dynamic>>> getSuggestedUsers() async {
     final opts = await _authOptions();
-    final response = await _dio.get('/api/users/suggested', options: opts);
+    final response = await _dio.get('/api/users/suggestions', options: opts);
     final raw = response.data;
     final List list =
         (raw is Map ? (raw['data'] ?? raw['users'] ?? []) : raw) as List? ?? [];

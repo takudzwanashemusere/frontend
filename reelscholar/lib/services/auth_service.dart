@@ -21,14 +21,14 @@ class AuthService {
     required String email,
     required String name,
     required String token,
-    int? userId,
+    String? userId, // now stores UUID string from new API
     String? username,
   }) async {
     await _storage.write(key: _keyToken, value: token);
     await _storage.write(key: _keyEmail, value: email);
     await _storage.write(key: _keyName, value: name);
-    if (userId != null) {
-      await _storage.write(key: _keyUserId, value: userId.toString());
+    if (userId != null && userId.isNotEmpty) {
+      await _storage.write(key: _keyUserId, value: userId);
     }
     if (username != null) {
       await _storage.write(key: _keyUsername, value: username);
@@ -111,10 +111,9 @@ class AuthService {
     return await _storage.read(key: _keyMessagingToken);
   }
 
-  // Get saved user id
-  static Future<int?> getUserId() async {
-    final v = await _storage.read(key: _keyUserId);
-    return v != null ? int.tryParse(v) : null;
+  // Get saved user id (returns the raw UUID string)
+  static Future<String?> getUserId() async {
+    return await _storage.read(key: _keyUserId);
   }
 
   // Get saved username

@@ -77,7 +77,7 @@ class _LoginScreenState extends State<LoginScreen>
           Uri.parse('$kLaravelUrl/api/auth/login'),
           headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
           body: json.encode({
-            'email': _emailController.text.trim(),
+            'login': _emailController.text.trim(),
             'password': _passwordController.text,
             'device_name': 'mobile',
           }),
@@ -90,57 +90,11 @@ class _LoginScreenState extends State<LoginScreen>
           final user = (payload['user'] is Map) ? payload['user'] as Map : {};
           await AuthService.saveSession(
             email: _emailController.text.trim(),
-            name: user['name']?.toString() ?? user['full_name']?.toString() ?? '',
+            name: user['full_name']?.toString() ?? user['name']?.toString() ?? '',
             token: payload['token']?.toString() ?? '',
-            userId: user['id'] is int ? user['id'] as int : int.tryParse(user['id']?.toString() ?? ''),
+            userId: user['uid']?.toString() ?? user['id']?.toString(),
             username: user['username']?.toString() ?? user['email']?.toString(),
           );
-          try {
-            final email    = _emailController.text.trim();
-            final password = _passwordController.text;
-            final savedName     = await AuthService.getUserName() ?? '';
-            final savedUsername = await AuthService.getUsername() ?? '';
-            final msgLoginRes = await http.post(
-              Uri.parse('$kBaseUrl/auth/login'),
-              headers: {'Content-Type': 'application/json'},
-              body: json.encode({'email': email, 'password': password}),
-            );
-            debugPrint('MSG LOGIN STATUS: ${msgLoginRes.statusCode}');
-            debugPrint('MSG LOGIN BODY: ${msgLoginRes.body}');
-            if (msgLoginRes.statusCode == 200 || msgLoginRes.statusCode == 201) {
-              final msgData = json.decode(msgLoginRes.body);
-              await AuthService.saveMessagingToken(msgData['access_token'] ?? '');
-              debugPrint('MSG TOKEN SAVED: ${msgData['access_token']}');
-            } else {
-              try {
-                final safeUsername = savedUsername.isEmpty
-                    ? email.split('@').first.replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '_')
-                    : savedUsername.replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '_');
-                debugPrint('MSG REGISTER ATTEMPT: email=$email username=$safeUsername');
-                final msgRegRes = await http.post(
-                  Uri.parse('$kBaseUrl/auth/register'),
-                  headers: {'Content-Type': 'application/json'},
-                  body: json.encode({
-                    'email': email,
-                    'username': safeUsername,
-                    'name': savedName.isNotEmpty ? savedName : email.split('@').first,
-                    'password': password,
-                  }),
-                );
-                debugPrint('MSG REGISTER STATUS: ${msgRegRes.statusCode}');
-                debugPrint('MSG REGISTER BODY: ${msgRegRes.body}');
-                if (msgRegRes.statusCode == 200 || msgRegRes.statusCode == 201) {
-                  final msgData = json.decode(msgRegRes.body);
-                  await AuthService.saveMessagingToken(msgData['access_token'] ?? '');
-                  debugPrint('MSG TOKEN SAVED (reg): ${msgData['access_token']}');
-                }
-              } catch (regErr) {
-                debugPrint('MSG REGISTER ERROR: $regErr');
-              }
-            }
-          } catch (_) {
-            // Non-fatal — messaging will degrade gracefully
-          }
           if (!mounted) return;
           Navigator.pushReplacement(
             context,

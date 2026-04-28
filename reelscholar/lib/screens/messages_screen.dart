@@ -34,8 +34,6 @@ String _clockTime(String? ts) {
   }
 }
 
-bool _isOnline(dynamic v) => v == true || v == 1;
-
 // ─── Messages Screen ──────────────────────────────────────────────────────────
 
 class MessagesScreen extends StatefulWidget {
@@ -75,11 +73,6 @@ class _MessagesScreenState extends State<MessagesScreen> {
       _error = null;
     });
     try {
-      // Ensure WebSocket is connected using the messaging API token
-      final token = await AuthService.getMessagingToken();
-      debugPrint('MSG TOKEN: $token');
-      if (token != null && token.isNotEmpty) WebSocketService().connect(token);
-
       final convs = await MessagingService.getConversations();
       if (mounted) setState(() => _conversations = convs);
     } catch (e) {
@@ -94,21 +87,19 @@ class _MessagesScreenState extends State<MessagesScreen> {
       if (!mounted) return;
       if (event['type'] == 'message') {
         _onWsMessage(event);
-      } else if (event['type'] == 'status') {
-        _onWsStatus(event);
       }
     });
   }
 
   void _onWsMessage(Map<String, dynamic> event) {
-    final convId = event['conversation_id'];
+    final convId = event['id']?.toString() ?? event['conversation_id']?.toString();
+    if (convId == null) return;
     setState(() {
-      final idx = _conversations.indexWhere((c) => c['conversation_id'] == convId);
+      final idx = _conversations.indexWhere((c) => c['id']?.toString() == convId);
       if (idx != -1) {
         final updated = Map<String, dynamic>.from(_conversations[idx]);
-        updated['last_message'] = event['text'];
+        updated['last_message_preview'] = event['body'] ?? event['text'];
         updated['last_message_at'] = event['created_at'];
-        // Only increment unread if the message is from the other person
         if (event['is_mine'] == false) {
           updated['unread_count'] = (updated['unread_count'] as int? ?? 0) + 1;
         }
@@ -118,25 +109,15 @@ class _MessagesScreenState extends State<MessagesScreen> {
     });
   }
 
-  void _onWsStatus(Map<String, dynamic> event) {
-    final userId = event['user_id'];
-    setState(() {
-      final idx = _conversations.indexWhere((c) => c['other_user_id'] == userId);
-      if (idx != -1) {
-        final updated = Map<String, dynamic>.from(_conversations[idx]);
-        updated['other_is_online'] = event['is_online'] == true;
-        _conversations[idx] = updated;
-      }
-    });
-  }
-
   List<Map<String, dynamic>> get _filtered => _query.isEmpty
       ? _conversations
       : _conversations.where((c) {
-          final name = c['other_name']?.toString().toLowerCase() ?? '';
-          final user = c['other_username']?.toString().toLowerCase() ?? '';
+          final otherUser =
+              c['other_user'] is Map ? c['other_user'] as Map : {};
+          final name =
+              otherUser['full_name']?.toString().toLowerCase() ?? '';
           final q = _query.toLowerCase();
-          return name.contains(q) || user.contains(q);
+          return name.contains(q);
         }).toList();
 
   @override
@@ -247,13 +228,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                       ),
                     ),
 
-                    // Online strip
-                    if (_query.isEmpty) ...[
-                      const SizedBox(height: 14),
-                      _buildOnlineStrip(),
-                      Divider(color: AppColors.border),
-                    ] else
-                      const SizedBox(height: 8),
+                    const SizedBox(height: 8),
 
                     // Conversation list
                     Expanded(
@@ -293,82 +268,13 @@ class _MessagesScreenState extends State<MessagesScreen> {
     );
   }
 
-  Widget _buildOnlineStrip() {
-    final online =
-        _conversations.where((c) => _isOnline(c['other_is_online'])).toList();
-    if (online.isEmpty) return const SizedBox(height: 4);
-    return SizedBox(
-      height: 82,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: online.length,
-        itemBuilder: (context, index) {
-          final person = online[index];
-          return GestureDetector(
-            onTap: () => _openChat(context, person),
-            child: Padding(
-              padding: const EdgeInsets.only(right: 18),
-              child: Column(
-                children: [
-                  Stack(
-                    children: [
-                      CircleAvatar(
-                        radius: 24,
-                        backgroundColor: AppColors.surface,
-                        child: Text(
-                          (person['other_name'] ?? '?')
-                              .toString()
-                              .substring(0, 1)
-                              .toUpperCase(),
-                          style: TextStyle(
-                            fontFamily: 'Poppins',
-                            color: AppColors.textSecondary,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 1,
-                        right: 1,
-                        child: Container(
-                          width: 11,
-                          height: 11,
-                          decoration: BoxDecoration(
-                            color: AppColors.success,
-                            shape: BoxShape.circle,
-                            border:
-                                Border.all(color: AppColors.bg, width: 2),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    (person['other_name'] ?? '').toString().split(' ')[0],
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      color: AppColors.textTertiary,
-                      fontSize: 10,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
   Widget _buildConvTile(Map<String, dynamic> conv) {
     final int unread = (conv['unread_count'] as int?) ?? 0;
-    final bool online = _isOnline(conv['other_is_online']);
-    final String name = conv['other_name'] ?? '';
-    final String lastMsg = conv['last_message'] ?? '';
-    final String time = _relativeTime(conv['last_message_at']);
+    final otherUser =
+        conv['other_user'] is Map ? conv['other_user'] as Map : {};
+    final String name = otherUser['full_name']?.toString() ?? '';
+    final String lastMsg = conv['last_message_preview']?.toString() ?? '';
+    final String time = _relativeTime(conv['last_message_at']?.toString());
 
     return GestureDetector(
       onTap: () => _openChat(context, conv),
@@ -377,36 +283,18 @@ class _MessagesScreenState extends State<MessagesScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
         child: Row(
           children: [
-            Stack(
-              children: [
-                CircleAvatar(
-                  radius: 24,
-                  backgroundColor: AppColors.surface,
-                  child: Text(
-                    name.isNotEmpty ? name.substring(0, 1).toUpperCase() : '?',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
-                    ),
-                  ),
+            CircleAvatar(
+              radius: 24,
+              backgroundColor: AppColors.surface,
+              child: Text(
+                name.isNotEmpty ? name.substring(0, 1).toUpperCase() : '?',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 16,
                 ),
-                if (online)
-                  Positioned(
-                    bottom: 1,
-                    right: 1,
-                    child: Container(
-                      width: 11,
-                      height: 11,
-                      decoration: BoxDecoration(
-                        color: AppColors.success,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.bg, width: 2),
-                      ),
-                    ),
-                  ),
-              ],
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -425,8 +313,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
                             color: unread > 0
                                 ? AppColors.textPrimary
                                 : AppColors.textSecondary,
-                            fontWeight:
-                                unread > 0 ? FontWeight.w700 : FontWeight.w500,
+                            fontWeight: unread > 0
+                                ? FontWeight.w700
+                                : FontWeight.w500,
                             fontSize: 14,
                           ),
                         ),
@@ -517,21 +406,35 @@ class _MessagesScreenState extends State<MessagesScreen> {
         return StatefulBuilder(builder: (ctx, setSheet) {
           Future<void> search(String q) async {
             if (q.trim().isEmpty) {
-              setSheet(() { results = []; searching = false; });
+              setSheet(() {
+                results = [];
+                searching = false;
+              });
               return;
             }
-            setSheet(() { searching = true; sheetError = null; });
+            setSheet(() {
+              searching = true;
+              sheetError = null;
+            });
             try {
               final r = await MessagingService.searchUsers(q.trim());
-              setSheet(() { results = r; searching = false; });
+              setSheet(() {
+                results = r;
+                searching = false;
+              });
             } catch (_) {
-              setSheet(() { searching = false; sheetError = 'Search failed'; });
+              setSheet(() {
+                searching = false;
+                sheetError = 'Search failed';
+              });
             }
           }
 
           return Padding(
             padding: EdgeInsets.fromLTRB(
-              16, 16, 16,
+              16,
+              16,
+              16,
               MediaQuery.of(ctx).viewInsets.bottom + 24,
             ),
             child: Column(
@@ -575,7 +478,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                       fontSize: 14,
                     ),
                     decoration: InputDecoration(
-                      hintText: 'Search by name or username...',
+                      hintText: 'Search by name...',
                       hintStyle: TextStyle(
                         color: AppColors.textMuted,
                         fontFamily: 'Poppins',
@@ -587,7 +490,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
                         size: 18,
                       ),
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                      contentPadding:
+                          const EdgeInsets.symmetric(vertical: 12),
                     ),
                   ),
                 ),
@@ -601,7 +505,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     child: Center(
-                      child: Text(sheetError!, style: AppTextStyles.bodyMedium),
+                      child:
+                          Text(sheetError!, style: AppTextStyles.bodyMedium),
                     ),
                   )
                 else if (results.isEmpty && searchCtrl.text.isNotEmpty)
@@ -628,11 +533,16 @@ class _MessagesScreenState extends State<MessagesScreen> {
                       itemCount: results.length,
                       itemBuilder: (_, i) {
                         final user = results[i];
-                        final name = user['name']?.toString() ?? '';
-                        final username = user['username']?.toString() ?? '';
+                        // New API uses full_name and uid
+                        final name =
+                            user['full_name']?.toString() ?? '';
+                        final username =
+                            user['username']?.toString() ?? '';
+                        final uid = user['uid']?.toString() ?? '';
                         return ListTile(
                           contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 4, vertical: 2,
+                            horizontal: 4,
+                            vertical: 2,
                           ),
                           leading: CircleAvatar(
                             radius: 20,
@@ -657,31 +567,32 @@ class _MessagesScreenState extends State<MessagesScreen> {
                               fontSize: 14,
                             ),
                           ),
-                          subtitle: Text(
-                            '@$username',
-                            style: TextStyle(
-                              fontFamily: 'Poppins',
-                              color: AppColors.textMuted,
-                              fontSize: 12,
-                            ),
-                          ),
+                          subtitle: username.isNotEmpty
+                              ? Text(
+                                  '@$username',
+                                  style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                    color: AppColors.textMuted,
+                                    fontSize: 12,
+                                  ),
+                                )
+                              : null,
                           onTap: () async {
                             Navigator.pop(ctx);
                             final nav = Navigator.of(context);
-                            final messenger = ScaffoldMessenger.of(context);
+                            final messenger =
+                                ScaffoldMessenger.of(context);
                             try {
                               final convId = await MessagingService
-                                  .startConversation(user['id'] as int);
+                                  .startConversation(uid);
                               if (!mounted) return;
                               nav.push(
                                 MaterialPageRoute(
                                   builder: (_) => ChatScreen(
                                     conversationId: convId,
-                                    otherUserId: user['id'] as int,
+                                    otherUserId: uid,
                                     otherName: name,
                                     otherUsername: username,
-                                    initialIsOnline:
-                                        _isOnline(user['is_online']),
                                   ),
                                 ),
                               ).then((_) => _loadConversations());
@@ -689,7 +600,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
                               if (!mounted) return;
                               messenger.showSnackBar(
                                 const SnackBar(
-                                  content: Text('Could not start conversation'),
+                                  content:
+                                      Text('Could not start conversation'),
                                 ),
                               );
                             }
@@ -708,8 +620,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
 
   void _openChat(BuildContext context, Map<String, dynamic> conv) {
     // Clear unread count locally
-    final idx = _conversations
-        .indexWhere((c) => c['conversation_id'] == conv['conversation_id']);
+    final convId = conv['id']?.toString() ?? '';
+    final idx =
+        _conversations.indexWhere((c) => c['id']?.toString() == convId);
     if (idx != -1) {
       setState(() {
         final updated = Map<String, dynamic>.from(_conversations[idx]);
@@ -718,29 +631,30 @@ class _MessagesScreenState extends State<MessagesScreen> {
       });
     }
 
+    final otherUser =
+        conv['other_user'] is Map ? conv['other_user'] as Map : {};
+
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => ChatScreen(
-          conversationId: conv['conversation_id'] as int,
-          otherUserId: conv['other_user_id'] as int,
-          otherName: conv['other_name'] ?? '',
-          otherUsername: conv['other_username'] ?? '',
-          initialIsOnline: _isOnline(conv['other_is_online']),
+          conversationId: convId,
+          otherUserId: otherUser['uid']?.toString() ?? '',
+          otherName: otherUser['full_name']?.toString() ?? '',
+          otherUsername: otherUser['username']?.toString() ?? '',
         ),
       ),
-    ).then((_) => _loadConversations()); // refresh on return
+    ).then((_) => _loadConversations());
   }
 }
 
 // ─── Chat Screen ─────────────────────────────────────────────────────────────
 
 class ChatScreen extends StatefulWidget {
-  final int conversationId;
-  final int otherUserId;
+  final String conversationId;
+  final String otherUserId;
   final String otherName;
   final String otherUsername;
-  final bool initialIsOnline;
 
   const ChatScreen({
     super.key,
@@ -748,7 +662,6 @@ class ChatScreen extends StatefulWidget {
     required this.otherUserId,
     required this.otherName,
     required this.otherUsername,
-    required this.initialIsOnline,
   });
 
   @override
@@ -761,14 +674,17 @@ class _ChatScreenState extends State<ChatScreen> {
 
   List<Map<String, dynamic>> _messages = [];
   bool _isLoading = true;
-  late bool _isOnline;
+  String? _myUid;
+  // Holds the actual conversation id once a new conversation is created
+  late String _convId;
 
   StreamSubscription<Map<String, dynamic>>? _wsSub;
 
   @override
   void initState() {
     super.initState();
-    _isOnline = widget.initialIsOnline;
+    _convId = widget.conversationId;
+    _loadMyUid();
     _loadMessages();
     _subscribeWs();
   }
@@ -781,13 +697,18 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
+  Future<void> _loadMyUid() async {
+    final uid = await AuthService.getUserId();
+    if (mounted) setState(() => _myUid = uid);
+  }
+
   Future<void> _loadMessages() async {
     setState(() => _isLoading = true);
     try {
-      final msgs = await MessagingService.getMessages(widget.conversationId);
+      final msgs = await MessagingService.getMessages(_convId);
       if (mounted) setState(() => _messages = msgs);
     } catch (_) {
-      // keep empty list, user can still send
+      // keep empty list — user can still send
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -799,13 +720,11 @@ class _ChatScreenState extends State<ChatScreen> {
   void _subscribeWs() {
     _wsSub = WebSocketService().stream.listen((event) {
       if (!mounted) return;
-      if (event['type'] == 'message' &&
-          event['conversation_id'] == widget.conversationId) {
+      final eventConvId = event['id']?.toString() ??
+          event['conversation_id']?.toString();
+      if (event['type'] == 'message' && eventConvId == _convId) {
         setState(() => _messages.add(event));
         _scrollToBottom();
-      } else if (event['type'] == 'status' &&
-          event['user_id'] == widget.otherUserId) {
-        setState(() => _isOnline = event['is_online'] == true);
       }
     });
   }
@@ -815,23 +734,37 @@ class _ChatScreenState extends State<ChatScreen> {
     if (text.isEmpty) return;
     _msgController.clear();
 
-    if (WebSocketService().isConnected) {
-      // Send via WebSocket — server echoes it back into the stream
-      WebSocketService().sendMessage(widget.conversationId, text);
-    } else {
-      // Fallback: HTTP POST, then append locally
-      try {
-        final msg = await MessagingService.sendMessage(widget.conversationId, text);
-        if (mounted) {
-          setState(() => _messages.add(msg));
-          _scrollToBottom();
+    try {
+      final msg = await MessagingService.sendMessage(
+        _convId,
+        text,
+        receiverUid: _convId.isEmpty ? widget.otherUserId : null,
+      );
+      if (mounted) {
+        // If we just created a new conversation, update our local convId
+        if (_convId.isEmpty) {
+          final newConvId =
+              msg['conversation_id']?.toString() ?? msg['id']?.toString() ?? '';
+          if (newConvId.isNotEmpty) {
+            setState(() => _convId = newConvId);
+          }
         }
-      } catch (_) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to send message')),
-          );
-        }
+        // Build a local message representation for immediate display
+        final localMsg = {
+          'body': text,
+          'created_at': DateTime.now().toIso8601String(),
+          'is_mine': true,
+          'sender': {'uid': _myUid},
+          ...msg,
+        };
+        setState(() => _messages.add(localMsg));
+        _scrollToBottom();
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to send message')),
+        );
       }
     }
   }
@@ -846,6 +779,14 @@ class _ChatScreenState extends State<ChatScreen> {
         );
       }
     });
+  }
+
+  bool _isMine(Map<String, dynamic> msg) {
+    if (msg['is_mine'] == true) return true;
+    if (msg['is_mine'] == false) return false;
+    final senderUid =
+        (msg['sender'] is Map ? msg['sender'] as Map : {})['uid']?.toString();
+    return senderUid != null && _myUid != null && senderUid == _myUid;
   }
 
   @override
@@ -866,39 +807,20 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
         title: Row(
           children: [
-            Stack(
-              children: [
-                CircleAvatar(
-                  radius: 17,
-                  backgroundColor: AppColors.surface,
-                  child: Text(
-                    widget.otherName.isNotEmpty
-                        ? widget.otherName.substring(0, 1).toUpperCase()
-                        : '?',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
-                    ),
-                  ),
+            CircleAvatar(
+              radius: 17,
+              backgroundColor: AppColors.surface,
+              child: Text(
+                widget.otherName.isNotEmpty
+                    ? widget.otherName.substring(0, 1).toUpperCase()
+                    : '?',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
                 ),
-                if (_isOnline)
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      width: 9,
-                      height: 9,
-                      decoration: BoxDecoration(
-                        color: AppColors.success,
-                        shape: BoxShape.circle,
-                        border:
-                            Border.all(color: AppColors.bg, width: 1.5),
-                      ),
-                    ),
-                  ),
-              ],
+              ),
             ),
             const SizedBox(width: 10),
             Column(
@@ -913,15 +835,15 @@ class _ChatScreenState extends State<ChatScreen> {
                     fontSize: 14,
                   ),
                 ),
-                Text(
-                  _isOnline ? 'Online' : 'Offline',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    color:
-                        _isOnline ? AppColors.success : AppColors.textMuted,
-                    fontSize: 11,
+                if (widget.otherUsername.isNotEmpty)
+                  Text(
+                    '@${widget.otherUsername}',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      color: AppColors.textMuted,
+                      fontSize: 11,
+                    ),
                   ),
-                ),
               ],
             ),
           ],
@@ -954,16 +876,28 @@ class _ChatScreenState extends State<ChatScreen> {
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                    itemCount: _messages.length,
-                    itemBuilder: (context, index) {
-                      final msg = _messages[index];
-                      final isMine = msg['is_mine'] == true;
-                      return _buildMessage(msg, isMine);
-                    },
-                  ),
+                : _messages.isEmpty && _convId.isEmpty
+                    ? Center(
+                        child: Text(
+                          'Send a message to start the conversation',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            color: AppColors.textMuted,
+                            fontSize: 13,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      )
+                    : ListView.builder(
+                        controller: _scrollController,
+                        padding:
+                            const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                        itemCount: _messages.length,
+                        itemBuilder: (context, index) {
+                          final msg = _messages[index];
+                          return _buildMessage(msg, _isMine(msg));
+                        },
+                      ),
           ),
 
           // Input bar
@@ -1037,7 +971,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildMessage(Map<String, dynamic> msg, bool isMine) {
-    final text = msg['text']?.toString() ?? '';
+    final text = msg['body']?.toString() ?? msg['text']?.toString() ?? '';
     final time = _clockTime(msg['created_at']?.toString());
 
     return Padding(
@@ -1092,7 +1026,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   text,
                   style: TextStyle(
                     fontFamily: 'Poppins',
-                    color: isMine ? Colors.white : AppColors.textSecondary,
+                    color:
+                        isMine ? Colors.white : AppColors.textSecondary,
                     fontSize: 14,
                     height: 1.4,
                   ),
