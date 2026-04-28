@@ -19,9 +19,7 @@ samples, guidance on mobile development, and a full API reference.
 
 *************My NOTES***************************************
 
-
-
-  -the leader bboard should show participative  you are (this hsoulf be inmplemented )
+-the leader bboard should show participative  you are (this hsoulf be inmplemented )
 
  the api  for messaging is on git hub check new repository// leave it  
 
