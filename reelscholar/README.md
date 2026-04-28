@@ -21,7 +21,6 @@ samples, guidance on mobile development, and a full API reference.
 
 -the leader bboard should show participative  you are (this hsoulf be inmplemented )
 
-
  does the dashboard have to show stats show from frontend 
 
 when Ai detetect the video for  unedcuational content it should flag to the Admin for review and it should also the the user that the video is under review from the Admin >>>
