@@ -21,7 +21,6 @@ samples, guidance on mobile development, and a full API reference.
 
 -the leader bboard should show participative  you are (this hsoulf be inmplemented )
 
- 
 
  does the dashboard have to show stats show from frontend 
 
