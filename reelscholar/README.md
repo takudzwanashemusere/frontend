@@ -19,7 +19,7 @@ samples, guidance on mobile development, and a full API reference.
 
 *************My NOTES***************************************
 
- -login auth is from the laravel , learn how it is connected 
+
 
   -the leader bboard should show participative  you are (this hsoulf be inmplemented )
 
