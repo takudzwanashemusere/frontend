@@ -21,7 +21,7 @@ samples, guidance on mobile development, and a full API reference.
 
 -the leader bboard should show participative  you are (this hsoulf be inmplemented )
 
- the api  for messaging is on git hub check new repository// leave it  
+ 
 
  does the dashboard have to show stats show from frontend 
 
