@@ -1088,9 +1088,9 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
     // Try to sync with API (non-blocking — fail silently)
     try {
       await VideoService.updateProfile(
-        name: name,
-        bio: bio,
-        avatar: _selectedImagePath != null ? File(_selectedImagePath!) : null,
+        fullName: name,          // API field: full_name (not name)
+        profilePicture: _selectedImagePath != null ? File(_selectedImagePath!) : null,
+        // Note: 'bio' removed — not in ProfileUpdateRequest schema
       );
     } catch (_) {}
 
