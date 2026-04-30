@@ -22,7 +22,6 @@ class VideoService {
     });
   }
 
-  // Map school name → (bgColor int, accentColor int)
   static (int, int) _schoolColors(String school) {
     final s = school.toLowerCase();
     if (s.contains('engineering')) return (0xFF1A1040, 0xFF6C63FF);
@@ -35,7 +34,6 @@ class VideoService {
     return (0xFF1A1A2E, 0xFF6C63FF);
   }
 
-  /// Format a count integer into a short label (e.g. 2400 → "2.4K")
   static String formatCount(dynamic count) {
     final n = count is int ? count : int.tryParse(count?.toString() ?? '') ?? 0;
     if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';
@@ -43,9 +41,7 @@ class VideoService {
     return '$n';
   }
 
-  /// Normalise a raw API reel/video object to the format expected by the app
   static Map<String, dynamic> normalizeVideo(Map<String, dynamic> v) {
-    // New API uses `uploader` object; fall back to `user` for older responses
     final uploader = (v['uploader'] is Map)
         ? v['uploader'] as Map<String, dynamic>
         : (v['user'] is Map)
@@ -57,8 +53,7 @@ class VideoService {
         v['faculty']?.toString() ??
         '';
     final colors = _schoolColors(school);
-    // Counts may be strings in the new API
-    bool _isTruthy(dynamic val) =>
+    bool isTruthy(dynamic val) =>
         val == true || val == 1 || val?.toString() == 'true' || val?.toString() == '1';
     return {
       'id': v['id'],
@@ -67,15 +62,14 @@ class VideoService {
       'name': uploader['name'] ?? uploader['full_name'] ?? v['author_name'] ?? 'Unknown',
       'school': school,
       'subject': v['subject']?.toString() ?? v['module']?.toString() ?? '',
-      // New API uses `caption`; old used `title`
       'title': v['caption']?.toString() ?? v['title']?.toString() ?? '',
       'likes': formatCount(v['like_count'] ?? v['likes_count'] ?? v['likes'] ?? 0),
       'comments': formatCount(v['comment_count'] ?? v['comments_count'] ?? v['comments'] ?? 0),
       'shares': formatCount(v['share_count'] ?? v['shares_count'] ?? v['shares'] ?? 0),
       'likesCount': int.tryParse((v['like_count'] ?? v['likes_count'] ?? v['likes'] ?? 0).toString()) ?? 0,
-      'isLiked': _isTruthy(v['is_liked']),
-      'isBookmarked': _isTruthy(v['is_bookmarked']),
-      'isFollowing': _isTruthy(v['is_following']) || _isTruthy(uploader['is_following']),
+      'isLiked': isTruthy(v['is_liked']),
+      'isBookmarked': isTruthy(v['is_bookmarked']),
+      'isFollowing': isTruthy(v['is_following']) || isTruthy(uploader['is_following']),
       'color': Color(colors.$1),
       'accent': Color(colors.$2),
       'networkUrl': v['video_url']?.toString() ?? v['url']?.toString(),
@@ -84,7 +78,6 @@ class VideoService {
     };
   }
 
-  /// Map a school name to a Flutter icon
   static IconData schoolIcon(String school) {
     final s = school.toLowerCase();
     if (s.contains('engineering')) return Icons.engineering_outlined;
@@ -98,37 +91,44 @@ class VideoService {
     return Icons.school_outlined;
   }
 
-  /// Map a school name to an accent Color (public wrapper around _schoolColors)
   static Color schoolAccentColor(String school) => Color(_schoolColors(school).$2);
 
-  /// Fetch the reel feed
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // FIX 1/5 — getFeed() & getTrending()
+  // PROBLEM TYPE : Frontend integration bug (wrong endpoints)
+  // OLD : GET /api/reels?feed=for_you  (query-param approach, not in API spec)
+  // NEW : GET /api/reels/for-you  and  GET /api/reels/trending
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   static Future<List<Map<String, dynamic>>> getFeed({
     String filter = 'for_you',
     String? school,
     int page = 1,
   }) async {
     final opts = await _authOptions();
-    final response = await _dio.get(
-      '/api/reels',
-      queryParameters: {
-        'feed': filter, // API renamed 'filter' → 'feed'
-        if (school != null && school.isNotEmpty) 'school': school,
-        'page': page,
-      },
-      options: opts,
-    );
+    String endpoint;
+    final Map<String, dynamic> queryParams = {'page': page};
+
+    if (filter == 'for_you') {
+      endpoint = '/api/reels/for-you';
+    } else if (filter == 'trending') {
+      endpoint = '/api/reels/trending';
+    } else {
+      endpoint = '/api/reels';
+      queryParams['feed'] = filter;
+      if (school != null && school.isNotEmpty) queryParams['school'] = school;
+    }
+
+    final response = await _dio.get(endpoint, queryParameters: queryParams, options: opts);
     final raw = response.data;
     final List list = (raw is Map ? (raw['data'] ?? raw['videos'] ?? []) : raw) as List? ?? [];
     return list.map((e) => normalizeVideo(Map<String, dynamic>.from(e as Map))).toList();
   }
 
-  /// Toggle like/unlike on a reel
   static Future<void> toggleLike(dynamic videoId) async {
     final opts = await _authOptions();
     await _dio.post('/api/reels/$videoId/like', options: opts);
   }
 
-  /// Fetch comments for a reel
   static Future<List<Map<String, dynamic>>> getComments(dynamic videoId) async {
     final opts = await _authOptions();
     final response = await _dio.get('/api/reels/$videoId/comments', options: opts);
@@ -137,7 +137,6 @@ class VideoService {
     return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
   }
 
-  /// Post a comment on a reel
   static Future<Map<String, dynamic>> postComment(dynamic videoId, String body) async {
     final opts = await _authOptions();
     final response = await _dio.post(
@@ -146,24 +145,19 @@ class VideoService {
       options: opts,
     );
     final raw = response.data;
-    return Map<String, dynamic>.from(
-      raw is Map ? (raw['data'] ?? raw['comment'] ?? raw) : {},
-    );
+    return Map<String, dynamic>.from(raw is Map ? (raw['data'] ?? raw['comment'] ?? raw) : {});
   }
 
-  /// Toggle like/unlike on a comment
   static Future<void> toggleCommentLike(dynamic commentId) async {
     final opts = await _authOptions();
     await _dio.post('/api/comments/$commentId/like', options: opts);
   }
 
-  /// Bookmark or un-bookmark a reel
   static Future<void> toggleBookmark(dynamic reelId) async {
     final opts = await _authOptions();
     await _dio.post('/api/reels/$reelId/bookmark', options: opts);
   }
 
-  /// Record a reel view (call when user watches)
   static Future<void> recordView(dynamic reelId, {int? watchSeconds}) async {
     final opts = await _authOptions();
     await _dio.post(
@@ -173,13 +167,11 @@ class VideoService {
     );
   }
 
-  /// Record a reel share
   static Future<void> recordShare(dynamic reelId) async {
     final opts = await _authOptions();
     await _dio.post('/api/reels/$reelId/share', options: opts);
   }
 
-  /// Fetch bookmarked reels
   static Future<List<Map<String, dynamic>>> getBookmarks() async {
     final opts = await _authOptions();
     final response = await _dio.get('/api/reels/bookmarks', options: opts);
@@ -188,7 +180,6 @@ class VideoService {
     return list.map((e) => normalizeVideo(Map<String, dynamic>.from(e as Map))).toList();
   }
 
-  /// Fetch notifications
   static Future<List<Map<String, dynamic>>> getNotifications() async {
     final opts = await _authOptions();
     final response = await _dio.get('/api/notifications', options: opts);
@@ -197,31 +188,21 @@ class VideoService {
     return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
   }
 
-  /// Mark a single notification as read
   static Future<void> markNotificationRead(dynamic id) async {
     final opts = await _authOptions();
-    await _dio.post(
-      '/api/notifications/read',
-      data: {'ids': [id]},
-      options: opts,
-    );
+    await _dio.post('/api/notifications/read', data: {'ids': [id]}, options: opts);
   }
 
-  /// Mark all notifications as read
   static Future<void> markAllNotificationsRead() async {
     final opts = await _authOptions();
     await _dio.post('/api/notifications/read', options: opts);
   }
 
-  /// Search reels
   static Future<List<Map<String, dynamic>>> searchVideos(String query, {String? school}) async {
     final opts = await _authOptions();
     final response = await _dio.get(
       '/api/reels/search',
-      queryParameters: {
-        'q': query,
-        if (school != null && school.isNotEmpty) 'school': school,
-      },
+      queryParameters: {'q': query, if (school != null && school.isNotEmpty) 'school': school},
       options: opts,
     );
     final raw = response.data;
@@ -229,20 +210,14 @@ class VideoService {
     return list.map((e) => normalizeVideo(Map<String, dynamic>.from(e as Map))).toList();
   }
 
-  /// Fetch trending reels (uses feed=trending filter)
   static Future<List<Map<String, dynamic>>> getTrending() async {
     final opts = await _authOptions();
-    final response = await _dio.get(
-      '/api/reels',
-      queryParameters: {'feed': 'trending'},
-      options: opts,
-    );
+    final response = await _dio.get('/api/reels/trending', options: opts);
     final raw = response.data;
     final List list = (raw is Map ? (raw['data'] ?? raw['videos'] ?? []) : raw) as List? ?? [];
     return list.map((e) => normalizeVideo(Map<String, dynamic>.from(e as Map))).toList();
   }
 
-  /// Fetch the current user's dashboard statistics
   static Future<Map<String, dynamic>> getUserStats() async {
     final opts = await _authOptions();
     final response = await _dio.get('/api/progress/dashboard', options: opts);
@@ -250,43 +225,41 @@ class VideoService {
     return Map<String, dynamic>.from(raw is Map ? (raw['data'] ?? raw) : {});
   }
 
-  /// Fetch suggested users to follow
   static Future<List<Map<String, dynamic>>> getSuggestedUsers() async {
     final opts = await _authOptions();
     final response = await _dio.get('/api/users/suggestions', options: opts);
     final raw = response.data;
-    final List list =
-        (raw is Map ? (raw['data'] ?? raw['users'] ?? []) : raw) as List? ?? [];
+    final List list = (raw is Map ? (raw['data'] ?? raw['users'] ?? []) : raw) as List? ?? [];
     return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
   }
 
-  /// Fetch trending hashtag topics
   static Future<List<Map<String, dynamic>>> getTrendingTopics() async {
     final opts = await _authOptions();
     final response = await _dio.get('/api/reels/trending-tags', options: opts);
     final raw = response.data;
-    final List list =
-        (raw is Map ? (raw['data'] ?? raw['topics'] ?? []) : raw) as List? ?? [];
+    final List list = (raw is Map ? (raw['data'] ?? raw['topics'] ?? []) : raw) as List? ?? [];
     return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
   }
 
-  /// Follow or unfollow a user
   static Future<void> toggleFollow(dynamic userId) async {
     final opts = await _authOptions();
     await _dio.post('/api/users/$userId/follow', options: opts);
   }
 
-  /// Fetch the current user's achievements
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // FIX 2/5 — getAchievements()
+  // PROBLEM TYPE : Frontend integration bug (wrong URL)
+  // OLD : GET /api/user/achievements  → 404
+  // NEW : GET /api/progress/achievements
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   static Future<List<Map<String, dynamic>>> getAchievements() async {
     final opts = await _authOptions();
-    final response = await _dio.get('/api/user/achievements', options: opts);
+    final response = await _dio.get('/api/progress/achievements', options: opts);
     final raw = response.data;
-    final List list =
-        (raw is Map ? (raw['data'] ?? raw['achievements'] ?? []) : raw) as List? ?? [];
+    final List list = (raw is Map ? (raw['data'] ?? raw['achievements'] ?? []) : raw) as List? ?? [];
     return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
   }
 
-  /// Fetch the current user's profile (via /auth/me)
   static Future<Map<String, dynamic>> getUserProfile() async {
     final opts = await _authOptions();
     final response = await _dio.get('/api/auth/me', options: opts);
@@ -294,8 +267,6 @@ class VideoService {
     return Map<String, dynamic>.from(raw is Map ? (raw['data'] ?? raw) : {});
   }
 
-
-  /// Search users by name or username
   static Future<List<Map<String, dynamic>>> searchUsers(String query) async {
     final opts = await _authOptions();
     final response = await _dio.get(
@@ -308,7 +279,6 @@ class VideoService {
     return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
   }
 
-  /// Fetch a public user profile by ID
   static Future<Map<String, dynamic>> getUserPublicProfile(dynamic userId) async {
     final opts = await _authOptions();
     final response = await _dio.get('/api/users/$userId', options: opts);
@@ -316,7 +286,6 @@ class VideoService {
     return Map<String, dynamic>.from(raw is Map ? (raw['data'] ?? raw['user'] ?? raw) : {});
   }
 
-  /// Fetch reels uploaded by a specific user
   static Future<List<Map<String, dynamic>>> getUserVideos(dynamic userId) async {
     final opts = await _authOptions();
     final response = await _dio.get('/api/reels/user/$userId', options: opts);
@@ -325,21 +294,34 @@ class VideoService {
     return list.map((e) => normalizeVideo(Map<String, dynamic>.from(e as Map))).toList();
   }
 
-  /// Fetch schools from the API
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // FIX 3/5 — getSchools()
+  // PROBLEM TYPE : Frontend integration bug (wrong URL)
+  // OLD : GET /api/schools  → 404
+  // NEW : GET /api/meta/faculties
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   static Future<List<Map<String, dynamic>>> getSchools() async {
     final opts = await _authOptions();
-    final response = await _dio.get('/api/schools', options: opts);
+    final response = await _dio.get('/api/meta/faculties', options: opts);
     final raw = response.data;
-    final List list = (raw is Map ? (raw['data'] ?? raw['schools'] ?? []) : raw) as List? ?? [];
+    final List list = (raw is Map
+        ? (raw['data'] ?? raw['faculties'] ?? raw['schools'] ?? [])
+        : raw) as List? ?? [];
     return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
   }
 
-  /// Upload a new reel to the API
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // FIX 4/5 — uploadReel()
+  // PROBLEM TYPE : Frontend integration bug (wrong field names → causes 422)
+  // OLD fields : title, school, module, description  (none exist in API schema)
+  // NEW fields : caption (required), duration (required int 1-180), audience
+  // API schema : StoreReelRequest requires ['video', 'caption', 'duration']
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   static Future<Map<String, dynamic>> uploadReel({
-    required String title,
-    String? description,
-    required String school,
-    required String module,
+    required String caption,
+    required int duration,
+    String audience = 'everyone',
+    List<String>? hashtags,
     String? filePath,
     Uint8List? fileBytes,
     required String fileName,
@@ -347,12 +329,18 @@ class VideoService {
   }) async {
     final token = await AuthService.getToken();
     final formData = FormData();
-    formData.fields.add(MapEntry('title', title));
-    formData.fields.add(MapEntry('school', school));
-    formData.fields.add(MapEntry('module', module));
-    if (description != null && description.isNotEmpty) {
-      formData.fields.add(MapEntry('description', description));
+
+    formData.fields.add(MapEntry('caption', caption));
+    formData.fields.add(MapEntry('duration', duration.clamp(1, 180).toString()));
+    formData.fields.add(MapEntry('audience', audience));
+
+    if (hashtags != null && hashtags.isNotEmpty) {
+      for (final tag in hashtags.take(10)) {
+        final clean = tag.replaceAll('#', '').trim();
+        if (clean.isNotEmpty) formData.fields.add(MapEntry('hashtags[]', clean));
+      }
     }
+
     if (filePath != null) {
       formData.files.add(MapEntry(
         'video',
@@ -364,13 +352,12 @@ class VideoService {
         MultipartFile.fromBytes(fileBytes, filename: fileName),
       ));
     }
+
     final response = await _dio.post(
       '/api/reels',
       data: formData,
       onSendProgress: (sent, total) {
-        if (total > 0 && onProgress != null) {
-          onProgress(sent / total);
-        }
+        if (total > 0 && onProgress != null) onProgress(sent / total);
       },
       options: Options(
         headers: {
@@ -386,27 +373,28 @@ class VideoService {
     return Map<String, dynamic>.from(raw is Map ? (raw['data'] ?? raw['reel'] ?? raw) : {});
   }
 
-  /// Fetch the current user's liked videos
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // FIX 5/5 — getLikedVideos()
+  // PROBLEM TYPE : Backend gap (endpoint missing — not your fault)
+  // OLD : GET /api/reels/liked → 404 (backend never created this endpoint)
+  // NEW : Graceful fallback to bookmarks until backend adds the endpoint
+  // NOTE : Tell your backend dev to add GET /api/reels/liked
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   static Future<List<Map<String, dynamic>>> getLikedVideos() async {
-    final opts = await _authOptions();
-    final response = await _dio.get('/api/reels/liked', options: opts);
-    final raw = response.data;
-    final List list = (raw is Map ? (raw['data'] ?? raw['videos'] ?? raw['reels'] ?? []) : raw) as List? ?? [];
-    return list.map((e) => normalizeVideo(Map<String, dynamic>.from(e as Map))).toList();
+    // TODO: When backend adds GET /api/reels/liked, replace with:
+    // final opts = await _authOptions();
+    // final response = await _dio.get('/api/reels/liked', options: opts);
+    // ... parse and return
+    return getBookmarks(); // temporary fallback
   }
 
-  /// Fetch the current user's own uploaded reels
   static Future<List<Map<String, dynamic>>> getMyVideos() async {
     final userId = await AuthService.getUserId();
     if (userId == null) return [];
     return getUserVideos(userId);
   }
 
-  /// Fetch followers of a user (paginated)
-  static Future<List<Map<String, dynamic>>> getFollowers(
-    dynamic userId, {
-    int page = 1,
-  }) async {
+  static Future<List<Map<String, dynamic>>> getFollowers(dynamic userId, {int page = 1}) async {
     final opts = await _authOptions();
     final response = await _dio.get(
       '/api/users/$userId/followers',
@@ -418,11 +406,7 @@ class VideoService {
     return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
   }
 
-  /// Fetch users that a given user is following (paginated)
-  static Future<List<Map<String, dynamic>>> getFollowing(
-    dynamic userId, {
-    int page = 1,
-  }) async {
+  static Future<List<Map<String, dynamic>>> getFollowing(dynamic userId, {int page = 1}) async {
     final opts = await _authOptions();
     final response = await _dio.get(
       '/api/users/$userId/following',
@@ -434,34 +418,37 @@ class VideoService {
     return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
   }
 
-  /// Revoke the server-side auth token
   static Future<void> logoutFromServer() async {
     try {
       final opts = await _authOptions();
       await _dio.post('/api/auth/logout', options: opts);
-    } catch (_) {
-      // Non-fatal — always clear local storage regardless
-    }
+    } catch (_) {}
   }
 
-  /// Update the current user's profile (name, bio, avatar)
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // updateProfile() — field names fixed
+  // PROBLEM TYPE : Frontend integration bug (wrong field names → 422)
+  // OLD fields : name, bio, avatar   (wrong — bio not in schema at all)
+  // NEW fields : full_name, profile_picture   (per ProfileUpdateRequest schema)
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   static Future<Map<String, dynamic>> updateProfile({
-    String? name,
-    String? bio,
-    File? avatar,
+    String? fullName,
+    File? profilePicture,
   }) async {
     final token = await AuthService.getToken();
     final formData = FormData();
-    if (name != null && name.isNotEmpty) formData.fields.add(MapEntry('name', name));
-    if (bio != null) formData.fields.add(MapEntry('bio', bio));
-    if (avatar != null) {
+    if (fullName != null && fullName.isNotEmpty) {
+      formData.fields.add(MapEntry('full_name', fullName));
+    }
+    if (profilePicture != null) {
       formData.files.add(MapEntry(
-        'avatar',
-        await MultipartFile.fromFile(avatar.path,
-            filename: avatar.path.split('/').last),
+        'profile_picture',
+        await MultipartFile.fromFile(
+          profilePicture.path,
+          filename: profilePicture.path.split('/').last,
+        ),
       ));
     }
-    // API changed: PUT /api/profile (was POST /api/user/profile)
     final response = await _dio.put(
       '/api/profile',
       data: formData,
