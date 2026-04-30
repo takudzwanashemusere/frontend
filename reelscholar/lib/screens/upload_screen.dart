@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import '../models/video_store.dart';
 import '../main.dart';
 //import '../services/content_detection_service.dart';
+import 'package:video_player/video_player.dart';
 import '../services/video_service.dart';
 
 class UploadScreen extends StatefulWidget {
@@ -30,6 +32,7 @@ class _UploadScreenState extends State<UploadScreen>
   int _fileSizeBytes = 0;
   bool _isUploading = false;
   bool _isValidating = false;
+  int _videoDurationSeconds = 30; // default fallback
   double _uploadProgress = 0.0;
   String _validatingStatus = 'Checking content...';
 
@@ -137,6 +140,19 @@ class _UploadScreenState extends State<UploadScreen>
           _fileBytes = file.bytes;
           _fileSizeBytes = file.size;
         });
+
+        // Detect video duration — required by API (must be int 1–180)
+        if (file.path != null) {
+          try {
+            final controller = VideoPlayerController.file(File(file.path!));
+            await controller.initialize();
+            final secs = controller.value.duration.inSeconds.clamp(1, 180);
+            await controller.dispose();
+            if (mounted) setState(() => _videoDurationSeconds = secs);
+          } catch (_) {
+            // Keep default fallback value of 30
+          }
+        }
 
         // Soft warning — large files may fail on the server
         if (file.size > _warnLimitBytes) {
@@ -279,10 +295,9 @@ class _UploadScreenState extends State<UploadScreen>
 
     try {
       await VideoService.uploadReel(
-        title: _titleController.text.trim(),
-        description: _descController.text.trim(),
-        school: _selectedSchool!,
-        module: _selectedModule!,
+        caption: _titleController.text.trim(),   // API: caption not title
+        duration: _videoDurationSeconds,          // API: required int 1-180
+        audience: 'everyone',                     // API: 'everyone' or 'faculty_only'
         filePath: _filePath,
         fileBytes: _fileBytes,
         fileName: _selectedFileName.isNotEmpty ? _selectedFileName : 'video.mp4',
@@ -1028,4 +1043,3 @@ class _FieldLabel extends StatelessWidget {
     );
   }
 }
-
