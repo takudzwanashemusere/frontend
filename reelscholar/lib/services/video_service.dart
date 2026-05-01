@@ -165,7 +165,7 @@ class VideoService {
     final opts = await _authOptions();
     await _dio.post(
       '/api/reels/$reelId/view',
-      data: {if (watchSeconds != null) 'watch_seconds': watchSeconds},
+      data: {'watch_seconds': ?watchSeconds},
       options: opts,
     );
   }
@@ -445,7 +445,7 @@ class VideoService {
     if (token == null || token.isEmpty) {
       throw Exception('Not authenticated. Please log in again.');
     }
-    if (token == null || token.isEmpty) {
+    if (token.isEmpty) {
       throw Exception('Not authenticated. Please log in again.');
     }
     final formData = FormData();

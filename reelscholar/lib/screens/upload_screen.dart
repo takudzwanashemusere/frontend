@@ -31,10 +31,10 @@ class _UploadScreenState extends State<UploadScreen>
   Uint8List? _fileBytes;
   int _fileSizeBytes = 0;
   bool _isUploading = false;
-  bool _isValidating = false;
+  final bool _isValidating = false;
   int _videoDurationSeconds = 30; // default fallback
   double _uploadProgress = 0.0;
-  String _validatingStatus = 'Checking content...';
+  final String _validatingStatus = 'Checking content...';
 
   static const int _hardLimitBytes = 100 * 1024 * 1024; // 100 MB
   static const int _warnLimitBytes = 50 * 1024 * 1024;  // 50 MB
