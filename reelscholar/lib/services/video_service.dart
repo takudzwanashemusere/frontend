@@ -16,6 +16,9 @@ class VideoService {
 
   static Future<Options> _authOptions() async {
     final token = await AuthService.getToken();
+    if (token == null || token.isEmpty) {
+      throw Exception('Not authenticated. Please log in again.');
+    }
     return Options(headers: {
       'Authorization': 'Bearer $token',
       'Accept': 'application/json',
@@ -328,6 +331,9 @@ class VideoService {
     void Function(double progress)? onProgress,
   }) async {
     final token = await AuthService.getToken();
+    if (token == null || token.isEmpty) {
+      throw Exception('Not authenticated. Please log in again.');
+    }
     final formData = FormData();
 
     formData.fields.add(MapEntry('caption', caption));
@@ -436,6 +442,12 @@ class VideoService {
     File? profilePicture,
   }) async {
     final token = await AuthService.getToken();
+    if (token == null || token.isEmpty) {
+      throw Exception('Not authenticated. Please log in again.');
+    }
+    if (token == null || token.isEmpty) {
+      throw Exception('Not authenticated. Please log in again.');
+    }
     final formData = FormData();
     if (fullName != null && fullName.isNotEmpty) {
       formData.fields.add(MapEntry('full_name', fullName));
