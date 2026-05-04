@@ -18,7 +18,8 @@ Future<List<String>> _apiFetchFaculties() async {
     );
     if (res.statusCode == 200) {
       final body = json.decode(res.body);
-      final raw = body['faculties'];
+      // API may return { data: [...] } or { faculties: [...] }
+      final raw = body['data'] ?? body['faculties'];
       if (raw is List) return raw.map((e) => e.toString()).toList();
     }
   } catch (_) {}
@@ -90,6 +91,8 @@ class _RegisterScreenState extends State<RegisterScreen>
 
     _animController.forward();
     _schoolIdController.addListener(_onStudentIdChanged);
+    // Load faculties immediately so the dropdown is ready when the user reaches it
+    _loadFaculties();
   }
 
   void _onStudentIdChanged() {

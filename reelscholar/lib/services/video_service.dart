@@ -198,7 +198,8 @@ class VideoService {
 
   static Future<void> markAllNotificationsRead() async {
     final opts = await _authOptions();
-    await _dio.post('/api/notifications/read', options: opts);
+    // ids: null signals the API to mark ALL notifications as read
+    await _dio.post('/api/notifications/read', data: {'ids': null}, options: opts);
   }
 
   static Future<List<Map<String, dynamic>>> searchVideos(String query, {String? school}) async {
@@ -429,6 +430,123 @@ class VideoService {
       final opts = await _authOptions();
       await _dio.post('/api/auth/logout', options: opts);
     } catch (_) {}
+  }
+
+  // ─── Reels ──────────────────────────────────────────────────────────────────
+
+  /// Delete a reel you uploaded.
+  static Future<void> deleteReel(dynamic reelId) async {
+    final opts = await _authOptions();
+    await _dio.delete('/api/reels/$reelId', options: opts);
+  }
+
+  // ─── Comments ───────────────────────────────────────────────────────────────
+
+  /// Reply to a comment.
+  /// [replyToUserId] is optional — tags a specific user in the reply.
+  static Future<Map<String, dynamic>> replyToComment(
+    dynamic commentId,
+    String body, {
+    String? replyToUserId,
+  }) async {
+    final opts = await _authOptions();
+    final response = await _dio.post(
+      '/api/comments/$commentId/reply',
+      data: {
+        'body': body,
+        if (replyToUserId != null) 'reply_to_user_id': replyToUserId,
+      },
+      options: opts,
+    );
+    final raw = response.data;
+    return Map<String, dynamic>.from(raw is Map ? (raw['data'] ?? raw['comment'] ?? raw) : {});
+  }
+
+  /// Get all replies for a comment (paginated).
+  static Future<List<Map<String, dynamic>>> getCommentReplies(
+    dynamic commentId, {
+    int page = 1,
+  }) async {
+    final opts = await _authOptions();
+    final response = await _dio.get(
+      '/api/comments/$commentId/replies',
+      queryParameters: {'page': page},
+      options: opts,
+    );
+    final raw = response.data;
+    final List list = (raw is Map ? (raw['data'] ?? raw['replies'] ?? []) : raw) as List? ?? [];
+    return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
+  /// Delete a comment you posted.
+  static Future<void> deleteComment(dynamic commentId) async {
+    final opts = await _authOptions();
+    await _dio.delete('/api/comments/$commentId', options: opts);
+  }
+
+  // ─── Profile ────────────────────────────────────────────────────────────────
+
+  /// Change the authenticated user's password.
+  static Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String passwordConfirmation,
+  }) async {
+    final opts = await _authOptions();
+    await _dio.put(
+      '/api/profile/password',
+      data: {
+        'current_password': currentPassword,
+        'password': newPassword,
+        'password_confirmation': passwordConfirmation,
+      },
+      options: opts,
+    );
+  }
+
+  // ─── Progress ───────────────────────────────────────────────────────────────
+
+  /// Fetch the leaderboard.
+  /// [scope] must be one of: programme | faculty | global
+  static Future<List<Map<String, dynamic>>> getLeaderboard({String scope = 'global'}) async {
+    final opts = await _authOptions();
+    final response = await _dio.get(
+      '/api/progress/leaderboard',
+      queryParameters: {'scope': scope},
+      options: opts,
+    );
+    final raw = response.data;
+    final List list = (raw is Map ? (raw['data'] ?? raw['leaderboard'] ?? []) : raw) as List? ?? [];
+    return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
+  /// Fetch the activity heatmap for the authenticated user.
+  static Future<Map<String, dynamic>> getHeatmap() async {
+    final opts = await _authOptions();
+    final response = await _dio.get('/api/progress/heatmap', options: opts);
+    final raw = response.data;
+    return Map<String, dynamic>.from(raw is Map ? (raw['data'] ?? raw) : {});
+  }
+
+  /// Fetch XP history (paginated).
+  static Future<List<Map<String, dynamic>>> getXpHistory({int page = 1}) async {
+    final opts = await _authOptions();
+    final response = await _dio.get(
+      '/api/progress/xp',
+      queryParameters: {'page': page},
+      options: opts,
+    );
+    final raw = response.data;
+    final List list = (raw is Map ? (raw['data'] ?? []) : raw) as List? ?? [];
+    return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
+  /// Fetch a public progress summary for any user.
+  static Future<Map<String, dynamic>> getPublicProgress(dynamic userId) async {
+    final opts = await _authOptions();
+    final response = await _dio.get('/api/progress/profile/$userId', options: opts);
+    final raw = response.data;
+    return Map<String, dynamic>.from(raw is Map ? (raw['data'] ?? raw) : {});
   }
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
